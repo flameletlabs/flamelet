@@ -1,4 +1,4 @@
-# flamelet-priv
+# flamelet
 
 ## Leverages on
 
