@@ -294,6 +294,19 @@ print_success() {
   echo "flamelet has been installed"
 }
 
+check_flamelet_bin() {
+  if [ ! -e "$HOME/bin/flamelet" ]; then
+    echo "$HOME/bin/flamelet does not exist."
+    if [ ! -d "$HOME/.flamelet/bin" ]; then
+      mkdir -p "$HOME/.flamelet/bin"
+    fi
+    ln -s "$HOME/.flamelet/bin/flamelet" "$HOME/bin/flamelet"
+    echo "Created symbolic link from $HOME/.flamelet/bin/flamelet to $HOME/bin/flamelet"
+  else
+    echo "$HOME/bin/flamelet exists."
+  fi
+}
+
 main() {
   setup_color
 
@@ -320,7 +333,7 @@ EOF
   fi
 
   setup_flamelet
-
+  check_flamelet_bin
   print_success
 }
 
