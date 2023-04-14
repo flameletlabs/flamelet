@@ -39,8 +39,7 @@ HOME="${HOME:-$(eval echo ~$USER)}"
 custom_flamelet=${FLAMELET:+yes}
 
 # Default value for $FLAMELET
-# FLAMELET="${FLAMELET:-$HOME/.flamelet/bin}"
-FLAMELET="${FLAMELET:-/tmp/.flamelet/bin}"
+FLAMELET="${FLAMELET:-$HOME/.flamelet/bin}"
 
 # Default settings
 REPO=${REPO:-flameletlabs/flamelet}
