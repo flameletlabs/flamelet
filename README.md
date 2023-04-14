@@ -1,7 +1,3 @@
 # flamelet
 
-## Leverages on
-
-- distrobox
-- debops
-- https://github.com/CentOS/ansible-infra-playbooks (eventually)
+A DevOps tool for remote infrastructure management.
