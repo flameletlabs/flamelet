@@ -300,6 +300,9 @@ check_flamelet_bin() {
     if [ ! -d "$HOME/.flamelet/bin" ]; then
       mkdir -p "$HOME/.flamelet/bin"
     fi
+    if [ ! -d "$HOME/bin" ]; then
+      mkdir -p "$HOME/bin"
+    fi
     ln -s "$FLAMELET/flamelet" "$HOME/bin/flamelet"
     echo "Created symbolic link from $FLAMELET/flamelet to $HOME/bin/flamelet"
     echo
