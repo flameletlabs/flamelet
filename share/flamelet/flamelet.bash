@@ -178,7 +178,7 @@ _dockerPermsAvailable_() {
     #     fi
     # fi
 
-    (_commandExists_ docker && _execute_ -s "rsync --version" "rsync check") || warning "rsync check"
+    (_commandExists_ docker && _execute_ -s "docker --version" "docker check") || warning "docker check"
 
     if [[ ${_docker} == true ]]; then
         debug 'Docker available.'
@@ -253,6 +253,34 @@ _checkoutFlameletTenantRepo_() {
 
     if [ ! -d ".git" ]; then
         _execute_ -vs "git clone \"${CFG_FLAMELET_TENANT_REPO}\" ."
+    else
+        _execute_ -vs "git fetch --all"
+        _execute_ -vs "git reset --hard origin/HEAD"
+    fi
+
+    return 0
+}
+
+_updateFlamelet_() {
+    # DESC:
+    #         Git checkout flamelet app repo
+    # OUTS:
+    #         0 if true
+    #         1 if false
+    local _path
+    local REPO=${REPO:-flameletlabs/flamelet}
+    local REMOTE=${REMOTE:-https://github.com/${REPO}.git}
+
+    _path="${HOME}/.flamelet/bin"
+    # _path="\${HOME}/.flamelet/tenant"
+
+    debug "Checkout ${CFG_FLAMELET_TENANT_REPO}"
+
+    _execute_ -vs "mkdir -p ${_path}"
+    _execute_ -vs "cd ${_path}"
+
+    if [ ! -d ".git" ]; then
+        _execute_ -vs "git clone \"${REMOTE}\" ."
     else
         _execute_ -vs "git fetch --all"
         _execute_ -vs "git reset --hard origin/HEAD"
