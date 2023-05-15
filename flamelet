@@ -20,8 +20,9 @@ _mainScript_() {
     local _command="${ARGS[0]:-unset}"
     local _option="${OPTION:-unset}"
 
+    # Check for required arguments
     _varIsFalse_ "${TENANT}" && \
-        [[ ! $"${_command}" == 'sysinfo' ]] && \
+        [[ ! $"${_command}" == 'sysinfo' && ! $"${_command}" == 'update' ]] && \
         fatal "Missing required tenant argument to ${FUNCNAME[0]}"
 
     local CFG_SSH_OPTIONS=()
@@ -72,6 +73,11 @@ _mainScript_() {
             _usage_
             _safeExit_
             ;;
+        update)
+            echo "update"
+            _updateFlamelet_
+            _safeExit_
+            ;;
         installdeps)
             echo "installdeps"
             _installDeps_
@@ -93,7 +99,9 @@ _mainScript_() {
             _safeExit_
             ;;
         installansible)
-            echo "ansible"
+            echo "installansible"
+            [ -n "${CFG_FLAMELET_TENANT_REPO}" ] && \
+                _checkoutFlameletTenantRepo_
             _installAnsible_
             _safeExit_
             ;;
