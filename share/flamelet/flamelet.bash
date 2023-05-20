@@ -76,7 +76,7 @@ _installDeps_() {
             _cmd=( pkg install -y bash tree rsync git-lite tmux ccze ncdu )
             ;;
         openbsd)
-            _cmd=( pkg_add -U -I bash tree rsync git python3 rust )
+            _cmd=( pkg_add -U -I bash tree rsync-- git python3 rust )
             ;;
         *)
             echo "we're on unknown"
