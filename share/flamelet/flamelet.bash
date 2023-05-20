@@ -76,7 +76,7 @@ _installDeps_() {
             _cmd=( pkg install -y bash tree rsync git-lite tmux ccze ncdu )
             ;;
         openbsd)
-            _cmd=( pkg_add -U -I bash tree rsync git python3 )
+            _cmd=( pkg_add -U -I bash tree rsync git python3 rust )
             ;;
         *)
             echo "we're on unknown"
@@ -268,13 +268,12 @@ _updateFlamelet_() {
     #         0 if true
     #         1 if false
     local _path
-    local REPO=${REPO:-flameletlabs/flamelet}
-    local REMOTE=${REMOTE:-https://github.com/${REPO}.git}
+    local _remote=${REMOTE:-https://github.com/flameletlabs/flamelet.git}
 
     _path="${HOME}/.flamelet/bin"
     # _path="\${HOME}/.flamelet/tenant"
 
-    debug "Checkout ${CFG_FLAMELET_TENANT_REPO}"
+    debug "Checkout ${REMOTE}"
 
     _execute_ -vs "mkdir -p ${_path}"
     _execute_ -vs "cd ${_path}"
