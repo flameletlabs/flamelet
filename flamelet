@@ -51,6 +51,9 @@ _mainScript_() {
     ( _isFile_ "${HOME}/.flamelet/env.sh" ) && \
         _sourceFile_ "${HOME}/.flamelet/env.sh"
 
+    ( _isFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh" ) && \
+        _sourceFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh"
+
     debug "#####"
     debug "Running on ${HOSTNAME}"
     debug "#####"
