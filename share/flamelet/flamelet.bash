@@ -251,6 +251,11 @@ _checkoutFlameletTenantRepo_() {
     _execute_ -vs "cd ${_path}"
     # _execute_ -vs "ssh-add -L"
 
+    [ -n "${CFG_GIT_OPTIONS}" ] && \
+        export GIT_SSH_COMMAND=${CFG_GIT_OPTIONS}
+
+    export ANSIBLE_CONFIG=${CFG_ANSIBLE_CONFIG}
+
     if [ ! -d ".git" ]; then
         _execute_ -vs "git clone \"${CFG_FLAMELET_TENANT_REPO}\" ."
     else
