@@ -203,6 +203,7 @@ _installAnsible_() {
 
     # which python
     # which pip
+    # export
 
     debug "Install ${CFG_ANSIBLE_VERSION}"
     debug "Inventory ${CFG_ANSIBLE_INVENTORY}"
