@@ -285,7 +285,7 @@ _updateFlamelet_() {
         _execute_ -vs "git clone \"${REMOTE}\" ."
     else
         _execute_ -vs "git fetch --all"
-        _execute_ -vs "git reset --hard origin/HEAD"
+        _execute_ -vs "git reset --hard origin/main"
     fi
 
     return 0
