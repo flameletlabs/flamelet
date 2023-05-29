@@ -33,16 +33,16 @@ EOF
 _scp_options=${CFG_SCP_OPTIONS:-${CFG_SSH_OPTIONS}}
 
     _execute_ -vs "scp -q -B -C ${_scp_options:+"$_scp_options" }\
-$(_findBaseDir_)/../../flamelet ${CFG_SSH_CONTROLLER}:${_path}/flamelet" \
+$(_findBaseDir_)/../../flamelet ${CFG_SSH_CONTROLLER}:\${_path}/flamelet" \
 "Install flamelet script"
 
     _execute_ -vs "scp -q -B -C ${_scp_options:+"$_scp_options" }\
-$(_findBaseDir_)/{${_files}} ${CFG_SSH_CONTROLLER}:${_path}/share/flamelet/" \
+$(_findBaseDir_)/{${_files}} ${CFG_SSH_CONTROLLER}:\${_path}/share/flamelet/" \
 "Install flamelet libraries"
 
     (_isFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh") && \
         _execute_ -vs "scp -q -B -C ${_scp_options:+"$_scp_options" }\
-${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh ${CFG_SSH_CONTROLLER}:\${HOME}/.flamelet/env.sh" \
+${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh ${CFG_SSH_CONTROLLER}:\${_path}/../env.sh" \
 "Install environment" || \
 info "Environment not defined"
 }
