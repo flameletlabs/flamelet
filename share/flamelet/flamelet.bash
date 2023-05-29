@@ -30,8 +30,6 @@ _installRemote_() {
     rm -f ${HOME}/.flamelet/env.sh
 EOF
 
-DOCKER_LABEL=${GIT_TAG:-${GIT_COMMIT_AND_DATE:-latest}}
-
 _scp_options=${CFG_SCP_OPTIONS:-${CFG_SSH_OPTIONS}}
 
     _execute_ -vs "scp -q -B -C ${_scp_options:+"$_scp_options" }\
