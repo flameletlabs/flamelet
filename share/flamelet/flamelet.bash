@@ -17,7 +17,7 @@ _cleanOptions_() {
 }
 
 _installRemote_() {
-    local _path _files
+    local _path _files _scp_options
 
     _path=".flamelet/bin"
     _files="alerts.bash,arrays.bash,checks.bash,debug.bash,files.bash,setv.bash,flamelet.bash,misc.bash,template_utils.bash"
@@ -30,16 +30,20 @@ _installRemote_() {
     rm -f ${HOME}/.flamelet/env.sh
 EOF
 
-    _execute_ -vs "scp -q -B -C ${CFG_SSH_OPTIONS:+"$CFG_SSH_OPTIONS" }\
-$(_findBaseDir_)/../../flamelet ${CFG_SSH_CONTROLLER}:\${_path}/flamelet" \
+DOCKER_LABEL=${GIT_TAG:-${GIT_COMMIT_AND_DATE:-latest}}
+
+_scp_options=${CFG_SCP_OPTIONS:-${CFG_SSH_OPTIONS}}
+
+    _execute_ -vs "scp -q -B -C ${_scp_options:+"$_scp_options" }\
+$(_findBaseDir_)/../../flamelet ${CFG_SSH_CONTROLLER}:${_path}/flamelet" \
 "Install flamelet script"
 
-    _execute_ -vs "scp -q -B -C ${CFG_SSH_OPTIONS:+"$CFG_SSH_OPTIONS" }\
-$(_findBaseDir_)/{${_files}} ${CFG_SSH_CONTROLLER}:\${_path}/share/flamelet/" \
+    _execute_ -vs "scp -q -B -C ${_scp_options:+"$_scp_options" }\
+$(_findBaseDir_)/{${_files}} ${CFG_SSH_CONTROLLER}:${_path}/share/flamelet/" \
 "Install flamelet libraries"
 
     (_isFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh") && \
-        _execute_ -vs "scp -q -B -C ${CFG_SSH_OPTIONS:+"$CFG_SSH_OPTIONS" }\
+        _execute_ -vs "scp -q -B -C ${_scp_options:+"$_scp_options" }\
 ${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh ${CFG_SSH_CONTROLLER}:\${HOME}/.flamelet/env.sh" \
 "Install environment" || \
 info "Environment not defined"
