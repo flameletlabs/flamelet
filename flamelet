@@ -49,12 +49,6 @@ _mainScript_() {
         ( _isFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/config.sh" ) && \
             _sourceFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/config.sh"
 
-    ( _isFile_ "${HOME}/.flamelet/env.sh" ) && \
-        _sourceFile_ "${HOME}/.flamelet/env.sh"
-
-    ( _isFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh" ) && \
-        _sourceFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh"
-
     debug "#####"
     debug "Running on ${HOSTNAME}"
     debug "#####"
@@ -489,6 +483,14 @@ IFS=$' \n\t'
 
 # Run in debug mode
 # set -o xtrace
+
+if [ -f "${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh" ]; then
+    source "${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh"
+fi
+
+if [ -f "${HOME}/.flamelet/env.sh" ]; then
+    source "${HOME}/.flamelet/env.sh"
+fi
 
 # Source utility functions
 _sourceUtilities_ "$(_findBaseDir_)/share/flamelet"
