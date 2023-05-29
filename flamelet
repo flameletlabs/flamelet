@@ -26,6 +26,7 @@ _mainScript_() {
         fatal "Missing required tenant argument to ${FUNCNAME[0]}"
 
     local CFG_SSH_OPTIONS=()
+    local CFG_SCP_OPTIONS=()
     local CFG_GIT_OPTIONS=()
     # declare -A CFG_SSH_OPTIONS=()
     # local CFG_ENV_CONTROLLER
