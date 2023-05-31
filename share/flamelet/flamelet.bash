@@ -273,7 +273,7 @@ _updateFlamelet_() {
     #         0 if true
     #         1 if false
     local _path
-    local _remote=${REMOTE:-https://github.com/flameletlabs/flamelet.git}
+    local _remote="https://github.com/flameletlabs/flamelet.git"
 
     _path="${HOME}/.flamelet/bin"
     # _path="\${HOME}/.flamelet/tenant"
