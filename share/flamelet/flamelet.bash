@@ -278,13 +278,13 @@ _updateFlamelet_() {
     _path="${HOME}/.flamelet/bin"
     # _path="\${HOME}/.flamelet/tenant"
 
-    debug "Checkout ${REMOTE}"
+    debug "Checkout ${_remote}"
 
     _execute_ -vs "mkdir -p ${_path}"
     _execute_ -vs "cd ${_path}"
 
     if [ ! -d ".git" ]; then
-        _execute_ -vs "git clone \"${REMOTE}\" ."
+        _execute_ -vs "git clone \"${_remote}\" ."
     else
         _execute_ -vs "git fetch --all"
         _execute_ -vs "git reset --hard origin/main"
