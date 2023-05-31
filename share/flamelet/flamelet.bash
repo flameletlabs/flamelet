@@ -75,10 +75,10 @@ _installDeps_() {
             echo "we're on windows"
             ;;
         freebsd)
-            _cmd=( pkg install -y bash tree rsync git-lite tmux ccze ncdu )
+            _cmd=( pkg install -y bash tree rsync git-lite tmux ccze ncdu rust )
             ;;
         openbsd)
-            _cmd=( pkg_add -U -I bash tree rsync-- git python3 rust )
+            _cmd=( pkg_add -U -I bash tree rsync-- git ncdu python3 rust )
             ;;
         *)
             echo "we're on unknown"
