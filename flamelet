@@ -106,8 +106,11 @@ _mainScript_() {
             ;;
         ansible)
             echo "ansible"
-            [ -n "${CFG_FLAMELET_TENANT_REPO}" ] && \
-                _checkoutFlameletTenantRepo_
+            if _varIsTrue_ "${REMOTE}"
+            then
+                [ -n "${CFG_FLAMELET_TENANT_REPO}" ] && \
+                    _checkoutFlameletTenantRepo_
+            fi
             _ansible_
             _safeExit_
             ;;
@@ -142,6 +145,7 @@ VERBOSE=false
 FORCE=false
 DRYRUN=false
 REMOTE=false
+OFFLINE=false
 TENANT=false
 declare -a ARGS=()
 
@@ -401,6 +405,7 @@ _parseOptions_() {
                 LOGFILE="${1}"
                 ;;
             -r | --remote) REMOTE=true ;;
+            -l | --offline) OFFLINE=true ;;
             -n | --dryrun) DRYRUN=true ;;
             -v | --verbose) VERBOSE=true ;;
             -q | --quiet) QUIET=true ;;
@@ -442,6 +447,7 @@ _usage_() {
     --logfile [FILE]        Full PATH to logfile.  (Default is '${HOME}/logs/$(basename "$0").log')
     -n, --dryrun            Non-destructive. Makes no permanent changes.
     -r, --remote            Run over remote server
+    -l, --offline           Offline mode (no checkout)
     -q, --quiet             Quiet (no output)
     -v, --verbose           Output more information. (Items echoed to 'verbose')
     --force                 Skip all user interaction.  Implied 'Yes' to all actions.
