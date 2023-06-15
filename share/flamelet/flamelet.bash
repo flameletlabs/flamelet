@@ -54,7 +54,7 @@ _installDeps_() {
     case $(_detectOS_) in
         linux)
             case $(_detectLinuxDistro_) in
-                debian* | ubuntu)
+                debian* | ubuntu | pop!_os)
                     _cmd=( env DEBIAN_FRONTEND=noninteractive apt-get -y install bash tree rsync git tmux ccze ncdu virt-what python3 python3-venv sshpass )
                     ;;
                 centos*)
