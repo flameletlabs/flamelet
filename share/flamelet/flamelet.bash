@@ -53,12 +53,14 @@ _installDeps_() {
 
     case $(_detectOS_) in
         linux)
-            case $(_detectLinuxDistro_) in
-                debian* | ubuntu | pop!_os)
+            case $(_detectLinuxDistroFamily_) in
+                debian)
                     _cmd=( env DEBIAN_FRONTEND=noninteractive apt-get -y install bash tree rsync git tmux ccze ncdu virt-what python3 python3-venv sshpass )
+                    debug "we're on Debian family"
                     ;;
-                centos*)
+                redhat)
                     _cmd=( yum -y install bash hostname tree rsync git tmux ccze ncdu python3 )
+                    debug "we're on RedHat family"
                     ;;
                 *)
                     echo "we're on unknown"
