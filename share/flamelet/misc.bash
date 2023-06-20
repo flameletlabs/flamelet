@@ -128,6 +128,31 @@ _detectLinuxDistro_() {
     printf "%s" "${_distro}" | tr '[:upper:]' '[:lower:]'
 }
 
+_detectLinuxDistroFamily_() {
+    # DESC:
+    #					Detects the Linux distribution family of the host the script is run on
+    # ARGS:
+    #					None
+    # OUTS:
+    #					0 - If Linux distro family is successfully detected
+    #					1 - If unable to detect OS distro family or not on Linux
+    #					stdout: Prints name of Linux distro family in lower case (ex: 'debian' or 'centos')
+    # USAGE:
+    #					_detectLinuxDistroFamily_
+    # CREDIT:
+    #         https://github.com/labbots/bash-utility
+
+    local _distrofamily
+    if _commandExists_ apt-get; then
+        _distrofamily="debian"
+    elif _commandExists_ yum; then
+        _distrofamily="redhat"
+    else
+        return 1
+    fi
+    printf "%s" "${_distrofamily}" | tr '[:upper:]' '[:lower:]'
+}
+
 _execute_() {
     # DESC:
     #         Executes commands while respecting global DRYRUN, VERBOSE, LOGGING, and QUIET flags
