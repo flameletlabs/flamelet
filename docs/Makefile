@@ -1,5 +1,5 @@
 .ONESHELL:
-.PHONY: clean venv tests scripts
+.PHONY: clean venv tests build
 
 ACTIVATE_VENV:=. venv/bin/activate
 
@@ -17,3 +17,11 @@ install:
 clean:
 	@echo "Cleaning previous python virtual environment..."
 	@rm -rf venv
+
+build:
+	@$(ACTIVATE_VENV)
+	@mkdocs build -f flamelet/mkdocs.yml
+
+serve:
+	@$(ACTIVATE_VENV)
+	@mkdocs serve -f flamelet/mkdocs.yml
