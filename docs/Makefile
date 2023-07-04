@@ -3,7 +3,7 @@
 
 ACTIVATE_VENV:=. venv/bin/activate
 
-setup: venv install scripts
+setup: venv install
     
 venv:
 	@echo "Creating python virtual environment in 'venv' folder..."
