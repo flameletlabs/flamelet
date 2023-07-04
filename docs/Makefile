@@ -1,6 +1,19 @@
+.ONESHELL:
+.PHONY: clean venv tests scripts
+
+ACTIVATE_VENV:=. venv/bin/activate
+
+setup: venv install scripts
+    
 venv:
-	python3 -m venv venv
-	source venv/bin/activate
+	@echo "Creating python virtual environment in 'venv' folder..."
+	@python3 -m venv venv
+
+install:
+	@echo "Installing python packages..."
+	@$(ACTIVATE_VENV)
+	@pip install -r requirements.txt
 
 clean:
-	rm -rf venv
+	@echo "Cleaning previous python virtual environment..."
+	@rm -rf venv
