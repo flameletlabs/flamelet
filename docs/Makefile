@@ -27,4 +27,5 @@ serve:
 	@mkdocs serve -f ../mkdocs.yml
 
 deploy:
+	@$(ACTIVATE_DOCS_VENV)
 	@mkdocs gh-deploy -f ../mkdocs.yml
