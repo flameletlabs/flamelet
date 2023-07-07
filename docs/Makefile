@@ -1,7 +1,7 @@
 .ONESHELL:
 .PHONY: clean venv tests build
 
-ACTIVATE_VENV:=. venv/bin/activate
+ACTIVATE_DOCS_VENV:=. venv/bin/activate
 
 setup: venv install
     
@@ -11,7 +11,7 @@ venv:
 
 install:
 	@echo "Installing python packages..."
-	@$(ACTIVATE_VENV)
+	@$(ACTIVATE_DOCS_VENV)
 	@pip install -r requirements.txt
 
 clean:
@@ -19,9 +19,12 @@ clean:
 	@rm -rf venv
 
 build:
-	@$(ACTIVATE_VENV)
-	@mkdocs build -f flamelet/mkdocs.yml
+	@$(ACTIVATE_DOCS_VENV)
+	@mkdocs build -f ../mkdocs.yml
 
 serve:
-	@$(ACTIVATE_VENV)
-	@mkdocs serve -f flamelet/mkdocs.yml
+	@$(ACTIVATE_DOCS_VENV)
+	@mkdocs serve -f ../mkdocs.yml
+
+deploy:
+	@mkdocs gh-deploy -f ../mkdocs.yml
