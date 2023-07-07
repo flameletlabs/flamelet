@@ -1,4 +1,4 @@
-# Welcome to Flamelet
+# Welcome to flamelet
 
 For full documentation visit [mkdocs.org](https://www.mkdocs.org).
 
