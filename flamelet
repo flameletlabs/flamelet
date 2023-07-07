@@ -100,17 +100,16 @@ _mainScript_() {
         installansible)
             echo "installansible"
             [ -n "${CFG_FLAMELET_TENANT_REPO}" ] && \
-                _checkoutFlameletTenantRepo_
+                _varIsFalse_ "${OFFLINE}" && \
+                    _checkoutFlameletTenantRepo_
             _installAnsible_
             _safeExit_
             ;;
         ansible)
             echo "ansible"
-            #if _varIsTrue_ "${REMOTE}"
-            #then
-                [ -n "${CFG_FLAMELET_TENANT_REPO}" ] && \
+            [ -n "${CFG_FLAMELET_TENANT_REPO}" ] && \
+                _varIsFalse_ "${OFFLINE}" && \
                     _checkoutFlameletTenantRepo_
-            #fi
             _ansible_
             _safeExit_
             ;;
