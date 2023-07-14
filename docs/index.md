@@ -51,7 +51,7 @@ Flamelet is installed by running one of the following commands in your terminal.
 
 
 ### Source of adding new roles
-Ansible Galaxy prodes a vast amount of roles which can be integrated into Flamelet to extend its functionality. Simply go to https://galaxy.ansible.com/, filter for "Roles" and look for what you need.
+[Ansible Galaxy](https://galaxy.ansible.com/) prodes a vast amount of roles which can be integrated into Flamelet to extend its functionality. Simply go to [Ansible Galaxy](https://galaxy.ansible.com/), filter for "Roles" and look for what you need.
 
 ## Updating Flamelet
 
