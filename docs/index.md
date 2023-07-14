@@ -18,15 +18,27 @@ For full documentation visit [flamelet.org](https://www.flamelet.org).
 
 
 ## Introduction
+A DevOps tool for remote infrastructure management.
 
 ## Use Cases
-TEST TODAY
+
+## Prerequisites
+- A Unix-like operating system: macOS, Linux, BSD. On Windows: WSL2 is preferred, but cygwin or msys also mostly work.
+- `bash` should be installed
+- `curl` or `wget` should be installed
+- `git` should be installed
+
 
 ## Installation
-bla
+Flamelet is installed by running one of the following commands in your terminal. You can install this via the command-line with either `curl`, `wget` or another similar tool.
+
+| Method    | Command                                                                                               |
+| :-------- | :---------------------------------------------------------------------------------------------------- |
+| **curl**      | `sh -c "$(curl -fsSL https://raw.githubusercontent.com/flameletlabs/flamelet/main/tools/install.sh)"` |
+| **wget**      | `sh -c "$(wget -O- https://raw.githubusercontent.com/flameletlabs/flamelet/main/tools/install.sh)"`   |
+| **fetch**     | `sh -c "$(fetch -o - https://raw.githubusercontent.com/flameletlabs/flamelet/main/tools/install.sh)"` |
 
 ## First Run
 
 
 ## Examples
-
