@@ -201,20 +201,21 @@ _installAnsible_() {
     #         1 if false
 
     # will be: flamelet-ansible-6.1.0
-    _setv_create "ansible-${CFG_TENANT}-${CFG_ANSIBLE_VERSION}"
+    _setv_create "${CFG_ANSIBLE_PACKAGE}-${CFG_TENANT}-${CFG_ANSIBLE_VERSION}"
     _setv_list
-    setv "ansible-${CFG_TENANT}-${CFG_ANSIBLE_VERSION}"
+    setv "${CFG_ANSIBLE_PACKAGE}-${CFG_TENANT}-${CFG_ANSIBLE_VERSION}"
 
     # which python
     # which pip
     # export
 
+    debug "Package ${CFG_ANSIBLE_PACKAGE}"
     debug "Install ${CFG_ANSIBLE_VERSION}"
     debug "Inventory ${CFG_ANSIBLE_INVENTORY}"
     debug "Playbook ${CFG_ANSIBLE_PLAYBOOK}"
 
     python3 -m pip install --upgrade pip
-    python3 -m pip install ansible==${CFG_ANSIBLE_VERSION}
+    python3 -m pip install ${CFG_ANSIBLE_PACKAGE}==${CFG_ANSIBLE_VERSION}
     python3 -m pip install jmespath
     python3 -m pip install six
     # python3 -m pip install ansible-runner
@@ -306,7 +307,7 @@ _ansible_() {
     #         0 if true
     #         1 if false
 
-    setv "ansible-${CFG_TENANT}-${CFG_ANSIBLE_VERSION}"
+    setv "${CFG_ANSIBLE_PACKAGE}-${CFG_TENANT}-${CFG_ANSIBLE_VERSION}"
     
     export ANSIBLE_CONFIG=${CFG_ANSIBLE_CONFIG}
 
