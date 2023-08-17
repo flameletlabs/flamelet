@@ -120,6 +120,9 @@ _mainScript_() {
             ;;
         checkout)
             echo "checkout"
+            [ -n "${CFG_FLAMELET_TENANT_REPO}" ] && \
+                _varIsFalse_ "${OFFLINE}" && \
+                    _checkoutFlameletTenantRepo_
             _safeExit_
             ;;
         *)
