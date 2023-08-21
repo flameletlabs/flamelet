@@ -226,7 +226,7 @@ _nmap_() {
         # pkill -f "python3 -m http.server 8100"
     else
         info "http.server not running, starting it"
-        _execute_ -vs "cd ${$reports_dir}"
+        _execute_ -vs "cd \"${$reports_dir}\""
         _execute_ -vs "python3 -m http.server 8100 > /dev/null 2>&1 &"
     fi
 
