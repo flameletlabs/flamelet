@@ -230,7 +230,12 @@ _nmap_() {
         _execute_ -vs "python3 -m http.server 8100 > /dev/null 2>&1 &"
     fi
 
-    info "see the report at http://${CFG_SSH_CONTROLLER##*@}:8100/index.html"
+    if _varIsTrue_ "${REMOTE}"
+    then
+        info "see the report at http://${CFG_SSH_CONTROLLER##*@}:8100/index.html"
+    else
+        info "see the report at http://localhost:8100/index.html"
+    fi
 
     return 0
 }
