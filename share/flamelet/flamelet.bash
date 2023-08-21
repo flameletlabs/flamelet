@@ -204,7 +204,7 @@ _nmap_() {
     fi
 
     _execute_ -vs "mkdir -p \"$reports_dir\""
-    echo "<!DOCTYPE html><html><head><style>table { font-family: arial, sans-serif; border-collapse: collapse; width: 30%; } td, th { border: 1px solid #dddddd; text-align: left; padding: 5px; } tr:nth-child(even) { background-color: #f2f2f2; }</style></head><body><h2>Nmap Reports</h2><table><tr><th>Subnet</th><th>IP Range</th><th>Execution Date</th><th>Report</th></tr>" > "$reports_dir/index.html"
+    _execute_ -vs "echo \"<!DOCTYPE html><html><head><style>table { font-family: arial, sans-serif; border-collapse: collapse; width: 30%; } td, th { border: 1px solid #dddddd; text-align: left; padding: 5px; } tr:nth-child(even) { background-color: #f2f2f2; }</style></head><body><h2>Nmap Reports</h2><table><tr><th>Subnet</th><th>IP Range</th><th>Execution Date</th><th>Report</th></tr>\" > \"$reports_dir/index.html\""
 
     for subnet in "${subnets[@]}"; do
         local xml_input="$reports_dir/${subnet}_map.xml"
@@ -216,21 +216,21 @@ _nmap_() {
         _execute_ -vs "sudo nmap $nmap_opts --stylesheet \"$local_stylesheet\" -oX \"$xml_input\" \"$subnet_ip_range\""
         _execute_ -vs "xsltproc -o \"$html_output\" \"$local_stylesheet\" \"$xml_input\""
 
-        echo "<tr><td>$subnet</td><td>$subnet_ip_range</td><td>$execution_date</td><td><a href='${subnet}_nmap_report.html'>Report</a></td></tr>" >> "$reports_dir/index.html"
+        _execute_ -vs "echo \"<tr><td>$subnet</td><td>$subnet_ip_range</td><td>$execution_date</td><td><a href='${subnet}_nmap_report.html'>Report</a></td></tr>\" >> \"$reports_dir/index.html\""
     done
 
-    echo "</table></body></html>" >> "$reports_dir/index.html"
+    _execute_ -vs "echo \"</table></body></html>\" >> \"$reports_dir/index.html\""
 
     if pgrep -f "python3 -m http.server 8100" > /dev/null; then
-        info 'http.server running'
+        info "http.server already running"
         # pkill -f "python3 -m http.server 8100"
     else
-        info 'http.server not running, starting it'
+        info "http.server not running, starting it"
         _execute_ -vs "cd ${$reports_dir}"
         _execute_ -vs "python3 -m http.server 8100 > /dev/null 2>&1 &"
     fi
 
-    info 'see the report at http://${CFG_SSH_CONTROLLER##*@}/index.html'
+    info "see the report at http://${CFG_SSH_CONTROLLER##*@}/index.html"
 
     return 0
 }
