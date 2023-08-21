@@ -221,7 +221,7 @@ _nmap_() {
 
     echo "</table></body></html>" >> "$reports_dir/index.html"
 
-    if ss -tuln | grep -q ":8100 " || netstat -tuln | grep -q ":8100 "; then
+    if pgrep -f "python3 -m http.server 8100" > /dev/null; then
         pkill -f "python3 -m http.server 8100"
     fi
 
