@@ -42,6 +42,7 @@ _mainScript_() {
     local CFG_ANSIBLE_GALAXY_ROLES_REMOVE=""
     local CFG_ANSIBLE_OPTIONS=()
     declare -A CFG_NMAP_SUBNETS=()
+    declare -A CFG_NMAP_SUBNETS_OPTS=()
 
     ( _isDir_ "${HOME}/.flamelet/bin" ) && \
         _setPATH_ "${HOME}/.flamelet/bin"
@@ -95,7 +96,7 @@ _mainScript_() {
             ;;
         nmap)
             echo "nmap"
-            ssh "${CFG_SSH_OPTIONS}" "${CFG_SSH_CONTROLLER}" "$(sshqfunc work)" -- "$(printf "%q" "${_testmsg}")"
+            _nmap_
             _safeExit_
             ;;
         installansible)
