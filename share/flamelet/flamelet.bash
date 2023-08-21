@@ -77,10 +77,10 @@ _installDeps_() {
             echo "we're on windows"
             ;;
         freebsd)
-            _cmd=( pkg install -y bash tree rsync git-lite tmux ccze ncdu rust nmap libxslt )
+            _cmd=( pkg install -y bash tree rsync git-lite tmux ccze ncdu wget nmap libxslt )
             ;;
         openbsd)
-            _cmd=( pkg_add -U -I bash tree rsync-- git ncdu python3 rust nmap libxslt )
+            _cmd=( pkg_add -U -I bash tree rsync-- git ncdu python3 wget nmap libxslt )
             ;;
         *)
             echo "we're on unknown"
