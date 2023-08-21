@@ -55,7 +55,7 @@ _installDeps_() {
         linux)
             case $(_detectLinuxDistroFamily_) in
                 debian)
-                    _cmd=( env DEBIAN_FRONTEND=noninteractive apt-get -y install bash tree rsync git tmux ccze ncdu virt-what python3 python3-venv sshpass )
+                    _cmd=( env DEBIAN_FRONTEND=noninteractive apt-get -y install bash tree rsync git tmux ccze ncdu virt-what python3 python3-venv sshpass nmap xsltproc )
                     debug "we're on Debian family"
                     ;;
                 redhat)
@@ -77,10 +77,10 @@ _installDeps_() {
             echo "we're on windows"
             ;;
         freebsd)
-            _cmd=( pkg install -y bash tree rsync git-lite tmux ccze ncdu rust )
+            _cmd=( pkg install -y bash tree rsync git-lite tmux ccze ncdu rust nmap libxslt )
             ;;
         openbsd)
-            _cmd=( pkg_add -U -I bash tree rsync-- git ncdu python3 rust )
+            _cmd=( pkg_add -U -I bash tree rsync-- git ncdu python3 rust nmap libxslt )
             ;;
         *)
             echo "we're on unknown"
@@ -191,6 +191,44 @@ _dockerPermsAvailable_() {
         debug 'Docker not available.'
         return 1
     fi
+}
+
+_nmap_() {
+    local stylesheet_url="https://raw.githubusercontent.com/honze-net/nmap-bootstrap-xsl/master/nmap-bootstrap.xsl"
+    local local_stylesheet="/tmp/nmap-bootstrap.xsl"
+    local subnets=("${!CFG_NMAP_SUBNETS[@]}")
+    local reports_dir="/tmp/nmap_reports"
+
+    if [[ ! -f "$local_stylesheet" ]]; then
+        wget -O "$local_stylesheet" "$stylesheet_url"
+    fi
+
+    mkdir -p "$reports_dir"
+    echo "<!DOCTYPE html><html><head><style>table { font-family: arial, sans-serif; border-collapse: collapse; width: 30%; } td, th { border: 1px solid #dddddd; text-align: left; padding: 5px; } tr:nth-child(even) { background-color: #f2f2f2; }</style></head><body><h2>Nmap Reports</h2><table><tr><th>Subnet</th><th>IP Range</th><th>Execution Date</th><th>Report</th></tr>" > "$reports_dir/index.html"
+
+    for subnet in "${subnets[@]}"; do
+        local xml_input="$reports_dir/${subnet}_map.xml"
+        local html_output="$reports_dir/${subnet}_nmap_report.html"
+        local subnet_ip_range="${CFG_NMAP_SUBNETS[$subnet]}"
+        local nmap_opts="${CFG_NMAP_SUBNETS_OPTS[$subnet]:-${CFG_NMAP_OPTS}}"
+        local execution_date=$(date "+%Y-%m-%d %H:%M:%S")
+
+        sudo nmap $nmap_opts --stylesheet "$local_stylesheet" -oX "$xml_input" "$subnet_ip_range"
+        xsltproc -o "$html_output" "$local_stylesheet" "$xml_input"
+
+        echo "<tr><td>$subnet</td><td>$subnet_ip_range</td><td>$execution_date</td><td><a href='${subnet}_nmap_report.html'>Report</a></td></tr>" >> "$reports_dir/index.html"
+    done
+
+    echo "</table></body></html>" >> "$reports_dir/index.html"
+
+    if ss -tuln | grep -q ":8100 " || netstat -tuln | grep -q ":8100 "; then
+        pkill -f "python3 -m http.server 8100"
+    fi
+
+    cd "$reports_dir"
+    python3 -m http.server 8100 > /dev/null 2>&1 &
+
+    return 0
 }
 
 _installAnsible_() {
