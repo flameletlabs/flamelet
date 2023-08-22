@@ -494,6 +494,9 @@ IFS=$' \n\t'
 # Run in debug mode
 # set -o xtrace
 
+# Source utility functions
+_sourceUtilities_ "$(_findBaseDir_)/share/flamelet"
+
 if [ -f "${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh" ]; then
     info "sourcing ${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh"
     source "${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh"
@@ -503,9 +506,6 @@ if [ -f "${HOME}/.flamelet/env.sh" ]; then
     info "sourcing ${HOME}/.flamelet/env.sh"
     source "${HOME}/.flamelet/env.sh"
 fi
-
-# Source utility functions
-_sourceUtilities_ "$(_findBaseDir_)/share/flamelet"
 
 # Initialize color constants
 _setColors_
