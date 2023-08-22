@@ -308,11 +308,13 @@ _checkoutFlameletTenantRepo_() {
     #         0 if true
     #         1 if false
     local _path
+    local _branch="${CFG_FLAMELET_TENANT_BRANCH:-origin/HEAD}"
 
     _path="${HOME}/.flamelet/tenant/flamelet-${_tenant}"
     # _path="\${HOME}/.flamelet/tenant"
 
     debug "Checkout ${CFG_FLAMELET_TENANT_REPO}"
+    debug "Branch ${_branch}"
 
     _execute_ -vs "mkdir -p ${_path}"
     _execute_ -vs "cd ${_path}"
@@ -321,10 +323,10 @@ _checkoutFlameletTenantRepo_() {
     export ANSIBLE_CONFIG=${CFG_ANSIBLE_CONFIG}
 
     if [ ! -d ".git" ]; then
-        _execute_ -vs "git ${CFG_GIT_OPTIONS:+"$CFG_GIT_OPTIONS" }clone \"${CFG_FLAMELET_TENANT_REPO}\" ."
+        _execute_ -vs "git ${CFG_GIT_OPTIONS:+"$CFG_GIT_OPTIONS" }clone -b \"${_branch}\" \"${CFG_FLAMELET_TENANT_REPO}\" ."
     else
         _execute_ -vs "git ${CFG_GIT_OPTIONS:+"$CFG_GIT_OPTIONS" }fetch --all"
-        _execute_ -vs "git ${CFG_GIT_OPTIONS:+"$CFG_GIT_OPTIONS" }reset --hard origin/HEAD"
+        _execute_ -vs "git ${CFG_GIT_OPTIONS:+"$CFG_GIT_OPTIONS" }reset --hard ${_branch}"
     fi
 
     return 0
