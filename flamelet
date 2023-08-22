@@ -47,14 +47,14 @@ _mainScript_() {
     declare -A CFG_NMAP_SUBNETS=()
     declare -A CFG_NMAP_SUBNETS_OPTS=()
 
-    _sourceEnv_
-
     ( _isDir_ "${HOME}/.flamelet/bin" ) && \
         _setPATH_ "${HOME}/.flamelet/bin"
 
     ( _isDir_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}" ) && \
         ( _isFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/config.sh" ) && \
             _sourceFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/config.sh"
+
+    _sourceEnv_
 
     debug "Running on ${HOSTNAME}"
     # debug "${PATH}"
