@@ -495,10 +495,12 @@ IFS=$' \n\t'
 # set -o xtrace
 
 if [ -f "${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh" ]; then
+    info "sourcing ${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh"
     source "${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh"
 fi
 
 if [ -f "${HOME}/.flamelet/env.sh" ]; then
+    info "sourcing ${HOME}/.flamelet/env.sh"
     source "${HOME}/.flamelet/env.sh"
 fi
 
