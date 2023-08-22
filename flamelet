@@ -47,6 +47,8 @@ _mainScript_() {
     declare -A CFG_NMAP_SUBNETS=()
     declare -A CFG_NMAP_SUBNETS_OPTS=()
 
+    _sourceEnv_
+
     ( _isDir_ "${HOME}/.flamelet/bin" ) && \
         _setPATH_ "${HOME}/.flamelet/bin"
 
@@ -54,19 +56,8 @@ _mainScript_() {
         ( _isFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/config.sh" ) && \
             _sourceFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/config.sh"
 
-    debug "#####"
     debug "Running on ${HOSTNAME}"
-    debug "#####"
-
-    debug "${PATH}"
-
-    ( _isFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/config.sh" ) && \
-        info "sourcing ${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh" ; \
-        _sourceFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh"
-
-    ( _isFile_ "${HOME}/.flamelet/env.sh" ) && \
-        info "sourcing ${HOME}/.flamelet/env.sh" ; \
-        _sourceFile_ "${HOME}/.flamelet/env.sh"
+    # debug "${PATH}"
 
     if _varIsTrue_ "${REMOTE}"
     then
