@@ -7,10 +7,21 @@ _cleanOptions_() {
     declare -a _options=("$@")
     declare -a _cleanedOptions
     local _option
+    local _preserve_next=false
 
-    for _option in "${_options[@]}"; do 
-        [[ ! $"${_option}" == '-r' ]] && [[ ! $"${_option}" == '--remote' ]] && \
-        _cleanedOptions+=("${_option}")
+    for _option in "${_options[@]}"; do
+        if [[ $_preserve_next == true ]]; then
+            _cleanedOptions+=("\"$_option\"")
+            _preserve_next=false
+        elif [[ $_option == "-o" || $_option == "--option" ]]; then
+            _preserve_next=true
+            _cleanedOptions+=("$_option")
+        elif [[ $_option == "-r" || $_option == "--remote" ]]; then
+            # Skip the -r or --remote option
+            continue
+        else
+            _cleanedOptions+=("${_option}")
+        fi
     done
 
     printf '%s\n' "${_cleanedOptions[@]}"
@@ -146,18 +157,12 @@ _runRemote_() {
     # Error handling
     declare -f _execute_ &>/dev/null || fatal "_runRemote_ needs function _execute_"
 
+    _remoteOptions="${1//\"/\\\"}"
     debug "remote options: ${_remoteOptions}"
 
     _execute_ -vs "ssh ${CFG_SSH_OPTIONS:+"$CFG_SSH_OPTIONS" }-q -t ${CFG_SSH_CONTROLLER} \
 \"bash -c '\${_path}/flamelet ${_remoteOptions}'\"" \
 "Running '\${_path}/flamelet ${_remoteOptions}' via ssh on '${CFG_SSH_CONTROLLER}'"
-
-# WORKS: CFG_ENV_CONTROLLER="function foo() { uname; }" ; assh sockets flush ; \
-#   ssh -q -t localhost "bash -c '$CFG_ENV_CONTROLLER ; foo'"
-
-#    _execute_ -vs "ssh ${CFG_SSH_OPTIONS:+"$CFG_SSH_OPTIONS" }-q -t ${CFG_SSH_CONTROLLER} \
-# \"bash -c '$CFG_ENV_CONTROLLER ; python3 -V'\"" \
-# "Running '\${_path}/flamelet ${_remoteOptions}' via ssh on '${CFG_SSH_CONTROLLER}'"
 }
 
 _dockerPermsAvailable_() {
@@ -354,6 +359,12 @@ _ansible_() {
     setv "${CFG_ANSIBLE_PACKAGE}-${CFG_TENANT}-${CFG_ANSIBLE_VERSION}"
     
     export ANSIBLE_CONFIG=${CFG_ANSIBLE_CONFIG}
+
+
+    _option="${_option:1:-1}"
+
+    debug "option \"${_option}\""
+    debug "ansible-playbook -i ${CFG_ANSIBLE_INVENTORY} ${CFG_ANSIBLE_OPTIONS:+$CFG_ANSIBLE_OPTIONS } ${_option:+$_option } ${CFG_ANSIBLE_PLAYBOOK}"
 
     _execute_ -vs "\
         ansible-playbook -i ${CFG_ANSIBLE_INVENTORY} ${CFG_ANSIBLE_OPTIONS:+$CFG_ANSIBLE_OPTIONS } ${_option:+$_option } ${CFG_ANSIBLE_PLAYBOOK}"
