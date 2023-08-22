@@ -57,6 +57,14 @@ _mainScript_() {
 
     debug "${PATH}"
 
+    ( _isFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/config.sh" ) && \
+        info "sourcing ${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh" ; \
+        _sourceFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh"
+
+    ( _isFile_ "${HOME}/.flamelet/env.sh" ) && \
+        info "sourcing ${HOME}/.flamelet/env.sh" ; \
+        _sourceFile_ "${HOME}/.flamelet/env.sh"
+
     if _varIsTrue_ "${REMOTE}"
     then
         info "Running remotely"
@@ -496,16 +504,6 @@ IFS=$' \n\t'
 
 # Source utility functions
 _sourceUtilities_ "$(_findBaseDir_)/share/flamelet"
-
-if [ -f "${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh" ]; then
-    info "sourcing ${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh"
-    source "${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh"
-fi
-
-if [ -f "${HOME}/.flamelet/env.sh" ]; then
-    info "sourcing ${HOME}/.flamelet/env.sh"
-    source "${HOME}/.flamelet/env.sh"
-fi
 
 # Initialize color constants
 _setColors_
