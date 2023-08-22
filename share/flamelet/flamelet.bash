@@ -2,17 +2,6 @@
 
 sshqfunc() { echo "bash -c $(printf "%q" "$(declare -f "$@"); $1 \"\$@\"")"; };
 
-_sourceEnv_() {
-
-    ( _isFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/config.sh" ) && \
-        info "sourcing ${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh" && \
-        _sourceFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh"
-
-    ( _isFile_ "${HOME}/.flamelet/env.sh" ) && \
-        info "sourcing ${HOME}/.flamelet/env.sh" && \
-        _sourceFile_ "${HOME}/.flamelet/env.sh"
-}
-
 _cleanOptions_() {
 
     declare -a _options=("$@")
