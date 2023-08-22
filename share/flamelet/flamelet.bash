@@ -2,6 +2,17 @@
 
 sshqfunc() { echo "bash -c $(printf "%q" "$(declare -f "$@"); $1 \"\$@\"")"; };
 
+_sourceEnv_() {
+
+    ( _isFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/config.sh" ) && \
+        info "sourcing ${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh" ; \
+        _sourceFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh"
+
+    ( _isFile_ "${HOME}/.flamelet/env.sh" ) && \
+        info "sourcing ${HOME}/.flamelet/env.sh" ; \
+        _sourceFile_ "${HOME}/.flamelet/env.sh"
+}
+
 _cleanOptions_() {
 
     declare -a _options=("$@")
@@ -38,8 +49,9 @@ _installRemote_() {
     mkdir -p \${HOME}/.flamelet
     rm -f ${_path}/share/flamelet/*.bash
     rm -f ${_path}/flamelet
-    rm -f ${HOME}/.flamelet/env.sh
 EOF
+
+    # This will be preserved ${HOME}/.flamelet/env.sh
 
 _scp_options=${CFG_SCP_OPTIONS:-${CFG_SSH_OPTIONS}}
 
@@ -51,11 +63,11 @@ $(_findBaseDir_)/../../flamelet ${CFG_SSH_CONTROLLER}:\${_path}/flamelet" \
 $(_findBaseDir_)/{${_files}} ${CFG_SSH_CONTROLLER}:\${_path}/share/flamelet/" \
 "Install flamelet libraries"
 
-    (_isFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh") && \
-        _execute_ -vs "scp -q -B -C ${_scp_options:+"$_scp_options" }\
-${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh ${CFG_SSH_CONTROLLER}:\${_path}/../env.sh" \
-"Install environment" || \
-info "Environment not defined"
+#     (_isFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh") && \
+#         _execute_ -vs "scp -q -B -C ${_scp_options:+"$_scp_options" }\
+# ${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh ${CFG_SSH_CONTROLLER}:\${_path}/../env.sh" \
+# "Install environment" || \
+# info "Environment not defined"
 }
 
 _installDeps_() {
@@ -357,9 +369,6 @@ _ansible_() {
     #         1 if false
 
     setv "${CFG_ANSIBLE_PACKAGE}-${CFG_TENANT}-${CFG_ANSIBLE_VERSION}"
-    
-    export ANSIBLE_CONFIG=${CFG_ANSIBLE_CONFIG}
-
 
     _option="${_option:1:-1}"
 
