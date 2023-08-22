@@ -146,6 +146,8 @@ _runRemote_() {
     # Error handling
     declare -f _execute_ &>/dev/null || fatal "_runRemote_ needs function _execute_"
 
+    debug "remote options: ${_remoteOptions}"
+
     _execute_ -vs "ssh ${CFG_SSH_OPTIONS:+"$CFG_SSH_OPTIONS" }-q -t ${CFG_SSH_CONTROLLER} \
 \"bash -c '\${_path}/flamelet ${_remoteOptions}'\"" \
 "Running '\${_path}/flamelet ${_remoteOptions}' via ssh on '${CFG_SSH_CONTROLLER}'"
