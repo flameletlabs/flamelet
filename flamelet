@@ -20,6 +20,9 @@ _mainScript_() {
     local _command="${ARGS[0]:-unset}"
     local _option="${OPTION:-unset}"
 
+    # echo "_option: $_option"
+    # printf "_cleanedOptions: %q\n" "${_cleanedOptions[@]}"
+
     # Check for required arguments
     _varIsFalse_ "${TENANT}" && \
         [[ ! $"${_command}" == 'sysinfo' && ! $"${_command}" == 'update' ]] && \
@@ -69,7 +72,6 @@ _mainScript_() {
     then
         info "Running remotely"
         mapfile -t _cleanedOptions < <(_cleanOptions_ "${_cleanedOptions[@]}")
-        # _runRemote_ "${CFG_SSH_OPTIONS}" "${CFG_SSH_CONTROLLER}" "${_cleanedOptions[*]}"
         _runRemote_ "${_cleanedOptions[*]}"
         debug "RC: $?"
         _safeExit_
@@ -401,7 +403,8 @@ _parseOptions_() {
                 ;;
             -o | --option)
                 shift
-                OPTION=${1}
+                # OPTION=${1}
+                OPTION+="\"${1}\""
                 ;;
             # Common options
             -h | --help)
