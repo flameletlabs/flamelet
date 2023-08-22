@@ -314,6 +314,9 @@ _checkoutFlameletTenantRepo_() {
     if [ ! -d ".git" ]; then
         _execute_ -vs "git ${CFG_GIT_OPTIONS:+"$CFG_GIT_OPTIONS" }clone -b \"${_branch}\" \"${CFG_FLAMELET_TENANT_REPO}\" ."
     else
+        _execute_ -vs "git ${CFG_GIT_OPTIONS:+"$CFG_GIT_OPTIONS" }fetch origin ${_branch}"
+        _execute_ -vs "git ${CFG_GIT_OPTIONS:+"$CFG_GIT_OPTIONS" }checkout ${_branch}"
+        _execute_ -vs "git ${CFG_GIT_OPTIONS:+"$CFG_GIT_OPTIONS" }pull origin ${_branch}"
         _execute_ -vs "git ${CFG_GIT_OPTIONS:+"$CFG_GIT_OPTIONS" }fetch --all"
         _execute_ -vs "git ${CFG_GIT_OPTIONS:+"$CFG_GIT_OPTIONS" }reset --hard ${_branch}"
     fi
