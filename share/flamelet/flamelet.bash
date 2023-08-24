@@ -250,7 +250,6 @@ _installAnsible_() {
     #         0 if true
     #         1 if false
 
-    # will be: flamelet-ansible-6.1.0
     _setv_create "${CFG_ANSIBLE_PACKAGE}-${CFG_TENANT}-${CFG_ANSIBLE_VERSION}"
     _setv_list
     setv "${CFG_ANSIBLE_PACKAGE}-${CFG_TENANT}-${CFG_ANSIBLE_VERSION}"
@@ -258,6 +257,8 @@ _installAnsible_() {
     # which python
     # which pip
     # export
+
+    debug "Python version: $(python3 -V)"
 
     debug "Package ${CFG_ANSIBLE_PACKAGE}"
     debug "Install ${CFG_ANSIBLE_VERSION}"
