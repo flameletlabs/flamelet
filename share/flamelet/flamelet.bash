@@ -114,7 +114,7 @@ _getSystemInfo_() {
 
     success "bash ${BASH_VERSION}"
 
-    (_commandExists_ python3 && _execute_ -s "python3 -V" "python3 check") || warning "python3 check"
+    (_commandExists_ python3 && _execute_ -vs "python3 -V" "python3 check") || warning "python3 check"
     (_commandExists_ rsync && _execute_ -s "rsync --version" "rsync check") || warning "rsync check"
     (_commandExists_ git && success "git check" ) || warning "git check"
     (_commandExists_ tmux && success "tmux check" ) || warning "tmux check"
@@ -371,7 +371,7 @@ _ansible_() {
 
     _execute_ -vs "\
         ansible-playbook -i ${CFG_ANSIBLE_INVENTORY} ${CFG_ANSIBLE_OPTIONS:+$CFG_ANSIBLE_OPTIONS } ${_option:+$_option } ${CFG_ANSIBLE_PLAYBOOK}"
-    
+
     deactivate
     # _setv_delete_force "test"
 
