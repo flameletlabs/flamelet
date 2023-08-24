@@ -56,7 +56,7 @@ _mainScript_() {
 
     _isFile_ "${HOME}/.flamelet/env.sh" && \
         _sourceFile_ "${HOME}/.flamelet/env.sh" && \
-            success "${HOME}/.flamelet/env.sh"
+            success "sourced ${HOME}/.flamelet/env.sh"
 
     _isFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/config.sh" && \
         _sourceFile_ "${HOME}/.flamelet/tenant/flamelet-${_tenant}/env.sh" && \
