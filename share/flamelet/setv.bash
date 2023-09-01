@@ -49,9 +49,13 @@ SETV_VIRTUAL_DIR_PATH="$HOME/.flamelet/venv/"
 # Default python version to use. This decides whether to use `virtualenv` or `python3 -m venv`
 SETV_PYTHON_VERSION=3  # Defaults to Python3
 
+SETV_PY_PATH="python${SETV_PYTHON_VERSION}"
+
 ( _commandExists_ "python${SETV_PYTHON_VERSION}" ) && \
     SETV_PY_PATH="$(command -v python${SETV_PYTHON_VERSION})"
 
+# ( _functionExists_ "python${SETV_PYTHON_VERSION}" ) && \
+#     debug "function exists"
 # echo ""${SETV_PY_PATH}""
 
 function _setvcomplete_()
