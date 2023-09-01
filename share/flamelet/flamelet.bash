@@ -89,10 +89,10 @@ _installDeps_() {
             echo "we're on windows"
             ;;
         freebsd)
-            _cmd=( pkg install -y bash tree rsync git-lite tmux ccze ncdu wget nmap libxslt )
+            _cmd=( pkg install -y bash tree rsync git-lite tmux ccze ncdu wget rust nmap libxslt )
             ;;
         openbsd)
-            _cmd=( pkg_add -U -I bash tree rsync-- git ncdu python3 wget nmap libxslt )
+            _cmd=( pkg_add -U -I bash tree rsync-- git ncdu python3 wget rust nmap libxslt )
             ;;
         *)
             echo "we're on unknown"
@@ -250,6 +250,8 @@ _installAnsible_() {
     #         0 if true
     #         1 if false
 
+    debug "Python version: $(python3 -V)"
+
     _setv_create "${CFG_ANSIBLE_PACKAGE}-${CFG_TENANT}-${CFG_ANSIBLE_VERSION}"
     _setv_list
     setv "${CFG_ANSIBLE_PACKAGE}-${CFG_TENANT}-${CFG_ANSIBLE_VERSION}"
@@ -257,8 +259,6 @@ _installAnsible_() {
     # which python
     # which pip
     # export
-
-    debug "Python version: $(python3 -V)"
 
     debug "Package ${CFG_ANSIBLE_PACKAGE}"
     debug "Install ${CFG_ANSIBLE_VERSION}"
