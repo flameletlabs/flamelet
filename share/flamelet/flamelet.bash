@@ -371,7 +371,7 @@ _ansible_() {
     debug "ansible-playbook -i ${CFG_ANSIBLE_INVENTORY} ${CFG_ANSIBLE_OPTIONS:+$CFG_ANSIBLE_OPTIONS } ${_option:+$_option } ${CFG_ANSIBLE_PLAYBOOK}"
 
     _execute_ -vs "\
-        ansible-playbook -i ${CFG_ANSIBLE_INVENTORY} ${CFG_ANSIBLE_OPTIONS:+$CFG_ANSIBLE_OPTIONS } ${_option:+$_option } ${CFG_ANSIBLE_PLAYBOOK}"
+        ANSIBLE_CONFIG=${CFG_ANSIBLE_CONFIG:-/etc/ansible/ansible.cfg} ansible-playbook -i ${CFG_ANSIBLE_INVENTORY} ${CFG_ANSIBLE_OPTIONS:+$CFG_ANSIBLE_OPTIONS } ${_option:+$_option } ${CFG_ANSIBLE_PLAYBOOK}"
 
     deactivate
     # _setv_delete_force "test"
