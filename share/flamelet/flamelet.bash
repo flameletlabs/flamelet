@@ -89,8 +89,8 @@ _installDeps_() {
             echo "we're on windows"
             ;;
         freebsd)
-            _runAsRoot_ pkg install -y bash tree rsync git-lite tmux ccze ncdu wget rust nmap libxslt python310
-            _cmd=( ln -fs /usr/local/bin/python3.10 /usr/local/bin/python3 )
+            _runAsRoot_ pkg install -y bash tree rsync git-lite tmux ccze ncdu wget rust nmap libxslt python311
+            _cmd=( ln -fs /usr/local/bin/python3.11 /usr/local/bin/python3 )
             ;;
         openbsd)
             _cmd=( pkg_add -U -I bash tree rsync-- git ncdu python3 wget rust nmap libxslt )
