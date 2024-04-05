@@ -93,7 +93,8 @@ _installDeps_() {
             _cmd=( ln -fs /usr/local/bin/python3.11 /usr/local/bin/python3 )
             ;;
         openbsd)
-            _cmd=( pkg_add -U -I bash tree rsync-- git ncdu python3 wget rust nmap libxslt )
+            _runAsRoot_ pkg_add -U -I bash tree rsync-- git ncdu python3 wget rust nmap libxslt python-3.11.4
+            _cmd=( ln -fs /usr/local/bin/python3.11 /usr/local/bin/python3 )
             ;;
         *)
             echo "we're on unknown"
