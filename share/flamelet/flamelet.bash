@@ -378,3 +378,33 @@ _ansible_() {
 
     return 0
 }
+
+_ansibleModule_() {
+    # DESC:
+    #   Execute an Ansible command using options passed via -o.
+    #   Allows full control of the Ansible module and arguments through raw input.
+    # ARGS:
+    #   None (uses globally available CFG variables for tenant and options).
+    # OUTS:
+    #   Executes the specified Ansible command and prints results.
+
+    setv "${CFG_ANSIBLE_PACKAGE}-${CFG_TENANT}-${CFG_ANSIBLE_VERSION}"
+
+    # Extract raw options from _option and remove surrounding quotes
+    local raw_options="${_option:1:-1}"
+
+    debug "Raw Options: ${raw_options}"
+    debug "Command: ansible -o -i ${CFG_ANSIBLE_INVENTORY} ${CFG_ANSIBLE_OPTIONS:+$CFG_ANSIBLE_OPTIONS } ${raw_options}"
+
+    # Execute the Ansible command with raw options
+    _execute_ -vs "\
+        ANSIBLE_CONFIG=${CFG_ANSIBLE_CONFIG:-/etc/ansible/ansible.cfg} \
+        ansible -o -i ${CFG_ANSIBLE_INVENTORY} \
+        ${CFG_ANSIBLE_OPTIONS:+$CFG_ANSIBLE_OPTIONS } \
+        ${raw_options}"
+
+    # Cleanup
+    deactivate
+
+    return 0
+}
