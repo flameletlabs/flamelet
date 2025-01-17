@@ -122,6 +122,14 @@ _mainScript_() {
             _ansible_
             _safeExit_
             ;;
+        ansiblemodule)
+            echo "ansibleModule..."
+            [ -n "${CFG_FLAMELET_TENANT_REPO}" ] && \
+                _varIsFalse_ "${OFFLINE}" && \
+                    _checkoutFlameletTenantRepo_
+            _ansibleModule_
+            _safeExit_
+            ;;
         ssh)
             echo "ssh"
             _safeExit_
