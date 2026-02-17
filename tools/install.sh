@@ -291,7 +291,11 @@ setup_flamelet() {
 
 # shellcheck disable=SC2183  # printf string has more %s than arguments ($FMT_RAINBOW expands to multiple arguments)
 print_success() {
-  echo "flamelet has been installed"
+  if [ -f "$FLAMELET/VERSION" ]; then
+    echo "flamelet $(cat "$FLAMELET/VERSION") has been installed"
+  else
+    echo "flamelet has been installed"
+  fi
 }
 
 check_flamelet_bin() {

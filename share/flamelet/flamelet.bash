@@ -49,6 +49,10 @@ $(_findBaseDir_)/../../flamelet ${CFG_SSH_CONTROLLER}:\${_path}/flamelet" \
 "Install flamelet script"
 
     _execute_ -vs "scp -q -B -C ${_scp_options:+"$_scp_options" }\
+$(_findBaseDir_)/../../VERSION ${CFG_SSH_CONTROLLER}:\${_path}/VERSION" \
+"Install VERSION file"
+
+    _execute_ -vs "scp -q -B -C ${_scp_options:+"$_scp_options" }\
 $(_findBaseDir_)/{${_files}} ${CFG_SSH_CONTROLLER}:\${_path}/share/flamelet/" \
 "Install flamelet libraries"
 
@@ -328,18 +332,52 @@ _checkoutFlameletTenantRepo_() {
     return 0
 }
 
+_checkVersion_() {
+    # DESC:
+    #         Check if a newer version of flamelet is available
+    # OUTS:
+    #         0 if check succeeded
+    #         1 if unable to check
+    local _localVersion="${FLAMELET_VERSION:-unknown}"
+    local _remoteVersion=""
+    local _remote="https://raw.githubusercontent.com/flameletlabs/flamelet/main/VERSION"
+
+    if command -v curl &>/dev/null; then
+        _remoteVersion="$(curl -fsSL --max-time 5 "${_remote}" 2>/dev/null)" || true
+    elif command -v wget &>/dev/null; then
+        _remoteVersion="$(wget -qO- --timeout=5 "${_remote}" 2>/dev/null)" || true
+    fi
+
+    _remoteVersion="${_remoteVersion//[$'\t\r\n ']}"
+
+    if [[ -z "${_remoteVersion}" ]]; then
+        warning "Unable to check for updates"
+        return 1
+    fi
+
+    if [[ "${_localVersion}" == "${_remoteVersion}" ]]; then
+        success "flamelet is up to date (${_localVersion})"
+    else
+        notice "Update available: ${_remoteVersion} (current: ${_localVersion})"
+        notice "Run 'flamelet update' to upgrade"
+    fi
+    return 0
+}
+
 _updateFlamelet_() {
     # DESC:
-    #         Git checkout flamelet app repo
+    #         Update flamelet to the latest version from GitHub
     # OUTS:
     #         0 if true
     #         1 if false
     local _path
     local _remote="https://github.com/flameletlabs/flamelet.git"
+    local _versionBefore="${FLAMELET_VERSION:-unknown}"
+    local _versionAfter
 
     _path="${HOME}/.flamelet/bin"
-    # _path="\${HOME}/.flamelet/tenant"
 
+    info "Current version: ${_versionBefore}"
     debug "Checkout ${_remote}"
 
     _execute_ -vs "mkdir -p ${_path}"
@@ -354,6 +392,18 @@ _updateFlamelet_() {
     else
         _execute_ -vs "git fetch --all"
         _execute_ -vs "git reset --hard origin/main"
+    fi
+
+    if [[ -f "${_path}/VERSION" ]]; then
+        _versionAfter="$(< "${_path}/VERSION")"
+    else
+        _versionAfter="unknown"
+    fi
+
+    if [[ "${_versionBefore}" == "${_versionAfter}" ]]; then
+        success "flamelet is already up to date (${_versionAfter})"
+    else
+        success "flamelet updated: ${_versionBefore} -> ${_versionAfter}"
     fi
 
     return 0
