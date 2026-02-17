@@ -8,7 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Added
 
-- `doctor` command for tenant health checks — unused Galaxy collections/roles detection, Ansible version upgrade checking (PyPI), and stale virtual environment cleanup with interactive or `--force` deletion
+- **`doctor` command** — run `flamelet doctor` for global health checks or `flamelet -t <tenant> doctor` for full tenant diagnostics
+- **Stale venv cleanup** — detects virtual environments under `~/.flamelet/venv/` that no longer match any tenant's `config.sh` (e.g. leftover after version bumps), with interactive or `--force` deletion; respects `--dryrun`
+- **Ansible version check** — queries PyPI for the latest stable release and the latest patch in the current major.minor series
+- **Unused Galaxy collections** — scans tenant YAML files for FQCN references and reports collections with no matches
+- **Unused Galaxy roles** — scans tenant YAML files for role references (strips version pins) and reports roles with no matches
 
 ## [1.0.0] - 2026-02-17
 
