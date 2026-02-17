@@ -25,7 +25,7 @@ _mainScript_() {
 
     # Check for required arguments
     _varIsFalse_ "${TENANT}" && \
-        [[ ! $"${_command}" == 'sysinfo' && ! $"${_command}" == 'update' ]] && \
+        [[ ! $"${_command}" == 'sysinfo' && ! $"${_command}" == 'update' && ! $"${_command}" == 'version' ]] && \
         fatal "Missing required tenant argument to ${FUNCNAME[0]}"
 
     local CFG_SSH_OPTIONS=()
@@ -84,6 +84,11 @@ _mainScript_() {
         update)
             echo "update"
             _updateFlamelet_
+            _safeExit_
+            ;;
+        version)
+            printf "flamelet %s\n" "${FLAMELET_VERSION}"
+            _checkVersion_ || true
             _safeExit_
             ;;
         installdeps)
@@ -416,6 +421,10 @@ _parseOptions_() {
                 _usage_
                 _safeExit_
                 ;;
+            -V | --version)
+                printf "flamelet %s\n" "${FLAMELET_VERSION:-unknown}"
+                exit 0
+                ;;
             --loglevel)
                 shift
                 LOGLEVEL=${1}
@@ -462,6 +471,7 @@ _usage_() {
 
   ${bold}Options:${reset}
     -h, --help              Display this help and exit
+    -V, --version           Display version and exit
     --loglevel [LEVEL]      One of: FATAL, ERROR, WARN, INFO, NOTICE, DEBUG, ALL, OFF
                             (Default is 'ERROR')
     --logfile [FILE]        Full PATH to logfile.  (Default is '${HOME}/logs/$(basename "$0").log')
@@ -473,6 +483,7 @@ _usage_() {
     --force                 Skip all user interaction.  Implied 'Yes' to all actions.
 
   ${bold}Commands:${reset}
+    version                 Show version and check for updates
     ansible                 Run the ansible command
 
   ${bold}Example Usage:${reset}
@@ -512,6 +523,12 @@ IFS=$' \n\t'
 
 # Source utility functions
 _sourceUtilities_ "$(_findBaseDir_)/share/flamelet"
+
+# Read version
+FLAMELET_VERSION="unknown"
+if [[ -f "$(_findBaseDir_)/VERSION" ]]; then
+    FLAMELET_VERSION="$(< "$(_findBaseDir_)/VERSION")"
+fi
 
 # Initialize color constants
 _setColors_
