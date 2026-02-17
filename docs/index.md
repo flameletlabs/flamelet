@@ -75,3 +75,5 @@ The example playbook gathers system facts, installs a few common packages (`tree
 **Offline mode** — The `-l` flag skips git checkout operations, so flamelet can operate without network access once the tenant repo and venv are set up. Useful for air-gapped environments.
 
 **Versioning** — Flamelet follows [Semantic Versioning](https://semver.org/). Check your installed version with `flamelet --version` or `flamelet version` (which also checks for updates). See the [Changelog](changelog.md) for release history.
+
+**Health checks** — Run `flamelet doctor` to check for stale virtual environments and available flamelet updates. Add `-t <tenant>` to also check for Ansible version upgrades (via PyPI), unused Galaxy collections, and unused Galaxy roles. See [doctor](commands.md#doctor) for details.

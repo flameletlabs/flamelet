@@ -69,6 +69,8 @@ Each tenant has a `config.sh` file at `~/.flamelet/tenant/flamelet-<name>/config
 | `CFG_ANSIBLE_GALAXY_ROLES_INSTALL` | Roles to install via `ansible-galaxy role install`. |
 | `CFG_ANSIBLE_GALAXY_ROLES_REMOVE` | Roles to remove before install. |
 
+Use `flamelet -t <tenant> doctor` to check for collections and roles that are configured but not referenced in your tenant's YAML files.
+
 ### Network scanning
 
 | Variable | Description |
@@ -111,6 +113,8 @@ For example, a tenant named `myproject` using `ansible` version `9.12.0`:
 ```
 
 This means you can have multiple tenants with different Ansible versions without conflicts.
+
+When you change the Ansible version in `config.sh`, the old venv remains on disk. Run `flamelet doctor` to detect and clean up stale venvs.
 
 ## Example: Minimal config.sh (local)
 
