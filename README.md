@@ -21,6 +21,15 @@ Flamelet is installed by running one of the following commands in your terminal.
 | **wget**      | `sh -c "$(wget -O- https://raw.githubusercontent.com/flameletlabs/flamelet/main/tools/install.sh)"`   |
 | **fetch**     | `sh -c "$(fetch -o - https://raw.githubusercontent.com/flameletlabs/flamelet/main/tools/install.sh)"` |
 
+## Maintenance
+
+```bash
+flamelet version               # Check for updates
+flamelet doctor                # Global health checks (stale venvs, version)
+flamelet -t <tenant> doctor    # Full diagnostics (Ansible upgrades, unused Galaxy deps)
+flamelet update                # Update flamelet
+```
+
 ## Quick Start
 
 Once flamelet is installed, try the [example-local](https://github.com/flameletlabs/example-local) tenant to see it in action:
