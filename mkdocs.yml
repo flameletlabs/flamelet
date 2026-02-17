@@ -35,6 +35,7 @@ theme:
       primary: blue grey
 
 plugins:
+  - search
   - social
 
 extra:
