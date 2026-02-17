@@ -418,7 +418,7 @@ _ansible_() {
 
     setv "${CFG_ANSIBLE_PACKAGE}-${CFG_TENANT}-${CFG_ANSIBLE_VERSION}"
 
-    _option="${_option:1:-1}"
+    [[ -n "${_option}" ]] && _option="${_option:1:-1}"
 
     debug "option \"${_option}\""
     debug "ansible-playbook -i ${CFG_ANSIBLE_INVENTORY} ${CFG_ANSIBLE_OPTIONS:+$CFG_ANSIBLE_OPTIONS } ${_option:+$_option } ${CFG_ANSIBLE_PLAYBOOK}"
@@ -444,7 +444,8 @@ _ansibleModule_() {
     setv "${CFG_ANSIBLE_PACKAGE}-${CFG_TENANT}-${CFG_ANSIBLE_VERSION}"
 
     # Extract raw options from _option and remove surrounding quotes
-    local raw_options="${_option:1:-1}"
+    local raw_options=""
+    [[ -n "${_option}" ]] && raw_options="${_option:1:-1}"
 
     debug "Raw Options: ${raw_options}"
     debug "Command: ansible -o -i ${CFG_ANSIBLE_INVENTORY} ${CFG_ANSIBLE_OPTIONS:+$CFG_ANSIBLE_OPTIONS } ${raw_options}"
