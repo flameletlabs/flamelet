@@ -25,7 +25,7 @@ _mainScript_() {
 
     # Check for required arguments
     _varIsFalse_ "${TENANT}" && \
-        [[ ! $"${_command}" == 'sysinfo' && ! $"${_command}" == 'update' && ! $"${_command}" == 'version' ]] && \
+        [[ ! $"${_command}" == 'sysinfo' && ! $"${_command}" == 'update' && ! $"${_command}" == 'version' && ! $"${_command}" == 'doctor' ]] && \
         fatal "Missing required tenant argument to ${FUNCNAME[0]}"
 
     local CFG_SSH_OPTIONS=()
@@ -89,6 +89,11 @@ _mainScript_() {
         version)
             printf "flamelet %s\n" "${FLAMELET_VERSION}"
             _checkVersion_ || true
+            _safeExit_
+            ;;
+        doctor)
+            echo "doctor"
+            _doctor_
             _safeExit_
             ;;
         installdeps)
@@ -484,12 +489,16 @@ _usage_() {
 
   ${bold}Commands:${reset}
     version                 Show version and check for updates
+    doctor                  Run health checks on tenant configuration
     ansible                 Run the ansible command
 
   ${bold}Example Usage:${reset}
 
     ${gray}# Run ansible part of flamelet remotely.${reset}
     $(basename "$0") -t <tenant> -r -o "--limit\ <foo>\ --tags\ users" ansible
+
+    ${gray}# Run health checks on a tenant.${reset}
+    $(basename "$0") -t <tenant> doctor
 USAGE_TEXT
 }
 

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- `doctor` command for tenant health checks — unused Galaxy collections/roles detection, Ansible version upgrade checking (PyPI), and stale virtual environment cleanup with interactive or `--force` deletion
+
 ## [1.0.0] - 2026-02-17
 
 First stable release.

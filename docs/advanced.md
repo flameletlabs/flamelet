@@ -187,6 +187,10 @@ This shows the current version, fetches the latest from the [flamelet GitHub rep
 
 If you installed flamelet to a custom path, `cd` into that directory first and run `git pull` manually.
 
+### Health checks
+
+Run `flamelet -t <tenant> doctor` to check for unused Galaxy dependencies, available Ansible upgrades, and stale virtual environments. Without `-t`, only global checks (flamelet version, stale venvs) are run. See [doctor](commands.md#doctor) in the CLI reference for details.
+
 ### Release process
 
 Flamelet follows [Semantic Versioning](https://semver.org/). The current version is tracked in the `VERSION` file at the repository root. Releases are tagged with `v<version>` (e.g., `v1.0.0`) and GitHub Releases are created automatically via GitHub Actions.
