@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.1.0] - 2026-02-17
 
 ### Added
 
@@ -13,6 +13,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - **Ansible version check** — queries PyPI for the latest stable release and the latest patch in the current major.minor series
 - **Unused Galaxy collections** — scans tenant YAML files for FQCN references and reports collections with no matches
 - **Unused Galaxy roles** — scans tenant YAML files for role references (strips version pins) and reports roles with no matches
+- **MkDocs search** — enabled the built-in search plugin for the documentation site
+
+### Fixed
+
+- **Option parsing** — flags like `-o` now work in any position, including after the command name (e.g. `flamelet -t x ansiblemodule -o "all -m ping"` previously corrupted the options to `nse`)
+- **Empty option guard** — `_ansible_()` and `_ansibleModule_()` no longer mangle an unset `-o` value
 
 ## [1.0.0] - 2026-02-17
 
@@ -47,4 +53,5 @@ First stable release.
 - Environment file loading (`env.sh` at global and tenant level)
 - Flexible logging with configurable log levels and log files
 
+[1.1.0]: https://github.com/flameletlabs/flamelet/releases/tag/v1.1.0
 [1.0.0]: https://github.com/flameletlabs/flamelet/releases/tag/v1.0.0
