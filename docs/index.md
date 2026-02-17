@@ -73,3 +73,5 @@ The example playbook gathers system facts, installs a few common packages (`tree
 **Remote execution** — With the `-r` flag and an SSH controller configured, flamelet can run itself on a remote host. It SSHs to the controller and executes flamelet there, so the remote machine handles Ansible execution. See [Advanced](advanced.md) for details.
 
 **Offline mode** — The `-l` flag skips git checkout operations, so flamelet can operate without network access once the tenant repo and venv are set up. Useful for air-gapped environments.
+
+**Versioning** — Flamelet follows [Semantic Versioning](https://semver.org/). Check your installed version with `flamelet --version` or `flamelet version` (which also checks for updates). See the [Changelog](changelog.md) for release history.

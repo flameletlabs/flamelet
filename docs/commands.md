@@ -6,7 +6,7 @@
 flamelet [OPTIONS] [COMMAND]
 ```
 
-Flamelet requires a tenant (`-t`) for most commands. The exceptions are `sysinfo` and `update`, which operate on the flamelet installation itself.
+Flamelet requires a tenant (`-t`) for most commands. The exceptions are `sysinfo`, `update`, and `version`, which operate on the flamelet installation itself.
 
 ## Commands
 
@@ -195,7 +195,19 @@ Update flamelet itself.
 flamelet update
 ```
 
-Fetches the latest version from the flamelet GitHub repository and resets the local installation to match. If `~/.flamelet/bin/` is not yet a git repo, it re-clones from scratch.
+Shows the current version, fetches the latest from the flamelet GitHub repository, and resets the local installation to match. After updating, it reports whether the version changed (e.g., `flamelet updated: 1.0.0 -> 1.1.0`) or if you were already up to date. If `~/.flamelet/bin/` is not yet a git repo, it re-clones from scratch.
+
+This command does not require a tenant.
+
+### version
+
+Show the current flamelet version and check for updates.
+
+```bash
+flamelet version
+```
+
+Prints the local version, then fetches the latest version from GitHub and compares. If a newer version is available, it tells you to run `flamelet update`.
 
 This command does not require a tenant.
 
@@ -231,11 +243,12 @@ This command does not require a tenant.
 | `--loglevel` | | Set log level. One of: `FATAL`, `ERROR`, `WARN`, `INFO`, `NOTICE`, `DEBUG`, `ALL`, `OFF`. Default: `ERROR`. |
 | `--logfile` | | Path to log file. Default: `~/logs/flamelet.log`. |
 
-### Help
+### Help and version
 
 | Flag | Long | Description |
 | :--- | :--- | :---------- |
 | `-h` | `--help` | Display usage information and exit. |
+| `-V` | `--version` | Display the current version and exit. |
 
 ## Usage Examples
 
@@ -263,6 +276,12 @@ flamelet -t myproject -r installremote
 
 # Check system dependencies
 flamelet sysinfo
+
+# Check version and available updates
+flamelet version
+
+# Print version only
+flamelet --version
 
 # Update flamelet
 flamelet update
