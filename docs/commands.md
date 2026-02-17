@@ -6,7 +6,7 @@
 flamelet [OPTIONS] [COMMAND]
 ```
 
-Flamelet requires a tenant (`-t`) for most commands. The exceptions are `sysinfo`, `update`, and `version`, which operate on the flamelet installation itself.
+Flamelet requires a tenant (`-t`) for most commands. The exceptions are `sysinfo`, `update`, `version`, and `doctor` (without `-t`), which operate on the flamelet installation itself.
 
 ## Commands
 
@@ -119,6 +119,34 @@ This command:
 5. Removes and installs Galaxy roles (if `CFG_ANSIBLE_GALAXY_ROLES_REMOVE` / `_INSTALL` are set)
 
 Run this once when setting up a new tenant, or again when changing the Ansible version or Galaxy dependencies.
+
+### doctor
+
+Run health checks on flamelet and tenant configuration.
+
+```bash
+flamelet doctor
+flamelet -t <tenant> doctor
+```
+
+Without a tenant, `doctor` runs global checks only:
+
+- **Flamelet version** — checks if a newer version is available on GitHub
+- **Stale virtual environments** — finds venvs under `~/.flamelet/venv/` that don't match any tenant's current `config.sh` (e.g. left over after a version bump), and offers to delete them
+
+With a tenant (`-t`), it also runs:
+
+- **Ansible version check** — queries PyPI for the latest stable release and the latest patch in your current major.minor series
+- **Unused Galaxy collections** — scans tenant YAML files for FQCN references to each installed collection; reports collections with no matches
+- **Unused Galaxy roles** — scans tenant YAML files for role references; reports roles with no matches
+
+Useful flags:
+
+| Flag | Effect |
+| :--- | :----- |
+| `-n` / `--dryrun` | Show what would be deleted without actually removing stale venvs |
+| `--force` | Skip confirmation prompts (auto-yes for venv cleanup) |
+| `-v` / `--verbose` | Show debug detail during checks |
 
 ### checkout
 
@@ -285,4 +313,16 @@ flamelet --version
 
 # Update flamelet
 flamelet update
+
+# Run global health checks (version + stale venvs)
+flamelet doctor
+
+# Run full health checks for a tenant
+flamelet -t myproject doctor
+
+# Dry-run: see what stale venvs would be deleted
+flamelet -n -t myproject doctor
+
+# Auto-confirm venv cleanup
+flamelet --force -t myproject doctor
 ```

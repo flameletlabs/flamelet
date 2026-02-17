@@ -461,3 +461,281 @@ _ansibleModule_() {
 
     return 0
 }
+
+_doctor_() {
+    # DESC:
+    #         Run health checks on flamelet and tenant configuration
+    # OUTS:
+    #         0 always (individual checks may fail without aborting)
+
+    header "flamelet doctor"
+
+    # Global checks (always)
+    _checkVersion_ || true
+    _doctorStaleVenvs_ || true
+
+    # Tenant-specific checks (only with -t)
+    if ! _varIsFalse_ "${TENANT}"; then
+        notice "Tenant: ${CFG_TENANT}"
+
+        [[ -n "${CFG_ANSIBLE_PACKAGE}" && -n "${CFG_ANSIBLE_VERSION}" ]] && \
+            _doctorAnsibleVersion_ || true
+
+        [[ -n "${CFG_ANSIBLE_GALAXY_COLLECTIONS_INSTALL}" ]] && \
+            _doctorUnusedCollections_ || true
+
+        [[ -n "${CFG_ANSIBLE_GALAXY_ROLES_INSTALL}" ]] && \
+            _doctorUnusedRoles_ || true
+    else
+        info "No tenant specified; use 'flamelet -t <tenant> doctor' for full diagnostics"
+    fi
+}
+
+_doctorStaleVenvs_() {
+    # DESC:
+    #         Find and optionally clean up stale virtual environments
+    # OUTS:
+    #         0 if check succeeded
+    #         1 if venv directory does not exist
+    local _venvDir="${SETV_VIRTUAL_DIR_PATH}"
+    local -a _expectedVenvs=()
+    local -a _staleVenvs=()
+    local _tenantDir
+    local _venvName
+
+    header "Stale virtual environments"
+
+    if ! (_isDir_ "${_venvDir}"); then
+        info "No venv directory found at ${_venvDir}"
+        return 0
+    fi
+
+    # Collect expected venv names from all tenant configs
+    for _tenantDir in "${HOME}"/.flamelet/tenant/flamelet-*/; do
+        [[ -d "${_tenantDir}" ]] || continue
+        if [[ -f "${_tenantDir}/config.sh" ]]; then
+            _venvName=$(
+                local CFG_ANSIBLE_PACKAGE=""
+                local CFG_TENANT=""
+                local CFG_ANSIBLE_VERSION=""
+                # shellcheck disable=SC1091
+                source "${_tenantDir}/config.sh" 2>/dev/null
+                if [[ -n "${CFG_ANSIBLE_PACKAGE}" && -n "${CFG_TENANT}" && -n "${CFG_ANSIBLE_VERSION}" ]]; then
+                    printf "%s" "${CFG_ANSIBLE_PACKAGE}-${CFG_TENANT}-${CFG_ANSIBLE_VERSION}"
+                fi
+            ) || true
+            [[ -n "${_venvName}" ]] && _expectedVenvs+=("${_venvName}")
+        fi
+    done
+
+    debug "Expected venvs: ${_expectedVenvs[*]:-none}"
+
+    # Compare actual venvs against expected
+    for _dir in "${_venvDir}"*/; do
+        [[ -d "${_dir}" ]] || continue
+        _venvName="$(basename "${_dir}")"
+        local _found=false
+        for _expected in "${_expectedVenvs[@]:-}"; do
+            if [[ "${_venvName}" == "${_expected}" ]]; then
+                _found=true
+                break
+            fi
+        done
+        if [[ "${_found}" == false ]]; then
+            _staleVenvs+=("${_venvName}")
+        fi
+    done
+
+    if [[ ${#_staleVenvs[@]} -eq 0 ]]; then
+        success "No stale virtual environments found"
+        return 0
+    fi
+
+    warning "Found ${#_staleVenvs[@]} stale virtual environment(s):"
+    for _venvName in "${_staleVenvs[@]}"; do
+        info "  ${_venvDir}${_venvName}"
+    done
+
+    if _seekConfirmation_ "Delete stale virtual environments?"; then
+        for _venvName in "${_staleVenvs[@]}"; do
+            _execute_ -vs "rm -rf \"${_venvDir}${_venvName}\"" \
+                "Remove stale venv: ${_venvName}"
+        done
+        success "Stale virtual environments cleaned up"
+    else
+        info "Skipped cleanup"
+    fi
+
+    return 0
+}
+
+_doctorAnsibleVersion_() {
+    # DESC:
+    #         Check PyPI for newer versions of the configured Ansible package
+    # OUTS:
+    #         0 if check succeeded
+    #         1 if unable to check
+    local _package="${CFG_ANSIBLE_PACKAGE}"
+    local _currentVersion="${CFG_ANSIBLE_VERSION}"
+    local _pypiUrl="https://pypi.org/pypi/${_package}/json"
+    local _json=""
+    local _latestStable=""
+    local _latestInSeries=""
+    local _currentMajorMinor=""
+
+    header "Ansible version check"
+
+    info "Current: ${_package}==${_currentVersion}"
+
+    # Fetch PyPI metadata
+    if command -v curl &>/dev/null; then
+        _json="$(curl -fsSL --max-time 10 "${_pypiUrl}" 2>/dev/null)" || true
+    elif command -v wget &>/dev/null; then
+        _json="$(wget -qO- --timeout=10 "${_pypiUrl}" 2>/dev/null)" || true
+    fi
+
+    if [[ -z "${_json}" ]]; then
+        warning "Unable to fetch version info from PyPI"
+        return 1
+    fi
+
+    # Extract latest stable version and latest in current major.minor series
+    _currentMajorMinor="${_currentVersion%.*}"
+    read -r _latestStable _latestInSeries < <(
+        python3 -c "
+import json, sys, re
+data = json.loads(sys.stdin.read())
+latest = data.get('info', {}).get('version', '')
+releases = [k for k in data.get('releases', {}).keys()
+            if re.match(r'^[0-9]+\.[0-9]+\.[0-9]+$', k)]
+series = '${_currentMajorMinor}'
+in_series = sorted(
+    [v for v in releases if v.startswith(series + '.')],
+    key=lambda v: list(map(int, v.split('.')))
+)
+latest_in_series = in_series[-1] if in_series else ''
+print(latest, latest_in_series)
+" <<< "${_json}" 2>/dev/null
+    ) || true
+
+    if [[ -z "${_latestStable}" ]]; then
+        warning "Unable to parse PyPI response"
+        return 1
+    fi
+
+    info "Latest stable: ${_package}==${_latestStable}"
+
+    if [[ -n "${_latestInSeries}" && "${_latestInSeries}" != "${_currentVersion}" ]]; then
+        notice "Newer patch: ${_package} ${_latestInSeries} available in ${_currentMajorMinor}.x series"
+    elif [[ -n "${_latestInSeries}" ]]; then
+        success "Up to date in ${_currentMajorMinor}.x series"
+    fi
+
+    if [[ "${_latestStable}" != "${_currentVersion}" && "${_latestStable}" != "${_latestInSeries}" ]]; then
+        notice "Major/minor upgrade available: ${_package}==${_latestStable}"
+    fi
+
+    return 0
+}
+
+_doctorUnusedCollections_() {
+    # DESC:
+    #         Find Galaxy collections that are installed but not referenced in tenant YAML files
+    # OUTS:
+    #         0 if check succeeded
+    local -a _collections
+    local _collection
+    local _tenantPath="${HOME}/.flamelet/tenant/flamelet-${TENANT}"
+    local -a _unusedCollections=()
+
+    header "Unused Galaxy collections"
+
+    read -ra _collections <<< "${CFG_ANSIBLE_GALAXY_COLLECTIONS_INSTALL}"
+
+    if [[ ${#_collections[@]} -eq 0 ]]; then
+        info "No collections configured"
+        return 0
+    fi
+
+    if ! (_isDir_ "${_tenantPath}"); then
+        warning "Tenant directory not found: ${_tenantPath}"
+        return 1
+    fi
+
+    for _collection in "${_collections[@]}"; do
+        # Skip empty entries from whitespace splitting
+        [[ -z "${_collection}" ]] && continue
+        # Escape dots for grep pattern
+        local _pattern="${_collection//./\\.}"
+        # Search for FQCN usage (e.g. community.docker.docker_container)
+        # or collection name in collections: declarations
+        if ! grep -rq --include="*.yml" --include="*.yaml" \
+            -e "${_pattern}\." -e "${_pattern}" \
+            "${_tenantPath}/" 2>/dev/null; then
+            _unusedCollections+=("${_collection}")
+        fi
+    done
+
+    if [[ ${#_unusedCollections[@]} -eq 0 ]]; then
+        success "All ${#_collections[@]} collections are referenced in tenant files"
+    else
+        warning "Found ${#_unusedCollections[@]} potentially unused collection(s):"
+        for _collection in "${_unusedCollections[@]}"; do
+            info "  ${_collection}"
+        done
+        info "Review before removing — comments and dynamic includes may reference them"
+    fi
+
+    return 0
+}
+
+_doctorUnusedRoles_() {
+    # DESC:
+    #         Find Galaxy roles that are installed but not referenced in tenant YAML files
+    # OUTS:
+    #         0 if check succeeded
+    local -a _roles
+    local _role
+    local _roleName
+    local _tenantPath="${HOME}/.flamelet/tenant/flamelet-${TENANT}"
+    local -a _unusedRoles=()
+
+    header "Unused Galaxy roles"
+
+    read -ra _roles <<< "${CFG_ANSIBLE_GALAXY_ROLES_INSTALL}"
+
+    if [[ ${#_roles[@]} -eq 0 ]]; then
+        info "No roles configured"
+        return 0
+    fi
+
+    if ! (_isDir_ "${_tenantPath}"); then
+        warning "Tenant directory not found: ${_tenantPath}"
+        return 1
+    fi
+
+    for _role in "${_roles[@]}"; do
+        # Skip empty entries from whitespace splitting
+        [[ -z "${_role}" ]] && continue
+        # Strip version pin (e.g. hspaans.package,v1.0.4 -> hspaans.package)
+        _roleName="${_role%%,*}"
+        # Search for role usage: role: <name>, - <name>, include_role/import_role name: <name>
+        if ! grep -rq --include="*.yml" --include="*.yaml" \
+            -e "${_roleName}" \
+            "${_tenantPath}/" 2>/dev/null; then
+            _unusedRoles+=("${_roleName}")
+        fi
+    done
+
+    if [[ ${#_unusedRoles[@]} -eq 0 ]]; then
+        success "All ${#_roles[@]} roles are referenced in tenant files"
+    else
+        warning "Found ${#_unusedRoles[@]} potentially unused role(s):"
+        for _roleName in "${_unusedRoles[@]}"; do
+            info "  ${_roleName}"
+        done
+        info "Review before removing — comments and dynamic includes may reference them"
+    fi
+
+    return 0
+}
