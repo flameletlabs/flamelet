@@ -1,0 +1,1324 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://flameletlabs.github.io/flamelet/commands/">
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../configuration/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>CLI Reference - flamelet</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  
+<meta property="og:type" content="website" />
+<meta property="og:title" content="CLI Reference - flamelet" />
+<meta property="og:image" content="https://flameletlabs.github.io/flamelet/assets/images/social/commands.png" />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:url" content="https://flameletlabs.github.io/flamelet/commands/" />
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:title" content="CLI Reference - flamelet" />
+<meta property="twitter:image" content="https://flameletlabs.github.io/flamelet/assets/images/social/commands.png" />
+</head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="light-blue" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cli-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="flamelet" class="md-header__button md-logo" aria-label="flamelet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            flamelet
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              CLI Reference
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="light-blue" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue-grey" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  CLI Reference
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../configuration/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Configuration
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../usage/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Usage Patterns
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../advanced/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Advanced
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../changelog/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Changelog
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="flamelet" class="md-nav__button md-logo" aria-label="flamelet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    flamelet
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Reference
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#synopsis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Synopsis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ansible" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ansible
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ansiblemodule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ansiblemodule
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ansiblemodule">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ping-hosts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ping hosts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#raw-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Raw commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-useful-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other useful modules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installansible" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        installansible
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#doctor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        doctor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checkout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        checkout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installremote" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        installremote
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        nmap
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installdeps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        installdeps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sysinfo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sysinfo
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        update
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        version
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Options
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tenant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tenant
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execution-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Execution mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ansible-passthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ansible passthrough
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output control
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#help-and-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Help and version
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage Patterns
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="cli-reference">CLI Reference</h1>
+<h2 id="synopsis">Synopsis</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>flamelet [OPTIONS] [COMMAND]
+</code></pre></div>
+<p>Flamelet requires a tenant (<code>-t</code>) for most commands. The exceptions are <code>sysinfo</code>, <code>update</code>, <code>version</code>, and <code>doctor</code> (without <code>-t</code>), which operate on the flamelet installation itself.</p>
+<h2 id="commands">Commands</h2>
+<h3 id="ansible">ansible</h3>
+<p>Run an Ansible playbook for a tenant.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>&lt;tenant&gt;<span class="w"> </span>ansible
+</code></pre></div>
+<p>Activates the tenant's virtual environment, optionally checks out the tenant repo (unless <code>-l</code> is set), and runs <code>ansible-playbook</code> with the inventory, playbook, and options defined in <code>config.sh</code>.</p>
+<p>Pass additional Ansible arguments via <code>-o</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>&lt;tenant&gt;<span class="w"> </span>ansible<span class="w"> </span>-o<span class="w"> </span><span class="s2">&quot;--tags users --limit debian&quot;</span>
+</code></pre></div>
+<h3 id="ansiblemodule">ansiblemodule</h3>
+<p>Run ad-hoc Ansible modules against your inventory without writing a playbook.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>&lt;tenant&gt;<span class="w"> </span>ansiblemodule<span class="w"> </span>-o<span class="w"> </span><span class="s2">&quot;&lt;ansible-arguments&gt;&quot;</span>
+</code></pre></div>
+<p>Activates the tenant's virtual environment and runs <code>ansible</code> (not <code>ansible-playbook</code>) with the inventory and options from <code>config.sh</code>. Output is one-line-per-host format. Use <code>-o</code> to pass the target hosts, module, and arguments.</p>
+<h4 id="ping-hosts">Ping hosts</h4>
+<p>Check which hosts are reachable and have a working Python environment:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Ping all hosts in inventory</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>mytenant<span class="w"> </span>ansiblemodule<span class="w"> </span>-o<span class="w"> </span><span class="s2">&quot;all -m ping&quot;</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Ping a specific group</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>mytenant<span class="w"> </span>ansiblemodule<span class="w"> </span>-o<span class="w"> </span><span class="s2">&quot;debian -m ping&quot;</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># Ping a single host</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>mytenant<span class="w"> </span>ansiblemodule<span class="w"> </span>-o<span class="w"> </span><span class="s2">&quot;web-01.example -m ping&quot;</span>
+</code></pre></div>
+<h4 id="run-commands">Run commands</h4>
+<p>Execute commands on remote hosts using the <code>command</code> module (default module) or <code>shell</code> (when you need pipes, redirects, or shell features):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Check uptime on all hosts</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>mytenant<span class="w"> </span>ansiblemodule<span class="w"> </span>-o<span class="w"> </span><span class="s2">&quot;all -m command -a &#39;uptime&#39;&quot;</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># Disk usage on webservers</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>mytenant<span class="w"> </span>ansiblemodule<span class="w"> </span>-o<span class="w"> </span><span class="s2">&quot;webservers -m command -a &#39;df -h&#39;&quot;</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1"># Use shell module for pipes and redirects</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>mytenant<span class="w"> </span>ansiblemodule<span class="w"> </span>-o<span class="w"> </span><span class="s2">&quot;all -m shell -a &#39;ps aux | grep nginx&#39;&quot;</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="c1"># Check a service status</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>mytenant<span class="w"> </span>ansiblemodule<span class="w"> </span>-o<span class="w"> </span><span class="s2">&quot;debian -m shell -a &#39;systemctl status nginx&#39;&quot;</span>
+</code></pre></div>
+<h4 id="raw-commands">Raw commands</h4>
+<p>The <code>raw</code> module executes commands directly over SSH without requiring Python on the remote host. Useful for bootstrapping fresh machines or managing minimal systems:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Run on hosts that may not have Python installed</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>mytenant<span class="w"> </span>ansiblemodule<span class="w"> </span>-o<span class="w"> </span><span class="s2">&quot;all -m raw -a &#39;uname -a&#39;&quot;</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Bootstrap Python on a fresh Debian host</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>mytenant<span class="w"> </span>ansiblemodule<span class="w"> </span>-o<span class="w"> </span><span class="s2">&quot;newhost.example -m raw -a &#39;apt-get -y install python3&#39;&quot;</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="c1"># Works on any host with SSH access, regardless of OS</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>mytenant<span class="w"> </span>ansiblemodule<span class="w"> </span>-o<span class="w"> </span><span class="s2">&quot;freebsd -m raw -a &#39;pkg info&#39;&quot;</span>
+</code></pre></div>
+<h4 id="other-useful-modules">Other useful modules</h4>
+<p>Any Ansible module can be used with <code>ansiblemodule</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Gather facts</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>mytenant<span class="w"> </span>ansiblemodule<span class="w"> </span>-o<span class="w"> </span><span class="s2">&quot;all -m setup -a &#39;filter=ansible_os_family&#39;&quot;</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># Copy a file</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>mytenant<span class="w"> </span>ansiblemodule<span class="w"> </span>-o<span class="w"> </span><span class="s2">&quot;webservers -m copy -a &#39;src=/tmp/config.conf dest=/etc/app/config.conf&#39;&quot;</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="c1"># Install a package</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>mytenant<span class="w"> </span>ansiblemodule<span class="w"> </span>-o<span class="w"> </span><span class="s2">&quot;debian -m apt -a &#39;name=htop state=present&#39; --become&quot;</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="c1"># Manage services</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>mytenant<span class="w"> </span>ansiblemodule<span class="w"> </span>-o<span class="w"> </span><span class="s2">&quot;webservers -m service -a &#39;name=nginx state=restarted&#39; --become&quot;</span>
+</code></pre></div>
+<h3 id="installansible">installansible</h3>
+<p>Create or update the Ansible virtual environment for a tenant.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>&lt;tenant&gt;<span class="w"> </span>installansible
+</code></pre></div>
+<p>This command:</p>
+<ol>
+<li>Checks out the tenant repo (if <code>CFG_FLAMELET_TENANT_REPO</code> is set and not in offline mode)</li>
+<li>Creates a Python virtual environment at <code>~/.flamelet/venv/&lt;package&gt;-&lt;tenant&gt;-&lt;version&gt;/</code></li>
+<li>Installs pip, the configured Ansible package and version, plus <code>jmespath</code> and <code>six</code></li>
+<li>Removes and installs Galaxy collections (if <code>CFG_ANSIBLE_GALAXY_COLLECTIONS_REMOVE</code> / <code>_INSTALL</code> are set)</li>
+<li>Removes and installs Galaxy roles (if <code>CFG_ANSIBLE_GALAXY_ROLES_REMOVE</code> / <code>_INSTALL</code> are set)</li>
+</ol>
+<p>Run this once when setting up a new tenant, or again when changing the Ansible version or Galaxy dependencies.</p>
+<h3 id="doctor">doctor</h3>
+<p>Run health checks on flamelet and tenant configuration.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>flamelet<span class="w"> </span>doctor
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>&lt;tenant&gt;<span class="w"> </span>doctor
+</code></pre></div>
+<p>Without a tenant, <code>doctor</code> runs global checks only:</p>
+<ul>
+<li><strong>Flamelet version</strong> — checks if a newer version is available on GitHub</li>
+<li><strong>Stale virtual environments</strong> — finds venvs under <code>~/.flamelet/venv/</code> that don't match any tenant's current <code>config.sh</code> (e.g. left over after a version bump), and offers to delete them</li>
+</ul>
+<p>With a tenant (<code>-t</code>), it also runs:</p>
+<ul>
+<li><strong>Ansible version check</strong> — queries PyPI for the latest stable release and the latest patch in your current major.minor series</li>
+<li><strong>Unused Galaxy collections</strong> — scans tenant YAML files for FQCN references to each installed collection; reports collections with no matches</li>
+<li><strong>Unused Galaxy roles</strong> — scans tenant YAML files for role references; reports roles with no matches</li>
+</ul>
+<p>Useful flags:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Flag</th>
+<th style="text-align: left;">Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>-n</code> / <code>--dryrun</code></td>
+<td style="text-align: left;">Show what would be deleted without actually removing stale venvs</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>--force</code></td>
+<td style="text-align: left;">Skip confirmation prompts (auto-yes for venv cleanup)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>-v</code> / <code>--verbose</code></td>
+<td style="text-align: left;">Show debug detail during checks</td>
+</tr>
+</tbody>
+</table>
+<h3 id="checkout">checkout</h3>
+<p>Clone or update the tenant repository.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>&lt;tenant&gt;<span class="w"> </span>checkout
+</code></pre></div>
+<p>If the tenant directory has no <code>.git</code> directory, clones the repo from <code>CFG_FLAMELET_TENANT_REPO</code>. Otherwise, fetches and resets to the configured branch (<code>CFG_FLAMELET_TENANT_BRANCH</code>, defaults to <code>origin/HEAD</code>).</p>
+<p>This happens automatically before <code>ansible</code>, <code>ansiblemodule</code>, and <code>installansible</code> when a repo is configured and offline mode is not set.</p>
+<h3 id="installremote">installremote</h3>
+<p>Install flamelet on a remote host via SSH.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>&lt;tenant&gt;<span class="w"> </span>-r<span class="w"> </span>installremote
+</code></pre></div>
+<p>Copies the flamelet script and all library files to <code>~/.flamelet/bin/</code> on the remote SSH controller. Requires <code>CFG_SSH_CONTROLLER</code> to be set in <code>config.sh</code>.</p>
+<p>After running this, you can use <code>flamelet -t &lt;tenant&gt; -r ansible</code> to execute playbooks on the remote host.</p>
+<h3 id="nmap">nmap</h3>
+<p>Run network scans on configured subnets.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>&lt;tenant&gt;<span class="w"> </span>nmap
+</code></pre></div>
+<p>Requires <code>CFG_NMAP_SUBNETS</code> (associative array of subnet names to IP ranges) in <code>config.sh</code>. Generates HTML reports using the nmap-bootstrap-xsl stylesheet and serves them via a local HTTP server on port 8100.</p>
+<p>Per-subnet scan options can be set via <code>CFG_NMAP_SUBNETS_OPTS</code>, falling back to <code>CFG_NMAP_OPTS</code>.</p>
+<h3 id="installdeps">installdeps</h3>
+<p>Install system dependencies for flamelet.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>flamelet<span class="w"> </span>installdeps
+</code></pre></div>
+<p>Detects the operating system and installs required packages using the appropriate package manager:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">OS</th>
+<th style="text-align: left;">Package Manager</th>
+<th style="text-align: left;">Packages installed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Debian/Ubuntu</td>
+<td style="text-align: left;">apt-get</td>
+<td style="text-align: left;">bash, tree, rsync, git, tmux, ccze, ncdu, virt-what, python3, python3-venv, sshpass, nmap, xsltproc</td>
+</tr>
+<tr>
+<td style="text-align: left;">RedHat/CentOS</td>
+<td style="text-align: left;">yum</td>
+<td style="text-align: left;">bash, hostname, tree, rsync, git, tmux, ccze, ncdu, python3</td>
+</tr>
+<tr>
+<td style="text-align: left;">FreeBSD</td>
+<td style="text-align: left;">pkg</td>
+<td style="text-align: left;">bash, tree, rsync, git-lite, tmux, ccze, ncdu, wget, rust, nmap, libxslt</td>
+</tr>
+<tr>
+<td style="text-align: left;">OpenBSD</td>
+<td style="text-align: left;">pkg_add</td>
+<td style="text-align: left;">bash, tree, rsync, git, ncdu, python3, wget, rust, nmap, libxslt</td>
+</tr>
+</tbody>
+</table>
+<p>This command does not require a tenant.</p>
+<h3 id="sysinfo">sysinfo</h3>
+<p>Show system information and check dependency status.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>flamelet<span class="w"> </span>sysinfo
+</code></pre></div>
+<p>Reports the detected OS, Linux distribution (if applicable), and checks for the presence of: bash, python3, rsync, git, tmux, tree, ccze, ncdu. Also checks sudo availability.</p>
+<p>This command does not require a tenant.</p>
+<h3 id="update">update</h3>
+<p>Update flamelet itself.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>flamelet<span class="w"> </span>update
+</code></pre></div>
+<p>Shows the current version, fetches the latest from the flamelet GitHub repository, and resets the local installation to match. After updating, it reports whether the version changed (e.g., <code>flamelet updated: 1.0.0 -&gt; 1.1.0</code>) or if you were already up to date. If <code>~/.flamelet/bin/</code> is not yet a git repo, it re-clones from scratch.</p>
+<p>This command does not require a tenant.</p>
+<h3 id="version">version</h3>
+<p>Show the current flamelet version and check for updates.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>flamelet<span class="w"> </span>version
+</code></pre></div>
+<p>Prints the local version, then fetches the latest version from GitHub and compares. If a newer version is available, it tells you to run <code>flamelet update</code>.</p>
+<p>This command does not require a tenant.</p>
+<h2 id="options">Options</h2>
+<h3 id="tenant">Tenant</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Flag</th>
+<th style="text-align: left;">Long</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>-t</code></td>
+<td style="text-align: left;"><code>--tenant</code></td>
+<td style="text-align: left;"><strong>Required for most commands.</strong> Specifies which tenant configuration to use. Corresponds to the directory <code>~/.flamelet/tenant/flamelet-&lt;name&gt;/</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="execution-mode">Execution mode</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Flag</th>
+<th style="text-align: left;">Long</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>-r</code></td>
+<td style="text-align: left;"><code>--remote</code></td>
+<td style="text-align: left;">Run the command on the remote SSH controller instead of locally. The <code>-r</code> flag is stripped from the arguments before forwarding.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>-l</code></td>
+<td style="text-align: left;"><code>--offline</code></td>
+<td style="text-align: left;">Offline mode. Skips tenant repo checkout (git clone/pull). Use when the repo is already present or network is unavailable.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>-n</code></td>
+<td style="text-align: left;"><code>--dryrun</code></td>
+<td style="text-align: left;">Dry run mode. Non-destructive — makes no permanent changes.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ansible-passthrough">Ansible passthrough</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Flag</th>
+<th style="text-align: left;">Long</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>-o</code></td>
+<td style="text-align: left;"><code>--option</code></td>
+<td style="text-align: left;">Pass additional options to the Ansible command. Quote the entire option string: <code>-o "--tags users --limit myhost"</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="output-control">Output control</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Flag</th>
+<th style="text-align: left;">Long</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>-v</code></td>
+<td style="text-align: left;"><code>--verbose</code></td>
+<td style="text-align: left;">Verbose output. Shows additional information during execution.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>-q</code></td>
+<td style="text-align: left;"><code>--quiet</code></td>
+<td style="text-align: left;">Quiet mode. Suppresses output.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>--force</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Skip all user interaction. Implies "Yes" to all prompts.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>--loglevel</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Set log level. One of: <code>FATAL</code>, <code>ERROR</code>, <code>WARN</code>, <code>INFO</code>, <code>NOTICE</code>, <code>DEBUG</code>, <code>ALL</code>, <code>OFF</code>. Default: <code>ERROR</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>--logfile</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Path to log file. Default: <code>~/logs/flamelet.log</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="help-and-version">Help and version</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Flag</th>
+<th style="text-align: left;">Long</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>-h</code></td>
+<td style="text-align: left;"><code>--help</code></td>
+<td style="text-align: left;">Display usage information and exit.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>-V</code></td>
+<td style="text-align: left;"><code>--version</code></td>
+<td style="text-align: left;">Display the current version and exit.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="usage-examples">Usage Examples</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># Run a playbook locally (offline mode, no repo checkout)</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>myproject<span class="w"> </span>-l<span class="w"> </span>ansible
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="c1"># Run a playbook with specific tags</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>myproject<span class="w"> </span>-l<span class="w"> </span>ansible<span class="w"> </span>-o<span class="w"> </span><span class="s2">&quot;--tags packages,users&quot;</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="c1"># Limit to specific hosts</span>
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>myproject<span class="w"> </span>-l<span class="w"> </span>ansible<span class="w"> </span>-o<span class="w"> </span><span class="s2">&quot;--limit webservers&quot;</span>
+<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a>
+<a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="c1"># Run a playbook remotely via SSH controller</span>
+<a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>myproject<span class="w"> </span>-r<span class="w"> </span>ansible
+<a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a>
+<a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a><span class="c1"># Run ad-hoc ping on all hosts</span>
+<a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>myproject<span class="w"> </span>ansiblemodule<span class="w"> </span>-o<span class="w"> </span><span class="s2">&quot;all -m ping&quot;</span>
+<a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a>
+<a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a><span class="c1"># Set up a new tenant from scratch</span>
+<a id="__codelineno-17-17" name="__codelineno-17-17" href="#__codelineno-17-17"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>myproject<span class="w"> </span>installansible
+<a id="__codelineno-17-18" name="__codelineno-17-18" href="#__codelineno-17-18"></a>
+<a id="__codelineno-17-19" name="__codelineno-17-19" href="#__codelineno-17-19"></a><span class="c1"># Install flamelet on the remote controller</span>
+<a id="__codelineno-17-20" name="__codelineno-17-20" href="#__codelineno-17-20"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>myproject<span class="w"> </span>-r<span class="w"> </span>installremote
+<a id="__codelineno-17-21" name="__codelineno-17-21" href="#__codelineno-17-21"></a>
+<a id="__codelineno-17-22" name="__codelineno-17-22" href="#__codelineno-17-22"></a><span class="c1"># Check system dependencies</span>
+<a id="__codelineno-17-23" name="__codelineno-17-23" href="#__codelineno-17-23"></a>flamelet<span class="w"> </span>sysinfo
+<a id="__codelineno-17-24" name="__codelineno-17-24" href="#__codelineno-17-24"></a>
+<a id="__codelineno-17-25" name="__codelineno-17-25" href="#__codelineno-17-25"></a><span class="c1"># Check version and available updates</span>
+<a id="__codelineno-17-26" name="__codelineno-17-26" href="#__codelineno-17-26"></a>flamelet<span class="w"> </span>version
+<a id="__codelineno-17-27" name="__codelineno-17-27" href="#__codelineno-17-27"></a>
+<a id="__codelineno-17-28" name="__codelineno-17-28" href="#__codelineno-17-28"></a><span class="c1"># Print version only</span>
+<a id="__codelineno-17-29" name="__codelineno-17-29" href="#__codelineno-17-29"></a>flamelet<span class="w"> </span>--version
+<a id="__codelineno-17-30" name="__codelineno-17-30" href="#__codelineno-17-30"></a>
+<a id="__codelineno-17-31" name="__codelineno-17-31" href="#__codelineno-17-31"></a><span class="c1"># Update flamelet</span>
+<a id="__codelineno-17-32" name="__codelineno-17-32" href="#__codelineno-17-32"></a>flamelet<span class="w"> </span>update
+<a id="__codelineno-17-33" name="__codelineno-17-33" href="#__codelineno-17-33"></a>
+<a id="__codelineno-17-34" name="__codelineno-17-34" href="#__codelineno-17-34"></a><span class="c1"># Run global health checks (version + stale venvs)</span>
+<a id="__codelineno-17-35" name="__codelineno-17-35" href="#__codelineno-17-35"></a>flamelet<span class="w"> </span>doctor
+<a id="__codelineno-17-36" name="__codelineno-17-36" href="#__codelineno-17-36"></a>
+<a id="__codelineno-17-37" name="__codelineno-17-37" href="#__codelineno-17-37"></a><span class="c1"># Run full health checks for a tenant</span>
+<a id="__codelineno-17-38" name="__codelineno-17-38" href="#__codelineno-17-38"></a>flamelet<span class="w"> </span>-t<span class="w"> </span>myproject<span class="w"> </span>doctor
+<a id="__codelineno-17-39" name="__codelineno-17-39" href="#__codelineno-17-39"></a>
+<a id="__codelineno-17-40" name="__codelineno-17-40" href="#__codelineno-17-40"></a><span class="c1"># Dry-run: see what stale venvs would be deleted</span>
+<a id="__codelineno-17-41" name="__codelineno-17-41" href="#__codelineno-17-41"></a>flamelet<span class="w"> </span>-n<span class="w"> </span>-t<span class="w"> </span>myproject<span class="w"> </span>doctor
+<a id="__codelineno-17-42" name="__codelineno-17-42" href="#__codelineno-17-42"></a>
+<a id="__codelineno-17-43" name="__codelineno-17-43" href="#__codelineno-17-43"></a><span class="c1"># Auto-confirm venv cleanup</span>
+<a id="__codelineno-17-44" name="__codelineno-17-44" href="#__codelineno-17-44"></a>flamelet<span class="w"> </span>--force<span class="w"> </span>-t<span class="w"> </span>myproject<span class="w"> </span>doctor
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      &copy; 2023-2026 <a href="https://github.com/flameletlabs/flamelet"  target="_blank" rel="noopener">Flamelet Labs</a>
+
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/flameletlabs/flamelet" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M202.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1M496 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2m-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3m-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.annotation", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
