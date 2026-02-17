@@ -1,6 +1,6 @@
 # Welcome to flamelet
 
-For full documentation visit [flamelet.org](https://www.flamelet.org).
+For full documentation visit [flameletlabs.github.io/flamelet](https://flameletlabs.github.io/flamelet/).
 
 ## Commands
 
@@ -44,8 +44,38 @@ Flamelet is installed by running one of the following commands in your terminal.
 
 ## First Run
 
+After installing flamelet, the fastest way to get started is with the [example-local](https://github.com/flameletlabs/example-local) tenant:
+
+```bash
+# Clone the example tenant
+git clone https://github.com/flameletlabs/example-local.git \
+  ~/.flamelet/tenant/flamelet-example-local
+
+# Install ansible in a virtual environment
+flamelet -t example-local installansible
+
+# Run the playbook on localhost
+flamelet -t example-local -l ansible
+```
+
+The example playbook gathers system facts, installs a few common packages (`tree`, `curl`, `git`), and displays your current user. Once this works, you're ready to build your own tenant.
 
 ## Examples
+
+- **[example-local](https://github.com/flameletlabs/example-local)** — Local provisioning. The simplest starting point: localhost-only inventory, self-contained playbook, no external dependencies.
+- **[example-remote](https://github.com/flameletlabs/example-remote)** *(coming soon)* — Remote provisioning via SSH with multi-host inventory and Galaxy roles.
+
+## Concepts
+
+**Tenants** — A tenant is a self-contained configuration directory that flamelet manages. Each tenant has its own `config.sh`, Ansible inventory, playbook, and virtual environment. You can manage multiple tenants (e.g., one per project or environment) and switch between them with `flamelet -t <name>`.
+
+**config.sh** — The central configuration file for a tenant. It defines the tenant name, the Ansible version to use, paths to inventory/playbook files, SSH controller settings, and Galaxy dependencies. Flamelet reads this file to know how to set up and run Ansible for that tenant.
+
+**Virtual environments** — Flamelet creates an isolated Python virtual environment per tenant with the specified Ansible version. This prevents version conflicts between tenants and keeps your system Python clean. Use `flamelet -t <name> installansible` to create or update the venv.
+
+**Tags** — Ansible tags let you run only specific parts of a playbook. Pass them through flamelet with `flamelet -t <name> -l ansible -- --tags <tag>`. This is useful for running just the `packages` or `users` portion of a larger playbook.
+
+**Offline mode** — Flamelet can operate without network access once the tenant repo and venv are set up. This is useful for air-gapped environments or when provisioning machines with limited connectivity.
 
 ## Adding Roles for further functionality
 
