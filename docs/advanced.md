@@ -163,15 +163,33 @@ make tags-users         # Run only the users tag
 make limit-debian       # Limit to debian group
 ```
 
-## Updating Flamelet
+## Versioning and Updates
+
+### Checking your version
+
+```bash
+# Print version and exit
+flamelet --version
+
+# Print version and check for available updates
+flamelet version
+```
+
+The `version` command fetches the latest version from GitHub and tells you whether an update is available.
+
+### Updating
 
 ```bash
 flamelet update
 ```
 
-This fetches the latest version from the [flamelet GitHub repository](https://github.com/flameletlabs/flamelet) and resets the local installation. No tenant is required.
+This shows the current version, fetches the latest from the [flamelet GitHub repository](https://github.com/flameletlabs/flamelet), and resets the local installation. After updating, it reports the version change (e.g., `flamelet updated: 1.0.0 -> 1.1.0`) or confirms you are already up to date. No tenant is required.
 
 If you installed flamelet to a custom path, `cd` into that directory first and run `git pull` manually.
+
+### Release process
+
+Flamelet follows [Semantic Versioning](https://semver.org/). The current version is tracked in the `VERSION` file at the repository root. Releases are tagged with `v<version>` (e.g., `v1.0.0`) and GitHub Releases are created automatically via GitHub Actions.
 
 ## Uninstalling Flamelet
 

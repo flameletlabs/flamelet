@@ -7,6 +7,7 @@ nav:
   - Configuration: configuration.md
   - Usage Patterns: usage.md
   - Advanced: advanced.md
+  - Changelog: changelog.md
 
 theme:
   name: material
