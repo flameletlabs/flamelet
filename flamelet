@@ -18,7 +18,7 @@ _mainScript_() {
 
     local _tenant="${TENANT}"
     local _command="${ARGS[0]:-unset}"
-    local _option="${OPTION:-unset}"
+    local _option="${OPTION:-}"
 
     # echo "_option: $_option"
     # printf "_cleanedOptions: %q\n" "${_cleanedOptions[@]}"
@@ -409,7 +409,7 @@ _parseOptions_() {
 
     # Read the options and set stuff
     # shellcheck disable=SC2034
-    while [[ ${1:-} == -?* ]]; do
+    while (($#)); do
         case $1 in
             # Custom options
             -t | --tenant)
@@ -448,7 +448,7 @@ _parseOptions_() {
                 shift
                 break
                 ;;
-            *)
+            -?*)
                 if declare -f _safeExit_ &>/dev/null; then
                     fatal "invalid option: $1"
                 else
@@ -456,14 +456,16 @@ _parseOptions_() {
                     exit 1
                 fi
                 ;;
+            *)
+                ARGS+=("$1")
+                ;;
         esac
         shift
     done
 
-    if [[ -z ${*} || ${*} == null ]]; then
-        ARGS=()
-    else
-        ARGS+=("$@") # Store the remaining user input as arguments.
+    # Collect remaining args after --endopts
+    if [[ $# -gt 0 ]]; then
+        ARGS+=("$@")
     fi
 }
 
