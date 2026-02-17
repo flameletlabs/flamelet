@@ -154,61 +154,327 @@ Structure your playbook with roles that are tagged and conditionally applied by 
 
 ### The conf_* variable pattern
 
-A common pattern is to define configuration changes as data in `group_vars`, then apply them with generic tasks. This keeps roles reusable and moves the specifics into variables.
+A powerful pattern in flamelet tenants is to define configuration changes as data in variables, then apply them with generic tasks in the playbook. This keeps playbooks reusable and moves all host/group specifics into `group_vars` and `host_vars`.
 
-**In `group_vars/all`:**
-
-```yaml
-conf_lineinfile:
-  - path: /etc/ssh/sshd_config
-    regexp: "^PermitRootLogin"
-    line: "PermitRootLogin prohibit-password"
-    notify: restart sshd
-
-conf_copy:
-  - src: files/motd
-    dest: /etc/motd
-    mode: "0644"
-
-conf_blockinfile:
-  - path: /etc/security/limits.conf
-    block: |
-      * soft nofile 65536
-      * hard nofile 65536
-```
-
-**In a role's tasks:**
-
-```yaml
-- name: Apply lineinfile configurations
-  ansible.builtin.lineinfile:
-    path: "{{ item.path }}"
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-  loop: "{{ conf_lineinfile | default([]) }}"
-  tags: lineinfile
-  notify: "{{ item.notify | default(omit) }}"
-
-- name: Apply copy configurations
-  ansible.builtin.copy:
-    src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
-    mode: "{{ item.mode | default('0644') }}"
-  loop: "{{ conf_copy | default([]) }}"
-  tags: copy
-```
-
-Other common `conf_*` variables follow the same pattern:
+The available `conf_*` types and their corresponding Ansible modules:
 
 | Variable | Ansible module | Use case |
 | :------- | :------------- | :------- |
 | `conf_lineinfile` | `lineinfile` | Single-line edits in config files |
 | `conf_blockinfile` | `blockinfile` | Multi-line block insertions |
-| `conf_copy` | `copy` | Copy files to hosts |
+| `conf_copy` | `copy` | Deploy file content to hosts |
+| `conf_file` | `file` | File/directory permissions, ownership, symlinks |
+| `conf_get_url` | `get_url` | Download files from URLs |
 | `conf_sysrc` | `sysrc` | FreeBSD rc.conf settings |
 | `conf_cron` | `cron` | Cron job management |
-| `conf_file` | `file` | File/directory permissions and ownership |
-| `conf_get_url` | `get_url` | Download files from URLs |
+| `conf_shell` | `shell` | Shell commands to execute |
+
+### The _default + _custom composition pattern
+
+Each `conf_*` variable is composed from two lists that are merged at runtime:
+
+- **`conf_*_default`** — Shared baseline defined in `group_vars/all`. Applied to every host.
+- **`conf_*_custom`** — Additions defined in `group_vars/<os>`, `group_vars/<function>`, or `host_vars/<host>`. Applied only where defined.
+
+The final `conf_*` variable is the concatenation of both:
+
+```yaml
+conf_copy: "{{ conf_copy_default|default([]) + conf_copy_custom|default([]) }}"
+```
+
+This means you never lose the shared defaults when adding host-specific configurations — they are additive.
+
+**Flow:**
+
+```
+conf_*_default (group_vars/all)     +     conf_*_custom (group_vars/<os>, host_vars/<host>)
+            └──────────────────── merged into ────────────────────┘
+                                  conf_*
+                            (used in playbook loops)
+```
+
+#### Step 1: Define defaults in group_vars/all
+
+These apply to every host in the inventory:
+
+```yaml
+# group_vars/all
+
+conf_lineinfile_default:
+  - service: sshd
+    regexp: "^PermitRootLogin"
+    line: "PermitRootLogin prohibit-password"
+    path: /etc/ssh/sshd_config
+  - service: sshd
+    regexp: "^PasswordAuthentication"
+    line: "PasswordAuthentication no"
+    path: /etc/ssh/sshd_config
+
+conf_copy_default:
+  - service: ''
+    content: |
+      # Managed by flamelet
+      nameserver 1.1.1.1
+      nameserver 9.9.9.9
+    dest: /etc/resolv.conf
+    group: "{{ os_default_group[ansible_os_family] }}"
+    mode: '0644'
+
+conf_get_url_default:
+  - url: 'https://example.com/scripts/health-check.sh'
+    dest: '/usr/local/bin/health-check.sh'
+    owner: 'root'
+    group: "{{ os_default_group[ansible_os_family] }}"
+    mode: '0755'
+```
+
+#### Step 2: Initialize custom as empty in group_vars
+
+Set `_custom` to an empty list in OS-level group_vars so the merge always works, even for hosts that don't define their own custom list:
+
+```yaml
+# group_vars/freebsd
+
+conf_lineinfile_custom: []
+conf_blockinfile_custom: []
+conf_copy_custom: []
+conf_file_custom: []
+conf_get_url_custom: []
+conf_shell_custom: []
+conf_sysrc_custom: []
+
+# Compose the final variables
+conf_lineinfile: "{{ conf_lineinfile_default|default([]) + conf_lineinfile_custom|default([]) }}"
+conf_blockinfile: "{{ conf_blockinfile_default|default([]) + conf_blockinfile_custom|default([]) }}"
+conf_copy: "{{ conf_copy_default|default([]) + conf_copy_custom|default([]) }}"
+conf_file: "{{ conf_file_default|default([]) + conf_file_custom|default([]) }}"
+conf_get_url: "{{ conf_get_url_default|default([]) + conf_get_url_custom|default([]) }}"
+conf_shell: "{{ conf_shell_default|default([]) + conf_shell_custom|default([]) }}"
+conf_sysrc: "{{ conf_sysrc_default|default([]) + conf_sysrc_custom|default([]) }}"
+```
+
+#### Step 3: Add host-specific customizations in host_vars
+
+Override `_custom` in a host's vars file to add host-specific configurations on top of the defaults:
+
+```yaml
+# host_vars/db-01.example
+
+conf_lineinfile_custom:
+  - service: bsnmpd
+    regexp: 'location := .*'
+    line: 'location := "Datacenter A, Rack 4"'
+    state: present
+    path: /etc/snmpd.config
+  - service: bsnmpd
+    regexp: 'contact := .*'
+    line: 'contact := "ops@example.com"'
+    state: present
+    path: /etc/snmpd.config
+conf_lineinfile: "{{ conf_lineinfile_default|default([]) + conf_lineinfile_custom|default([]) }}"
+
+conf_copy_custom:
+  - service: ''
+    content: |
+      10.0.0.5    db-01 db-01.example
+      10.0.0.6    db-02 db-02.example
+    group: wheel
+    mode: '0644'
+    dest: /etc/hosts
+  - service: devfs
+    content: |
+      [localrules=10]
+      add path fuse mode 0666
+    group: wheel
+    mode: '0644'
+    dest: /etc/devfs.rules
+conf_copy: "{{ conf_copy_default|default([]) + conf_copy_custom|default([]) }}"
+
+conf_sysrc_custom:
+  - name: zfs_enable
+    value: "YES"
+    state: present
+    path: /etc/rc.conf
+  - name: devfs_system_ruleset
+    value: "localrules"
+    state: present
+    path: /etc/rc.conf
+conf_sysrc: "{{ conf_sysrc_default|default([]) + conf_sysrc_custom|default([]) }}"
+```
+
+When the playbook runs on `db-01.example`, it gets both the shared SSH hardening from defaults and the host-specific SNMP, hosts file, and sysrc entries from custom.
+
+#### Step 4: Playbook tasks loop over the merged variable
+
+The playbook only references the final `conf_*` variable — it doesn't need to know about the default/custom split:
+
+```yaml
+- name: lineinfile
+  ansible.builtin.lineinfile:
+    regexp: '{{ item.regexp }}'
+    line: '{{ item.line }}'
+    path: '{{ item.path }}'
+    state: '{{ item.state | default("present") }}'
+  loop: '{{ conf_lineinfile | default([]) }}'
+  register: conf_lineinfile_changed
+  tags: [ 'post', 'lineinfile' ]
+
+- name: copy
+  ansible.builtin.copy:
+    content: '{{ item.content }}'
+    dest: '{{ item.dest }}'
+    group: '{{ item.group }}'
+    mode: '{{ item.mode }}'
+  loop: '{{ conf_copy | default([]) }}'
+  register: conf_copy_changed
+  tags: [ 'post', 'copy' ]
+
+- name: blockinfile
+  ansible.builtin.blockinfile:
+    block: '{{ item.block }}'
+    path: '{{ item.path }}'
+  loop: '{{ conf_blockinfile | default([]) }}'
+  register: conf_blockinfile_changed
+  tags: [ 'post', 'blockinfile' ]
+
+- name: file
+  ansible.builtin.file:
+    dest: '{{ item.dest }}'
+    state: '{{ item.state }}'
+    owner: '{{ item.owner | default("root") }}'
+    group: '{{ item.group | default("wheel") }}'
+    mode: '{{ item.mode | default("0755") }}'
+  loop: '{{ conf_file | default([]) }}'
+  tags: [ 'post', 'file' ]
+
+- name: get_url
+  ansible.builtin.get_url:
+    url: '{{ item.url }}'
+    dest: '{{ item.dest }}'
+    owner: '{{ item.owner | default("root") }}'
+    group: '{{ item.group }}'
+    mode: '{{ item.mode }}'
+  loop: '{{ conf_get_url | default([]) }}'
+  tags: [ 'post', 'get_url' ]
+
+- name: sysrc
+  community.general.sysrc:
+    name: '{{ item.name }}'
+    value: '{{ item.value }}'
+    state: '{{ item.state }}'
+    path: '{{ item.path | default("/etc/rc.conf") }}'
+  loop: '{{ conf_sysrc | default([]) }}'
+  when: ansible_os_family == "FreeBSD"
+  tags: [ 'post', 'sysrc' ]
+```
+
+### Automatic service restart on config change
+
+Each `conf_*` item can include a `service` field. When the task registers a change, the playbook collects affected services and restarts them automatically:
+
+```yaml
+- name: Collect services to restart (copy)
+  set_fact:
+    services_to_restart_copy: "{{ services_to_restart_copy | default([]) + [item.service] }}"
+  loop: "{{ conf_copy }}"
+  when: conf_copy_changed.changed and item.service is defined and item.service != ""
+
+- name: Restart services (copy)
+  ansible.builtin.service:
+    name: "{{ item }}"
+    state: restarted
+  loop: "{{ services_to_restart_copy | unique }}"
+  when: conf_copy_changed.changed | bool
+```
+
+Items can also include a `command` field for post-change commands instead of (or in addition to) service restarts:
+
+```yaml
+- name: Collect commands to exec (copy)
+  set_fact:
+    commands_to_exec_copy: "{{ commands_to_exec_copy | default([]) + [item.command] }}"
+  loop: "{{ conf_copy }}"
+  when: conf_copy_changed.changed and item.command is defined and item.command != ""
+```
+
+### Item structure reference
+
+Each `conf_*` type has a specific item structure:
+
+**conf_copy:**
+
+```yaml
+- service: 'nginx'              # Service to restart on change (empty string = none)
+  command: '/usr/local/bin/reload-app'  # Command to run on change (optional)
+  content: |                    # Inline file content
+    server_name example.com;
+  dest: '/etc/nginx/conf.d/app.conf'
+  group: 'wheel'
+  mode: '0644'
+  owner: 'root'                 # Optional, defaults to root
+  validate: 'nginx -t -c %s'   # Optional validation command
+```
+
+**conf_lineinfile:**
+
+```yaml
+- service: 'sshd'
+  regexp: '^PermitRootLogin'
+  line: 'PermitRootLogin prohibit-password'
+  state: 'present'              # present or absent
+  path: '/etc/ssh/sshd_config'
+  insertbefore: '#LoginGraceTime'  # Optional insertion point
+  validate: '/usr/sbin/sshd -t -f %s'
+```
+
+**conf_blockinfile:**
+
+```yaml
+- service: 'pf'
+  command: 'pfctl -f /etc/pf.conf'
+  block: |
+    pass in on egress proto tcp to port { 80, 443 }
+    pass out all
+  path: '/etc/pf.conf'
+  state: 'present'
+```
+
+**conf_file:**
+
+```yaml
+- dest: '/var/data/backups'
+  state: 'directory'            # file, directory, link, absent
+  recurse: true
+  owner: 'backup'
+  group: 'wheel'
+  mode: '0750'
+```
+
+**conf_get_url:**
+
+```yaml
+- url: 'https://example.com/scripts/monitor.sh'
+  dest: '/usr/local/bin/monitor.sh'
+  owner: 'root'
+  group: 'wheel'
+  mode: '0755'
+```
+
+**conf_sysrc (FreeBSD):**
+
+```yaml
+- name: 'nginx_enable'
+  value: 'YES'
+  state: 'present'
+  path: '/etc/rc.conf'
+```
+
+**conf_shell:**
+
+```yaml
+- cmd: 'zpool scrub tank'
+  creates: '/var/log/scrub.done'  # Optional, skip if file exists
+```
 
 ### Pre-tasks and post-tasks
 
