@@ -20,3 +20,25 @@ Flamelet is installed by running one of the following commands in your terminal.
 | **curl**      | `sh -c "$(curl -fsSL https://raw.githubusercontent.com/flameletlabs/flamelet/main/tools/install.sh)"` |
 | **wget**      | `sh -c "$(wget -O- https://raw.githubusercontent.com/flameletlabs/flamelet/main/tools/install.sh)"`   |
 | **fetch**     | `sh -c "$(fetch -o - https://raw.githubusercontent.com/flameletlabs/flamelet/main/tools/install.sh)"` |
+
+## Quick Start
+
+Once flamelet is installed, try the [example-local](https://github.com/flameletlabs/example-local) tenant to see it in action:
+
+1. Clone the example tenant:
+   ```bash
+   git clone https://github.com/flameletlabs/example-local.git \
+     ~/.flamelet/tenant/flamelet-example-local
+   ```
+
+2. Install ansible in a virtual environment:
+   ```bash
+   flamelet -t example-local installansible
+   ```
+
+3. Run the playbook:
+   ```bash
+   flamelet -t example-local -l ansible
+   ```
+
+This will gather system facts, install a few common packages, and display your current user — all on localhost. See the [examples](examples/) directory for more.
