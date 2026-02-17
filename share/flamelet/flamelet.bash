@@ -274,7 +274,10 @@ _installAnsible_() {
     # ansible-galaxy collection list
 
     [ -n "${CFG_ANSIBLE_GALAXY_COLLECTIONS_REMOVE}" ] && \
-        ansible-galaxy collection remove ${CFG_ANSIBLE_GALAXY_COLLECTIONS_REMOVE}
+        for _col in ${CFG_ANSIBLE_GALAXY_COLLECTIONS_REMOVE}; do
+            _col_dir="${HOME}/.ansible/collections/ansible_collections/${_col%%.*}/${_col#*.}"
+            [ -d "${_col_dir}" ] && rm -rf "${_col_dir}" && info "Removed collection ${_col}"
+        done
 
     [ -n "${CFG_ANSIBLE_GALAXY_COLLECTIONS_INSTALL}" ] && \
         ansible-galaxy collection install ${CFG_ANSIBLE_GALAXY_COLLECTIONS_INSTALL}
