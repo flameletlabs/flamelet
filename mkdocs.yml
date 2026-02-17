@@ -1,5 +1,13 @@
 site_name: flamelet
 site_url: https://flameletlabs.github.io/flamelet/
+
+nav:
+  - Home: index.md
+  - CLI Reference: commands.md
+  - Configuration: configuration.md
+  - Usage Patterns: usage.md
+  - Advanced: advanced.md
+
 theme:
   name: material
   features:
