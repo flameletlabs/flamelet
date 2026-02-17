@@ -28,20 +28,78 @@ flamelet -t <tenant> ansible -o "--tags users --limit debian"
 
 ### ansiblemodule
 
-Run ad-hoc Ansible modules for a tenant.
+Run ad-hoc Ansible modules against your inventory without writing a playbook.
 
 ```bash
 flamelet -t <tenant> ansiblemodule -o "<ansible-arguments>"
 ```
 
-Activates the tenant's virtual environment and runs `ansible` (not `ansible-playbook`) with the inventory and options from `config.sh`. Use `-o` to pass the module, target hosts, and arguments.
+Activates the tenant's virtual environment and runs `ansible` (not `ansible-playbook`) with the inventory and options from `config.sh`. Output is one-line-per-host format. Use `-o` to pass the target hosts, module, and arguments.
+
+#### Ping hosts
+
+Check which hosts are reachable and have a working Python environment:
 
 ```bash
-# Ping all hosts
+# Ping all hosts in inventory
 flamelet -t mytenant ansiblemodule -o "all -m ping"
 
-# Run a shell command on a specific group
-flamelet -t mytenant ansiblemodule -o "webservers -m shell -a 'uptime'"
+# Ping a specific group
+flamelet -t mytenant ansiblemodule -o "debian -m ping"
+
+# Ping a single host
+flamelet -t mytenant ansiblemodule -o "web-01.example -m ping"
+```
+
+#### Run commands
+
+Execute commands on remote hosts using the `command` module (default module) or `shell` (when you need pipes, redirects, or shell features):
+
+```bash
+# Check uptime on all hosts
+flamelet -t mytenant ansiblemodule -o "all -m command -a 'uptime'"
+
+# Disk usage on webservers
+flamelet -t mytenant ansiblemodule -o "webservers -m command -a 'df -h'"
+
+# Use shell module for pipes and redirects
+flamelet -t mytenant ansiblemodule -o "all -m shell -a 'ps aux | grep nginx'"
+
+# Check a service status
+flamelet -t mytenant ansiblemodule -o "debian -m shell -a 'systemctl status nginx'"
+```
+
+#### Raw commands
+
+The `raw` module executes commands directly over SSH without requiring Python on the remote host. Useful for bootstrapping fresh machines or managing minimal systems:
+
+```bash
+# Run on hosts that may not have Python installed
+flamelet -t mytenant ansiblemodule -o "all -m raw -a 'uname -a'"
+
+# Bootstrap Python on a fresh Debian host
+flamelet -t mytenant ansiblemodule -o "newhost.example -m raw -a 'apt-get -y install python3'"
+
+# Works on any host with SSH access, regardless of OS
+flamelet -t mytenant ansiblemodule -o "freebsd -m raw -a 'pkg info'"
+```
+
+#### Other useful modules
+
+Any Ansible module can be used with `ansiblemodule`:
+
+```bash
+# Gather facts
+flamelet -t mytenant ansiblemodule -o "all -m setup -a 'filter=ansible_os_family'"
+
+# Copy a file
+flamelet -t mytenant ansiblemodule -o "webservers -m copy -a 'src=/tmp/config.conf dest=/etc/app/config.conf'"
+
+# Install a package
+flamelet -t mytenant ansiblemodule -o "debian -m apt -a 'name=htop state=present' --become"
+
+# Manage services
+flamelet -t mytenant ansiblemodule -o "webservers -m service -a 'name=nginx state=restarted' --become"
 ```
 
 ### installansible
