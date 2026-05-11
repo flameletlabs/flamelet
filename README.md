@@ -9,18 +9,21 @@ Flamelet v2 is the successor to [flamelet v1](https://github.com/flameletlabs/fl
 ## Quick Start
 
 ```bash
-# Install framelet
+# Install flamelet
 curl -fsSL https://raw.githubusercontent.com/flameletlabs/flamelet/main/install.sh | bash
 
-# Configure a tenant
-mkdir -p ~/src/my-infrastructure/tenants/production
-# Add to ~/.config/flamelet/config.toml:
-# [tenants]
-# production = "~/src/my-infrastructure/tenants/production"
+# Create your first tenant (XDG-compliant)
+mkdir -p ~/.config/flamelet/tenants/production/vars/{location,hosts}
 
-# Run provisioning
-~/src/my-infrastructure/tenants/production/run.py --dry
-~/src/my-infrastructure/tenants/production/run.py
+# Copy template from installed framework
+cp ~/.local/share/flamelet/tenants/home/run.py ~/.config/flamelet/tenants/production/
+cp ~/.local/share/flamelet/tenants/home/inventory.py ~/.config/flamelet/tenants/production/
+cp ~/.local/share/flamelet/tenants/home/vars/*.py ~/.config/flamelet/tenants/production/vars/
+
+# Edit to match your infrastructure
+# Then run provisioning
+~/.config/flamelet/tenants/production/run.py --dry
+~/.config/flamelet/tenants/production/run.py
 ```
 
 ---
@@ -87,30 +90,39 @@ pip install pyinfra pytest ruff
 
 ## Creating Your First Tenant
 
+Tenants live in `~/.config/flamelet/tenants/<name>/` (XDG-compliant) and are automatically discoverable.
+
 See [DEVELOPMENT.md](DEVELOPMENT.md) for the complete guide. Quick version:
 
 ```bash
-mkdir -p tenants/home
-cp tenants/home/{__init__.py,inventory.py,vars.py,run.py} tenants/home/
+# Create tenant directory
+mkdir -p ~/.config/flamelet/tenants/home/vars/{location,hosts}
+
+# Copy template files
+cp core/tenants/home/{run.py,inventory.py} ~/.config/flamelet/tenants/home/
+cp core/tenants/home/vars/*.py ~/.config/flamelet/tenants/home/vars/
 ```
 
-Then:
+Then edit:
 1. **`inventory.py`** — Define your hosts and groups
-2. **`vars.py`** — Provide users, groups, SSH keys, passwords
-3. **`run.py`** — Import operations and call with tenant details
-
-Register in `~/.config/flamelet/config.toml`:
-
-```toml
-[tenants]
-home = "~/src/my-infrastructure/tenants/home"
-```
+2. **`vars/__init__.py`** — Provide users, groups, SSH keys, passwords  
+3. **`vars/all.py`** — Global defaults (packages, sysctl, services)
+4. **`vars/location/*.py`** — Location-specific overrides
+5. **`vars/hosts/*.py`** — Per-host custom configs
+6. **`run.py`** — Import operations and call with tenant details
 
 Deploy:
 
 ```bash
-~/src/my-infrastructure/tenants/home/run.py --dry --limit controller.work
-~/src/my-infrastructure/tenants/home/run.py --task users
+# Test before applying (dry-run)
+~/.config/flamelet/tenants/home/run.py --dry --limit controller.work
+
+# Run specific tasks
+~/.config/flamelet/tenants/home/run.py --task users
+~/.config/flamelet/tenants/home/run.py --task packages
+
+# Run all tasks
+~/.config/flamelet/tenants/home/run.py
 ```
 
 ---
@@ -142,15 +154,31 @@ Run `./run.py --help` to see available tasks for your tenant.
 
 ## XDG Base Directory Compliance
 
-Framelet follows the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/latest/):
+Flamelet follows the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/latest/):
 
 ```
-~/.local/share/flamelet/    # Framework installation (code)
-~/.config/flamelet/         # User configuration (config.toml, tenant registry)
-~/.cache/flamelet/          # Temporary cache (reserved for future use)
+~/.local/share/flamelet/              # Framework installation (code)
+~/.config/flamelet/                   # User configuration
+  ├── config.toml                     # Tenant registry (optional)
+  └── tenants/
+      └── <tenant-name>/              # Tenant configuration (discoverable)
+          ├── run.py                  # Entry point
+          ├── inventory.py            # Host definitions
+          └── vars/                   # Configuration data
+              ├── all.py              # Global defaults
+              ├── location/            # Location-specific overrides
+              └── hosts/               # Per-host custom configs
+~/.cache/flamelet/                    # Temporary cache (reserved for future use)
 ```
 
-Tenants can live anywhere (separate git repos). Register them in `config.toml` for easy discovery.
+**Framework discovery:** Flamelet searches for the core/ directory in:
+1. `FRAMEWORK_ROOT` environment variable (if set)
+2. `~/.local/share/flamelet/` (XDG-compliant installation)
+3. Parent directories (local development)
+
+**Tenant discovery:** Tenants are looked up in:
+1. `~/.config/flamelet/tenants/<name>/` (XDG-compliant, preferred)
+2. Paths registered in `~/.config/flamelet/config.toml` (custom locations)
 
 ---
 
