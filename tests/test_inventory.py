@@ -24,26 +24,26 @@ class TestTenantInventory:
         inventory = build_inventory()
         host_names = {h.name for h in inventory}
         expected = {
-            "controller.paris",
-            "nas-01.tokyo",
-            "virt.london",
-            "virt-01.newyork",
-            "virt-02.newyork",
-            "virt-03.newyork",
-            "docker.london",
+            "gw.example.com",
+            "nas.example.com",
+            "hypervisor.example.com",
+            "worker-1.example.com",
+            "worker-2.example.com",
+            "worker-3.example.com",
+            "docker.example.com",
         }
         assert host_names == expected
 
     def test_openbsd_doas_enabled(self):
         """OpenBSD host should have _doas=True."""
         inventory = build_inventory()
-        controller = next(h for h in inventory if h.name == "controller.paris")
-        assert controller.data.get("_doas") is True
+        gw = next(h for h in inventory if h.name == "gw.example.com")
+        assert gw.data.get("_doas") is True
 
     def test_freebsd_no_doas(self):
         """FreeBSD hosts should not have _doas set."""
         inventory = build_inventory()
-        freebsd_hosts = [h for h in inventory if h.name.startswith("nas-") or "virt" in h.name]
+        freebsd_hosts = [h for h in inventory if h.name.startswith("nas.") or "worker-" in h.name or "hypervisor" in h.name]
         for host in freebsd_hosts:
             assert host.data.get("_doas") is not True
 
@@ -56,7 +56,7 @@ class TestTenantInventory:
         for host in inventory.get_group("freebsd"):
             assert host.data.ssh_user == "syseng"
         # Debian: use debian (bootstrap user before switching to syseng)
-        docker = next(h for h in inventory if h.name == "docker.london")
+        docker = next(h for h in inventory if h.name == "docker.example.com")
         assert docker.data.ssh_user == "debian"
 
     def test_ssh_key_configured(self):
@@ -66,11 +66,11 @@ class TestTenantInventory:
             assert host.data.get("ssh_key") is not None or "ssh_key" not in host.data
 
     def test_group_openbsd(self):
-        """openbsd group should contain only controller.paris."""
+        """openbsd group should contain only gw.example.com."""
         inventory = build_inventory()
         openbsd_group = list(inventory.get_group("openbsd"))
         assert len(openbsd_group) == 1
-        assert openbsd_group[0].name == "controller.paris"
+        assert openbsd_group[0].name == "gw.example.com"
 
     def test_group_freebsd(self):
         """freebsd group should contain 5 FreeBSD hosts."""
@@ -79,60 +79,60 @@ class TestTenantInventory:
         assert len(freebsd_group) == 5
         freebsd_names = {h.name for h in freebsd_group}
         expected = {
-            "nas-01.tokyo",
-            "virt.london",
-            "virt-01.newyork",
-            "virt-02.newyork",
-            "virt-03.newyork",
+            "nas.example.com",
+            "hypervisor.example.com",
+            "worker-1.example.com",
+            "worker-2.example.com",
+            "worker-3.example.com",
         }
         assert freebsd_names == expected
 
-    def test_group_location_work(self):
-        """work group should contain only controller.paris."""
+    def test_group_gateway(self):
+        """gateway group should contain only gw.example.com."""
         inventory = build_inventory()
-        work_group = list(inventory.get_group("work"))
-        assert len(work_group) == 1
-        assert work_group[0].name == "controller.paris"
+        gateway_group = list(inventory.get_group("gateway"))
+        assert len(gateway_group) == 1
+        assert gateway_group[0].name == "gw.example.com"
 
-    def test_group_location_home(self):
-        """home group should contain only virt.london."""
+    def test_group_storage(self):
+        """storage group should contain only nas.example.com."""
         inventory = build_inventory()
-        home_group = list(inventory.get_group("home"))
-        assert len(home_group) == 1
-        assert home_group[0].name == "virt.london"
+        storage_group = list(inventory.get_group("storage"))
+        assert len(storage_group) == 1
+        assert storage_group[0].name == "nas.example.com"
 
-    def test_group_location_baar(self):
-        """newyork group should contain 3 newyork hosts."""
+    def test_group_hypervisors(self):
+        """hypervisors group should contain only hypervisor.example.com."""
         inventory = build_inventory()
-        newyork_group = list(inventory.get_group("newyork"))
-        assert len(newyork_group) == 3
-        baar_names = {h.name for h in newyork_group}
-        expected = {"virt-01.newyork", "virt-02.newyork", "virt-03.newyork"}
-        assert baar_names == expected
+        hypervisors_group = list(inventory.get_group("hypervisors"))
+        assert len(hypervisors_group) == 1
+        assert hypervisors_group[0].name == "hypervisor.example.com"
 
-    def test_group_location_pangea(self):
-        """tokyo group should contain only nas-01.tokyo."""
+    def test_group_workers(self):
+        """workers group should contain 3 worker hosts."""
         inventory = build_inventory()
-        tokyo_group = list(inventory.get_group("tokyo"))
-        assert len(tokyo_group) == 1
-        assert tokyo_group[0].name == "nas-01.tokyo"
+        workers_group = list(inventory.get_group("workers"))
+        assert len(workers_group) == 3
+        worker_names = {h.name for h in workers_group}
+        expected = {"worker-1.example.com", "worker-2.example.com", "worker-3.example.com"}
+        assert worker_names == expected
 
-    def test_group_location_docker(self):
-        """docker group should contain only docker.london."""
+    def test_group_docker(self):
+        """docker group should contain only docker.example.com."""
         inventory = build_inventory()
         docker_group = list(inventory.get_group("docker"))
         assert len(docker_group) == 1
-        assert docker_group[0].name == "docker.london"
+        assert docker_group[0].name == "docker.example.com"
 
     def test_group_debian(self):
-        """debian group should contain only docker.london."""
+        """debian group should contain only docker.example.com."""
         inventory = build_inventory()
         debian_group = list(inventory.get_group("debian"))
         assert len(debian_group) == 1
-        assert debian_group[0].name == "docker.london"
+        assert debian_group[0].name == "docker.example.com"
 
     def test_debian_sudo_enabled(self):
         """Debian host should have _sudo=True."""
         inventory = build_inventory()
-        docker = next(h for h in inventory if h.name == "docker.london")
+        docker = next(h for h in inventory if h.name == "docker.example.com")
         assert docker.data.get("_sudo") is True
