@@ -55,7 +55,7 @@ def add_unbound_ops(state, hosts, config, target_hosts=None, task="all"):
             src=StringIO(content),
             dest=conf_path,
             mode="0644",
-            owner="root",
+            user="root",
             group="wheel" if os_key in ("OpenBSD", "FreeBSD") else "root",
             host=host,
         )

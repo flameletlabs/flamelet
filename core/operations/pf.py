@@ -46,7 +46,7 @@ def add_pf_ops(state, hosts, config, target_hosts=None, task="all"):
             src=StringIO(rules),
             dest="/etc/pf.conf",
             mode="0644",
-            owner="root",
+            user="root",
             group="wheel",
             host=host,
         )

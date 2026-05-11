@@ -45,7 +45,7 @@ def add_file_ops(state, hosts, file_config, target_hosts=None, task="all"):
                 src=src,
                 dest=dest,
                 mode=mode,
-                owner=owner,
+                user=owner,
                 group=group,
                 host=host,
             )

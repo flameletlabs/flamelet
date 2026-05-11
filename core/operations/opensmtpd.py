@@ -58,7 +58,7 @@ def add_opensmtpd_ops(state, hosts, config, target_hosts=None, task="all"):
             src=StringIO(content),
             dest=smtpd_path,
             mode="0644",
-            owner="root",
+            user="root",
             group="wheel" if os_key in ("OpenBSD", "FreeBSD") else "root",
             host=host,
         )
@@ -75,7 +75,7 @@ def add_opensmtpd_ops(state, hosts, config, target_hosts=None, task="all"):
                 src=StringIO(secrets_content),
                 dest=secrets_path,
                 mode="0640",
-                owner="root",
+                user="root",
                 group="_smtpd" if os_key in ("OpenBSD", "FreeBSD") else "mail",
                 host=host,
             )
@@ -91,7 +91,7 @@ def add_opensmtpd_ops(state, hosts, config, target_hosts=None, task="all"):
                 src=StringIO(aliases_content),
                 dest=aliases_path,
                 mode="0644",
-                owner="root",
+                user="root",
                 group="wheel" if os_key in ("OpenBSD", "FreeBSD") else "root",
                 host=host,
             )
