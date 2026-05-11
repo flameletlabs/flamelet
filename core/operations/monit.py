@@ -15,11 +15,11 @@ def add_monit_ops(state, hosts, config, target_hosts=None, task="all"):
         hosts: Inventory object
         config: dict mapping hostname → Monit config
             {
-                "virt.london": {
+                "monitor.example.com": {
                     "daemon": 120,
-                    "mmonit_url": "https://monit:pass@monit.example.com/collector",
+                    "mmonit_url": "https://monit:monit-password@mmonit.example.com/collector",
                     "httpd_port": 2812,
-                    "httpd_password": "...",
+                    "httpd_password": "monit-web-password",
                     "checks": {
                         "system": "check system $HOST\n  ...",
                         "filesystem": "check filesystem rootfs ...",
