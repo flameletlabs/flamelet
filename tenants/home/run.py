@@ -1,5 +1,5 @@
-#!/home/syseng/.local/share/pipx/venvs/pyinfra/bin/python3
-"""Home tenant deployment orchestration (tenant entry point)."""
+#!/usr/bin/env python3
+"""Home tenant deployment orchestration (example tenant entry point)."""
 
 import sys
 from pathlib import Path
@@ -19,7 +19,7 @@ from tenants.home.inventory import build_inventory  # noqa: E402
 
 
 def add_ops(state, inventory, target_hosts=None, task="all"):
-    """Add all operations for home tenant."""
+    """Add all operations for home tenant (example)."""
     add_user_ops(
         state,
         inventory,
