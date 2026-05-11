@@ -52,7 +52,7 @@ def add_docker_ops(state, hosts, config, target_hosts=None, task="all"):
                 src=StringIO(daemon_json),
                 dest="/etc/docker/daemon.json",
                 mode="0644",
-                owner="root",
+                user="root",
                 group="root",
                 host=host,
             )
@@ -99,7 +99,7 @@ def add_docker_ops(state, hosts, config, target_hosts=None, task="all"):
                     src=StringIO(stack_content),
                     dest=stack_path,
                     mode="0644",
-                    owner="root",
+                    user="root",
                     group="root",
                     host=host,
                 )

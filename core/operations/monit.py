@@ -55,7 +55,7 @@ def add_monit_ops(state, hosts, config, target_hosts=None, task="all"):
             src=StringIO(content),
             dest=monitrc_path,
             mode="0600",
-            owner="root",
+            user="root",
             group="wheel" if os_key in ("OpenBSD", "FreeBSD") else "root",
             host=host,
         )

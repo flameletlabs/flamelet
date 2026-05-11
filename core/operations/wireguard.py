@@ -61,7 +61,7 @@ def _add_wireguard_freebsd(state, host, iface_name, config):
         src=StringIO(content),
         dest=f"/usr/local/etc/wireguard/{iface_name}.conf",
         mode="0640",
-        owner="root",
+        user="root",
         group="wheel",
         host=host,
     )
@@ -92,7 +92,7 @@ def _add_wireguard_openbsd(state, host, iface_name, config):
         src=StringIO(content),
         dest=f"/etc/hostname.{iface_name}",
         mode="0640",
-        owner="root",
+        user="root",
         group="wheel",
         host=host,
     )
