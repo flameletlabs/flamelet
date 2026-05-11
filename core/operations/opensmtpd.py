@@ -15,14 +15,14 @@ def add_opensmtpd_ops(state, hosts, config, target_hosts=None, task="all"):
         hosts: Inventory object
         config: dict mapping hostname → OpenSMTPD config
             {
-                "virt.home": {
+                "example.host": {
                     "mail_from": "noreply@example.com",
-                    "smtp_relay": "smtp+tls://username@smtp.gmail.com:587",
-                    "smtp_password": "...",
-                    "allowed_networks": ["192.168.150.0/24"],
+                    "smtp_relay": "smtp+tls://username@smtp.example.com:587",
+                    "smtp_password": "app-specific-password",
+                    "allowed_networks": ["10.0.0.0/24"],
                     "tables": {
                         "aliases": ["root: admin@example.com"],
-                        "secrets": ["gmail username:password"]
+                        "secrets": ["relay_user relay-password"]
                     }
                 }
             }

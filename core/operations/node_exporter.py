@@ -13,7 +13,7 @@ def add_node_exporter_ops(state, hosts, config, target_hosts=None, task="all"):
         hosts: Inventory object
         config: dict mapping hostname → node_exporter config
             {
-                "virt.home": {
+                "monitoring.example.com": {
                     "listen_address": ":9100",
                     "extra_args": "--collector.textfile.directory=/var/tmp/node_exporter"
                 }

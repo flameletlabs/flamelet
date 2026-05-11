@@ -15,8 +15,8 @@ def add_pf_ops(state, hosts, config, target_hosts=None, task="all"):
         hosts: Inventory object
         config: dict mapping hostname → pf config
             {
-                "controller.work": {
-                    "rules": "# verbatim pf.conf content",
+                "firewall.example.com": {
+                    "rules": "# verbatim pf.conf content\npass in proto tcp to port { 22, 80, 443 }",
                     "validate_cmd": "/sbin/pfctl -nf %s",
                 }
             }

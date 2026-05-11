@@ -16,14 +16,19 @@ def add_wireguard_ops(state, hosts, config, target_hosts=None, task="all"):
         hosts: Inventory object
         config: dict mapping hostname → WireGuard config
             {
-                "virt.home": {
+                "vpn.example.com": {
                     "interfaces": {
                         "wg0": {
-                            "address": "10.50.0.X/24",
+                            "address": "10.0.0.2/24",
                             "port": 51820,
-                            "private_key": "...",
+                            "private_key": "OMk2zN8aA5bB6cC7dD8eE9fF0gG1hH2i=",
                             "peers": [
-                                {"pubkey": "...", "allowed_ips": [...], "endpoint": "...", "keepalive": 25}
+                                {
+                                    "pubkey": "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpP=",
+                                    "allowed_ips": ["10.0.0.0/24"],
+                                    "endpoint": "vpn-gateway.example.com:51820",
+                                    "keepalive": 25
+                                }
                             ]
                         }
                     }

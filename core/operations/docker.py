@@ -16,10 +16,10 @@ def add_docker_ops(state, hosts, config, target_hosts=None, task="all"):
         hosts: Inventory object
         config: dict mapping hostname → Docker config
             {
-                "dev.baar": {
-                    "users": ["syseng", "debian"],
+                "docker.example.com": {
+                    "users": ["syseng", "deploy"],
                     "daemon": {
-                        "insecure-registries": ["registry.baar"],
+                        "insecure-registries": ["registry.internal"],
                         "log-driver": "journald",
                     },
                     "storage_path": "/data",

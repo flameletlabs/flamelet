@@ -15,14 +15,14 @@ def add_unbound_ops(state, hosts, config, target_hosts=None, task="all"):
         hosts: Inventory object
         config: dict mapping hostname → Unbound config
             {
-                "virt.home": {
-                    "listen_on": ["127.0.0.1", "192.168.150.2"],
-                    "access_control": ["127.0.0.0/8 allow", "192.168.150.0/24 allow"],
+                "dns.example.com": {
+                    "listen_on": ["127.0.0.1", "10.0.0.2"],
+                    "access_control": ["127.0.0.0/8 allow", "10.0.0.0/24 allow"],
                     "local_data": [
-                        {"name": "docker.home.", "type": "A", "value": "192.168.150.53"}
+                        {"name": "www.example.com.", "type": "A", "value": "10.0.0.53"}
                     ],
                     "forward_zones": [
-                        {"name": ".", "addrs": ["192.168.150.1", "1.1.1.1"]}
+                        {"name": ".", "addrs": ["10.0.0.1", "1.1.1.1"]}
                     ]
                 }
             }
