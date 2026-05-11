@@ -1,9 +1,19 @@
 """Shared test fixtures and configuration."""
 
+import os
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 from pyinfra.api import Config, Inventory, State
+
+
+def pytest_configure(config):
+    """Set FRAMEWORK_ROOT for tenant integration tests."""
+    if "FRAMEWORK_ROOT" not in os.environ:
+        # Framework root is 2 directories up from tests/
+        framework_root = Path(__file__).parent.parent
+        os.environ["FRAMEWORK_ROOT"] = str(framework_root)
 
 
 @pytest.fixture

@@ -8,7 +8,7 @@ import pytest
 @pytest.fixture
 def tenant_vars():
     """Load tenant vars module."""
-    tenant_root = Path(__file__).parent.parent.parent / ".config/flamelet/tenants/flamelet-home"
+    tenant_root = Path.home() / ".config/flamelet/tenants/flamelet-home"
     if not tenant_root.exists():
         pytest.skip("Tenant directory not found - skipping integration tests")
 
@@ -24,7 +24,7 @@ def tenant_vars():
 @pytest.fixture
 def inventory():
     """Load tenant inventory module."""
-    tenant_root = Path(__file__).parent.parent.parent / ".config/flamelet/tenants/flamelet-home"
+    tenant_root = Path.home() / ".config/flamelet/tenants/flamelet-home"
     if not tenant_root.exists():
         pytest.skip("Tenant directory not found - skipping integration tests")
 
@@ -210,7 +210,7 @@ class TestTenantRunPy:
 
     def test_run_py_imports(self):
         """Verify run.py imports correctly."""
-        tenant_root = Path(__file__).parent.parent.parent / ".config/flamelet/tenants/flamelet-home"
+        tenant_root = Path.home() / ".config/flamelet/tenants/flamelet-home"
         if not tenant_root.exists():
             pytest.skip("Tenant directory not found")
 
@@ -229,7 +229,7 @@ class TestTenantRunPy:
 
     def test_tenant_tasks_defined(self):
         """Verify TENANT_TASKS includes all required operations."""
-        tenant_root = Path(__file__).parent.parent.parent / ".config/flamelet/tenants/flamelet-home"
+        tenant_root = Path.home() / ".config/flamelet/tenants/flamelet-home"
         if not tenant_root.exists():
             pytest.skip("Tenant directory not found")
 
