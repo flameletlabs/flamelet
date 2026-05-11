@@ -121,6 +121,11 @@ def add_opensmtpd_ops(state, hosts, config, target_hosts=None, task="all"):
             )
 
 
+def _generate_smtpd_config(config):
+    """Generate smtpd.conf config."""
+    return _generate_smtpd_conf(config, "/etc/opensmtpd")
+
+
 def _generate_smtpd_conf(config, conf_dir):
     """Generate smtpd.conf content."""
     lines = []

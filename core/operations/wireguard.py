@@ -112,6 +112,11 @@ def _add_wireguard_openbsd(state, host, iface_name, config):
     )
 
 
+def _generate_wg_freebsd_config(config):
+    """Generate WireGuard FreeBSD config."""
+    return _generate_wireguard_ini(config)
+
+
 def _generate_wireguard_ini(config):
     """Generate WireGuard INI format config (FreeBSD style)."""
     lines = ["[Interface]"]

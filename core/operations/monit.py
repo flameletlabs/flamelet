@@ -85,6 +85,11 @@ def add_monit_ops(state, hosts, config, target_hosts=None, task="all"):
             )
 
 
+def _generate_monit_config(config, hostname=None):
+    """Generate monit config."""
+    return _generate_monitrc(config)
+
+
 def _generate_monitrc(config):
     """Generate monitrc content."""
     lines = []
