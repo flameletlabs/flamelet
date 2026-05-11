@@ -1,0 +1,1 @@
+"""flamelet-home tenant configuration."""
