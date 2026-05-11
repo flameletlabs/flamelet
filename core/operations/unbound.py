@@ -85,6 +85,11 @@ def add_unbound_ops(state, hosts, config, target_hosts=None, task="all"):
             )
 
 
+def _generate_unbound_config(config):
+    """Generate unbound.conf content."""
+    return _generate_unbound_conf(config)
+
+
 def _generate_unbound_conf(config):
     """Generate unbound.conf content."""
     lines = ["server:"]
