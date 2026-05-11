@@ -12,7 +12,7 @@ def add_service_ops(state, hosts, service_config, target_hosts=None, task="all")
         state: pyinfra State object
         hosts: Inventory object
         service_config: dict mapping hostname → {service_name: {state, enabled}}
-            Example: {"docker.home": {"sshd": {"state": "started", "enabled": True}}}
+            Example: {"server.example.com": {"sshd": {"state": "started", "enabled": True}}}
         target_hosts: list of Host objects to deploy to (default: all)
         task: "services" or "all" (for compatibility)
     """

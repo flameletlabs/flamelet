@@ -12,7 +12,7 @@ def add_sysctl_ops(state, hosts, sysctl_config, target_hosts=None, task="all"):
         state: pyinfra State object
         hosts: Inventory object
         sysctl_config: dict mapping hostname → {param: value}
-            Example: {"virt-01.baar": {"net.ipv4.ip_forward": "1"}}
+            Example: {"router.example.com": {"net.ipv4.ip_forward": "1"}}
         target_hosts: list of Host objects to deploy to (default: all)
         task: "sysctl" or "all" (for compatibility)
     """
@@ -59,7 +59,7 @@ def add_sysrc_ops(state, hosts, sysrc_config, target_hosts=None, task="all"):
         state: pyinfra State object
         hosts: Inventory object
         sysrc_config: dict mapping hostname → {variable: value}
-            Example: {"virt-01.baar": {"cloned_interfaces": "bridge10"}}
+            Example: {"freebsd-host.example.com": {"cloned_interfaces": "bridge10"}}
         target_hosts: list of Host objects to deploy to (default: all)
         task: "sysrc" or "all" (for compatibility)
     """
