@@ -15,7 +15,7 @@ class TestTenantDeployment:
     def test_dry_run_single_host_all_tasks(self):
         """Dry-run deployment to single host should succeed."""
         result = subprocess.run(
-            [PYTHON, TENANT_RUN, "--dry", "--limit", "controller.work"],
+            [PYTHON, TENANT_RUN, "--dry", "--limit", "gw.example.com"],
             capture_output=True,
             text=True,
         )
@@ -25,7 +25,7 @@ class TestTenantDeployment:
     def test_dry_run_single_host_groups_only(self):
         """Dry-run with --task groups should execute groups task only."""
         result = subprocess.run(
-            [PYTHON, TENANT_RUN, "--dry", "--limit", "controller.work", "--task", "groups"],
+            [PYTHON, TENANT_RUN, "--dry", "--limit", "gw.example.com", "--task", "groups"],
             capture_output=True,
             text=True,
         )
@@ -35,7 +35,7 @@ class TestTenantDeployment:
     def test_dry_run_single_host_users_only(self):
         """Dry-run with --task users should execute users task only."""
         result = subprocess.run(
-            [PYTHON, TENANT_RUN, "--dry", "--limit", "controller.work", "--task", "users"],
+            [PYTHON, TENANT_RUN, "--dry", "--limit", "gw.example.com", "--task", "users"],
             capture_output=True,
             text=True,
         )
@@ -45,7 +45,7 @@ class TestTenantDeployment:
     def test_dry_run_verbose(self):
         """Dry-run with verbose should show debug info."""
         result = subprocess.run(
-            [PYTHON, TENANT_RUN, "--dry", "--verbose", "--limit", "controller.work"],
+            [PYTHON, TENANT_RUN, "--dry", "--verbose", "--limit", "gw.example.com"],
             capture_output=True,
             text=True,
         )
@@ -56,7 +56,7 @@ class TestTenantDeployment:
     def test_dry_run_freebsd_host(self):
         """Dry-run deployment to FreeBSD host should succeed."""
         result = subprocess.run(
-            [PYTHON, TENANT_RUN, "--dry", "--limit", "virt.home"],
+            [PYTHON, TENANT_RUN, "--dry", "--limit", "hypervisor.example.com"],
             capture_output=True,
             text=True,
         )

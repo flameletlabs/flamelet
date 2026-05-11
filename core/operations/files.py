@@ -59,8 +59,8 @@ def add_file_content_ops(state, hosts, content_config, target_hosts=None, task="
         hosts: Inventory object
         content_config: dict mapping hostname → {dest: content}
             Example: {
-                "virt-01.baar": {
-                    "/etc/custom.conf": "key=value\\nkey2=value2"
+                "example.host": {
+                    "/etc/app.conf": "key=value\\nkey2=value2"
                 }
             }
         target_hosts: list of Host objects to deploy to (default: all)
