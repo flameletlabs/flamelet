@@ -1,6 +1,5 @@
 """Tests for TASK_REGISTRY."""
 
-import pytest
 from core.tasks import TASK_REGISTRY, TaskEntry
 
 
