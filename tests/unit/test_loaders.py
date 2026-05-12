@@ -1,7 +1,5 @@
 """Tests for config loaders (3-tier inheritance)."""
 
-from pathlib import Path
-import pytest
 from core.tasks.loader import load_service_config, load_packages_config
 
 
