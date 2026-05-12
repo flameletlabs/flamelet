@@ -33,3 +33,8 @@ ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["core*"]
+exclude = ["tests*", "tenants*"]
