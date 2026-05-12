@@ -83,6 +83,17 @@ def add_monit_ops(state, hosts, config, target_hosts=None, task="all"):
                 ],
                 host=host,
             )
+        elif os_key == "OpenBSD":
+            add_op(
+                state,
+                server.shell,
+                name=f"Enable Monit on {host.name}",
+                commands=[
+                    "rcctl enable monit",
+                    "rcctl restart monit || true",
+                ],
+                host=host,
+            )
 
 
 def _generate_monit_config(config, hostname=None):
@@ -105,6 +116,9 @@ def _generate_monitrc(config):
     if mmonit_url:
         lines.append(f"set mmonit {mmonit_url}")
         lines.append("  with timeout 30 seconds")
+        hostgroup = config.get("mmonit_hostgroup")
+        if hostgroup:
+            lines.append(f"  with hostgroups [ \"{hostgroup}\" ]")
         lines.append("")
 
     # HTTP daemon
