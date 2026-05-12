@@ -97,7 +97,7 @@ def find_tenant_path(tenant_name=None):
     elif xdg_tenant.exists():
         return xdg_tenant
 
-    # Strategy 3: Local development (src/ivomarino/*/tenants/*)
+    # Strategy 3: Relative path from tenant script location
     import inspect
     frame = inspect.currentframe().f_back
     script_path = Path(frame.f_globals["__file__"]).resolve()

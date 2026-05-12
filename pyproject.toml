@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "pyinfra-framework"
 version = "0.1.0"
 description = "Multi-tenant infrastructure automation framework using pyinfra"
-authors = [{name = "Ivo Marino", email = "ivo@floads.io"}]
+authors = [{name = "Flamelet Contributors"}]
 requires-python = ">=3.10"
 dependencies = ["pyinfra>=3.3"]
 
