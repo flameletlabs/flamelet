@@ -1,21 +1,38 @@
-# Flamelet Framework Documentation
+# Flamelet Framework — Complete Reference for AI
 
-## Overview
+**This document is designed for AI systems to generate complete, production-ready tenant configurations.**
 
-Flamelet is a multi-tenant infrastructure automation framework built on pyinfra. It separates concerns:
-- **Framework** (`~/src/floads/flamelet/core/`): Operations, tasks, config loaders, CLI
-- **Tenants** (`~/.config/flamelet/tenants/`): Variables, inventory, host definitions
+## Core Principle
 
-A tenant only needs:
-- `inventory.py` — host definitions and groups
-- `vars/__init__.py` — users and constants
-- `vars/all.py`, `vars/location/*.py`, `vars/hosts/*.py` — configuration by tier
+```
+Framework (Reusable)          Tenant (Configuration Only)
+├── core/operations/ ────────→ vars/all.py
+├── core/tasks/      ────────→ vars/location/*.py
+├── core/cli.py      ────────→ vars/hosts/*.py
+└── TASK_REGISTRY    ────────→ inventory.py
+```
 
-The framework provides:
-- `flamelet` CLI — replaces tenant `run.py`
-- TASK_REGISTRY — maps task names to operations
-- Config loaders — 3-tier inheritance (all < location < host-specific)
-- 21 operations — each operation function follows a standard signature
+**Rule:** Add all NEW tasks/operations to the framework. Tenants hold ONLY configuration data (no logic).
+
+---
+
+## Tenant Contract (What AI Needs to Generate)
+
+A complete tenant requires exactly these files:
+
+```
+tenant-name/
+├── inventory.py              # REQUIRED: host definitions + groups
+└── vars/
+    ├── __init__.py           # REQUIRED: users, groups, constants
+    ├── all.py                # OPTIONAL: global defaults (services, packages)
+    ├── location/
+    │   └── {location}.py     # OPTIONAL: location-specific overrides
+    └── hosts/
+        └── {hostname}.py     # OPTIONAL: host-specific configs
+```
+
+**That's it.** No `run.py`. No logic. Just configuration.
 
 ---
 
@@ -334,6 +351,630 @@ flamelet --help
 
 ---
 
+## Complete Operation Reference (For Generating Tenant Configs)
+
+This section lists all 20 operations with their config attributes so AI can generate correct tenant variables.
+
+### Users & System
+
+#### `users` — User & Group Provisioning
+**Config Attribute:** None (loaded from `vars/__init__.py` directly)
+
+```python
+# vars/__init__.py
+USERS = {
+    "username": {
+        "comment": "Full Name",
+        "password": "$6$...",  # sha-512 hash from mkpasswd --method=sha-512
+        "groups": {"FreeBSD": "wheel", "Linux": "sudo"},  # OS-specific groups
+        "shell": {"FreeBSD": "/usr/local/bin/bash", "Linux": "/bin/bash"},  # OS-specific
+        "public_keys": ["ssh-rsa AAAA...", "ssh-ed25519 AAAA..."],
+    }
+}
+
+GROUPS = ["wheel", "keep"]  # System groups to create
+BASH = {"FreeBSD": "/usr/local/bin/bash", "Linux": "/bin/bash"}  # Default shell per OS
+SUDO_GROUP = {"FreeBSD": "wheel", "Linux": "sudo"}  # Sudo group per OS
+LUMACA_PASSWORD = "$6$..."  # Default password hash for all users
+```
+
+#### `sudo` — Sudoers Configuration
+**Config Attribute:** None (loaded from `vars/__init__.py` directly)
+
+Uses USERS config from above.
+
+### Package Management
+
+#### `packages` — Package Installation
+**Config Attribute:** `PACKAGES` (OS-keyed, not hostname-keyed)
+
+```python
+# vars/all.py
+PACKAGES = {
+    "Linux": ["curl", "git", "htop", "openssh-server"],
+    "FreeBSD": ["curl", "git", "htop"],
+    "OpenBSD": ["curl", "git", "htop"],
+}
+```
+
+### Networking
+
+#### `wireguard` — WireGuard VPN
+**Config Attribute:** `WIREGUARD` (hostname-keyed)
+
+```python
+# vars/all.py or vars/hosts/vpn_home.py
+WIREGUARD = {
+    "vpn.home": {
+        "interfaces": {
+            "wg0": {
+                "address": "10.0.0.1/24",
+                "port": 51820,
+                "private_key": "...",
+                "peers": [
+                    {
+                        "pubkey": "...",
+                        "allowed_ips": ["10.0.0.0/24"],
+                        "endpoint": "peer.example.com:51820",
+                        "keepalive": 25,
+                        "preshared_key": "...",  # Optional
+                    }
+                ]
+            }
+        }
+    }
+}
+```
+
+#### `unbound` — DNS Resolver
+**Config Attribute:** `UNBOUND` (hostname-keyed)
+
+```python
+UNBOUND = {
+    "dns.home": {
+        "listen_on": ["127.0.0.1", "192.168.1.1"],
+        "access_control": [
+            "127.0.0.0/8 allow",
+            "192.168.1.0/24 allow",
+            "0.0.0.0/0 refuse",
+        ],
+        "local_data": [
+            {"name": "host.local.", "type": "A", "value": "192.168.1.10"},
+            {"name": "alias.local.", "type": "CNAME", "value": "host.local."},
+        ],
+        "forward_zones": [
+            {"name": ".", "addrs": ["1.1.1.1", "8.8.8.8"]},
+        ],
+    }
+}
+```
+
+#### `autossh` — SSH Reverse Tunnels
+**Config Attributes:** `AUTOSSH_TUNNELS` and `AUTOSSH_GATEWAY` (both hostname-keyed)
+
+```python
+# vars/hosts/app_home.py — tunnel from remote to gateway
+AUTOSSH_TUNNELS = {
+    "app.home": {
+        "remote_host": "gateway.example.com",
+        "remote_user": "autossh",
+        "local_port": 2220,
+        "local_target": "localhost:22",
+        "private_key": "/root/.ssh/id_rsa-autossh",
+    }
+}
+
+# vars/hosts/gateway.py — gateway receives tunnel
+AUTOSSH_GATEWAY = {
+    "gateway.example.com": {
+        "authorized_keys": {
+            "user": "autossh",
+            "keys": [
+                {
+                    "comment": "app.home",
+                    "public_key": "ssh-rsa AAAA...",
+                    "options": "no-pty,no-agent-forwarding",
+                }
+            ]
+        }
+    }
+}
+```
+
+### System Configuration
+
+#### `sysctl` — Kernel Parameters
+**Config Attribute:** `SYSCTL` (hostname-keyed)
+
+```python
+SYSCTL = {
+    "app.prod": {
+        "net.ipv4.ip_forward": "1",
+        "net.ipv4.conf.all.send_redirects": "0",
+        "vm.swappiness": "10",
+    }
+}
+```
+
+#### `services` — Service Management
+**Config Attribute:** `SERVICES` (hostname-keyed)
+
+```python
+SERVICES = {
+    "app.home": {
+        "enabled": ["ssh", "ntp"],
+        "started": ["ssh", "ntp"],
+        "restart": ["app-service"],  # Services to restart
+    }
+}
+```
+
+#### `pf` — BSD Firewall Rules
+**Config Attribute:** `PF` (hostname-keyed)
+
+```python
+PF = {
+    "gateway.home": {
+        "rules": """
+block in all
+pass in on em0 proto tcp from any to any port 22
+pass in on wg0 proto tcp from any to any port 443
+""",
+    }
+}
+```
+
+### Monitoring & Observability
+
+#### `monit` — Process & System Monitoring
+**Config Attribute:** `MONIT` (hostname-keyed)
+
+```python
+MONIT = {
+    "app.home": {
+        "daemon": 120,  # Check interval in seconds
+        "mmonit_url": "https://monit:password@monit.example.com/collector",
+        "mmonit_hostgroup": "home",
+        "httpd_port": 2812,
+        "httpd_password": "monitoring-ui-password",
+        "checks": {
+            "system": "check system app.home\n  if memory usage > 75% then alert",
+            "filesystem_root": "check filesystem rootfs with path /\n  if space usage > 90% then alert",
+            "process_sshd": "check process sshd with pidfile /var/run/sshd.pid\n  if failed port 22 then restart",
+        }
+    }
+}
+```
+
+#### `node_exporter` — Prometheus Exporter
+**Config Attribute:** `NODE_EXPORTER` (hostname-keyed)
+
+```python
+NODE_EXPORTER = {
+    "app.home": {
+        "port": 9100,
+        "collectors": ["filesystem", "meminfo", "netdev"],
+        "options": "--collector.disable-defaults",
+    }
+}
+```
+
+#### `prometheus` — Metrics Server
+**Config Attribute:** `PROMETHEUS` (hostname-keyed)
+
+```python
+PROMETHEUS = {
+    "metrics.home": {
+        "port": 9090,
+        "scrape_interval": "15s",
+        "targets": [
+            {"job": "node", "targets": ["localhost:9100", "app.home:9100"]},
+            {"job": "blackbox", "targets": ["localhost:9115"]},
+        ],
+    }
+}
+```
+
+### Mail & DNS
+
+#### `opensmtpd` — Mail Relay
+**Config Attribute:** `OPENSMTPD` (hostname-keyed)
+
+```python
+OPENSMTPD = {
+    "mail.home": {
+        "listen": ["127.0.0.1:25", "192.168.1.1:25"],
+        "relay": "smtp.example.com:587",
+        "relay_auth": {"user": "alerts@example.com", "password": "..."},
+    }
+}
+```
+
+### Container & Virtualization
+
+#### `docker` — Docker Installation & Config
+**Config Attribute:** `DOCKER` (hostname-keyed)
+
+```python
+DOCKER = {
+    "docker.home": {
+        "registry": "registry.example.com",
+        "registry_auth": {"username": "user", "password": "..."},
+        "storage_driver": "overlay2",
+        "log_driver": "json-file",
+        "log_opts": {"max-size": "10m", "max-file": "3"},
+    }
+}
+```
+
+#### `registry` — Container Registry
+**Config Attribute:** `REGISTRY` (hostname-keyed)
+
+```python
+REGISTRY = {
+    "registry.example.com": {
+        "port": 5000,
+        "storage": "/var/lib/registry",
+        "auth": {"htpasswd_file": "/etc/registry/htpasswd"},
+    }
+}
+```
+
+#### `virtualization` — VM/Jail Management
+**Config Attribute:** `VIRTUALIZATION` (hostname-keyed)
+
+```python
+VIRTUALIZATION = {
+    "virt.home": {
+        "type": "bhyve",  # or "bastille"
+        "zvol_pool": "vm-pool",
+        "bridges": [
+            {"name": "vm-bridge0", "interface": "em0"},
+        ],
+        "vms": [
+            {
+                "name": "app-01",
+                "vcpu": 4,
+                "memory": "4G",
+                "disk_size": "20G",
+                "network": "vm-bridge0",
+                "autostart": True,
+            }
+        ]
+    }
+}
+```
+
+#### `k3s` — Kubernetes (k3s)
+**Config Attribute:** `K3S` (hostname-keyed)
+
+```python
+K3S = {
+    "k3s.home": {
+        "role": "server",  # or "agent"
+        "cluster_token": "...",
+        "server": "https://k3s.home:6443",
+        "datastore": "sqlite3",  # or "etcd"
+    }
+}
+```
+
+### Storage
+
+#### `storage` — ZFS/NFS/SMB
+**Config Attribute:** `STORAGE` (hostname-keyed)
+
+```python
+STORAGE = {
+    "nas.home": {
+        "pools": [
+            {
+                "name": "tank",
+                "devices": ["/dev/da0", "/dev/da1"],
+                "type": "mirror",
+                "compression": "lz4",
+            }
+        ],
+        "datasets": [
+            {
+                "pool": "tank",
+                "name": "data",
+                "mountpoint": "/mnt/data",
+                "quota": "5T",
+                "nfs_share": True,
+                "smb_share": True,
+            }
+        ],
+        "nfs_config": {
+            "exports": [
+                {
+                    "dataset": "tank/data",
+                    "clients": ["192.168.1.0/24"],
+                    "options": "rw,no_root_squash",
+                }
+            ]
+        },
+        "samba_config": {
+            "shares": [
+                {
+                    "name": "media",
+                    "path": "/mnt/media",
+                    "comment": "Shared Media",
+                    "permissions": "public",
+                }
+            ]
+        },
+    }
+}
+```
+
+### Web Services
+
+#### `nginx` — Reverse Proxy
+**Config Attribute:** `NGINX` (hostname-keyed)
+
+```python
+NGINX = {
+    "nginx.home": {
+        "user": "www-data",
+        "worker_processes": 4,
+        "upstream": [
+            {
+                "name": "api",
+                "servers": ["127.0.0.1:8080", "127.0.0.1:8081"],
+            }
+        ],
+        "servers": [
+            {
+                "listen": "80",
+                "server_name": "example.com",
+                "locations": [
+                    {
+                        "path": "/api",
+                        "proxy_pass": "http://api",
+                    }
+                ],
+            }
+        ],
+    }
+}
+```
+
+#### `postgresql` — PostgreSQL Database
+**Config Attribute:** `POSTGRESQL` (hostname-keyed)
+
+```python
+POSTGRESQL = {
+    "db.home": {
+        "version": "15",
+        "listen_addresses": ["127.0.0.1", "192.168.1.5"],
+        "port": 5432,
+        "max_connections": 100,
+        "shared_buffers": "256MB",
+        "databases": [
+            {
+                "name": "appdb",
+                "owner": "appuser",
+                "encoding": "UTF8",
+            }
+        ],
+        "users": [
+            {
+                "name": "appuser",
+                "password": "...",
+                "privileges": "ALL ON DATABASE appdb",
+            }
+        ],
+    }
+}
+```
+
+---
+
+## 3-Tier Configuration Inheritance
+
+For hostname `app.prod.home`:
+
+1. **Global Defaults** (`vars/all.py`) — required minimum config
+2. **Location Override** (`vars/location/home.py`) — environment-specific changes
+   - Location extracted from last dot segment: `app.prod.home` → `home`
+3. **Host Override** (`vars/hosts/app_prod_home.py`) — host-specific changes
+   - Filename format: `<hostname>` with `.` and `-` replaced by `_`
+
+Final config = merge of all three, with host-specific winning.
+
+---
+
+## How AI Should Generate Tenant Configs
+
+### Step 1: Read This Document
+Understand all 20 operations and their config attributes.
+
+### Step 2: Create inventory.py
+```python
+from pyinfra.api.inventory import Inventory
+
+def build_inventory():
+    return Inventory(
+        (
+            [
+                ("app.example.com", {"ssh_hostname": "192.168.1.10"}),
+                ("db.example.com", {"ssh_hostname": "192.168.1.20"}),
+            ],
+            {"ssh_user": "syseng", "ssh_key": "~/.ssh/id_rsa"},
+        ),
+        web=(["app.example.com"], {}),
+        db=(["db.example.com"], {}),
+    )
+```
+
+### Step 3: Create vars/__init__.py
+```python
+USERS = {
+    "syseng": {
+        "comment": "System Engineering",
+        "password": "$6$...",
+        "groups": {"FreeBSD": "wheel", "Linux": "sudo"},
+        "shell": {"FreeBSD": "/usr/local/bin/bash", "Linux": "/bin/bash"},
+        "public_keys": ["ssh-rsa AAAA..."],
+    }
+}
+
+GROUPS = ["wheel", "keep"]
+BASH = {"FreeBSD": "/usr/local/bin/bash", "Linux": "/bin/bash"}
+SUDO_GROUP = {"FreeBSD": "wheel", "Linux": "sudo"}
+LUMACA_PASSWORD = "$6$..."
+```
+
+### Step 4: Create vars/all.py
+```python
+PACKAGES = {
+    "Linux": ["curl", "git", "htop"],
+    "FreeBSD": ["curl", "git", "htop"],
+}
+
+# Add service configs for all hosts (global defaults)
+WIREGUARD = {}  # If hosts use WireGuard
+MONIT = {}      # If hosts use Monit
+# ... other services
+```
+
+### Step 5: Create vars/location/{location}.py (Optional)
+For location-specific overrides (e.g., prod vs. dev environments).
+
+### Step 6: Create vars/hosts/{hostname}.py (Optional)
+For host-specific configs (specific VMs, databases, services).
+
+**That's it.** No run.py. No logic. Just configuration.
+
+---
+
+## Adding New Operations to Framework (NOT Tenant)
+
+**IMPORTANT:** Always add NEW operations to the framework, never to tenant code.
+
+### Step 1: Create Operation Module
+
+Create `core/operations/myservice.py`:
+
+```python
+from pyinfra.api import add_op
+from pyinfra.operations import files, server
+
+def add_myservice_ops(state, hosts, config, target_hosts=None, task="all"):
+    """Deploy MyService.
+    
+    Config attribute: MYSERVICE (hostname-keyed dict)
+    
+    Args:
+        state: pyinfra State
+        hosts: pyinfra Inventory
+        config: dict like {"hostname": {"setting1": "value"}}
+        target_hosts: optional list of Host objects to limit to
+        task: task name being run
+    """
+    targets = target_hosts if target_hosts else list(hosts)
+    
+    for host in targets:
+        if host.name not in config:
+            continue
+        
+        host_config = config[host.name]
+        
+        # Write config file
+        add_op(
+            state,
+            files.put,
+            name=f"Deploy MyService config to {host.name}",
+            src=generate_config(host_config),
+            dest="/etc/myservice/config",
+            mode="0644",
+            user="root",
+            group="root",
+            host=host,
+        )
+        
+        # Restart service
+        add_op(
+            state,
+            server.shell,
+            name=f"Restart MyService on {host.name}",
+            commands=["systemctl restart myservice"],
+            host=host,
+        )
+
+def generate_config(config):
+    """Generate config file content from dict."""
+    lines = [f"{k}: {v}" for k, v in config.items()]
+    return "\n".join(lines)
+```
+
+### Step 2: Register in TASK_REGISTRY
+
+Edit `core/tasks/__init__.py`:
+
+```python
+def _init_registry() -> dict[str, list[TaskEntry]]:
+    """Build TASK_REGISTRY after all imports are available."""
+    from core.operations.myservice import add_myservice_ops
+    
+    return {
+        ...existing tasks...
+        "myservice": [TaskEntry(add_myservice_ops, "MYSERVICE", "standard")],
+    }
+```
+
+### Step 3: Document in CLAUDE.md
+
+Add to "Complete Operation Reference" section:
+
+```markdown
+#### `myservice` — MyService Configuration
+**Config Attribute:** `MYSERVICE` (hostname-keyed)
+
+\`\`\`python
+MYSERVICE = {
+    "app.home": {
+        "setting1": "value1",
+        "setting2": "value2",
+    }
+}
+\`\`\`
+```
+
+### Step 4: Add Tests
+
+Create `tests/unit/test_myservice.py`:
+
+```python
+def test_myservice_registered(self):
+    """myservice task should be registered."""
+    assert "myservice" in TASK_REGISTRY
+    assert TASK_REGISTRY["myservice"][0].config_attr == "MYSERVICE"
+```
+
+### Step 5: Update Tenant
+
+In tenant `vars/hosts/app_home.py`:
+
+```python
+MYSERVICE = {
+    "app.home": {
+        "setting1": "value1",
+        "setting2": "value2",
+    }
+}
+```
+
+Then deploy:
+
+```bash
+flamelet --task myservice --limit app.home --dry
+flamelet --task myservice --limit app.home
+```
+
+---
+
 ## Best Practices
 
 1. **Separate concerns**: Framework = operations, Tenant = configuration
@@ -343,4 +984,6 @@ flamelet --help
 5. **No Python logic in vars**: Vars files are pure data; logic lives in operations
 6. **Error handling**: Operations should skip missing config gracefully (not fail)
 7. **Documenting operations**: Each operation function should state its config_attr requirements in the docstring
+8. **Always extend framework**: New tasks/operations go in core/operations/, never in tenant code
+9. **Document new operations**: Always add config examples to this CLAUDE.md file
 
