@@ -9,8 +9,8 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from core.operations.sudo import add_sudoers_ops  # noqa: E402
-from tenants.home.inventory import build_inventory  # noqa: E402
-from tenants.home import vars as tenant_vars  # noqa: E402
+from tenants.example.inventory import build_inventory  # noqa: E402
+from tenants.example import vars as tenant_vars  # noqa: E402
 
 
 class TestSudoersOperation:

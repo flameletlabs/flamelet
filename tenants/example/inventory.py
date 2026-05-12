@@ -3,8 +3,21 @@
 from pyinfra.api import Inventory
 
 
-def build_inventory():
-    """Build example home infrastructure inventory."""
+def build_inventory(local=False):
+    """Build example home infrastructure inventory.
+
+    Args:
+        local: If True, use @local connector (for CI/testing without SSH).
+               This runs operations on the local machine instead of via SSH.
+    """
+    if local:
+        # CI/testing mode: use @local connector (no SSH needed)
+        return Inventory(
+            (
+                [("@local", {})],
+                {},
+            ),
+        )
     all_hosts = [
         ("gw.example.com", {"_doas": True}),  # OpenBSD gateway (example)
         ("nas.example.com", {"ssh_hostname": "10.0.0.10"}),  # FreeBSD NAS (example)
