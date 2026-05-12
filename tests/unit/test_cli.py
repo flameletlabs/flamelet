@@ -2,13 +2,14 @@
 
 import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
+
 from core.cli import (
+    build_add_ops_func,
     load_tenant_inventory,
     load_tenant_vars_module,
-    build_add_ops_func,
 )
 
 
