@@ -1,3 +1,13 @@
+> **ARCHIVED — flamelet v1 (bash/Ansible)**
+>
+> This branch contains flamelet v1, the original shell/Ansible-based implementation.
+> It is no longer actively maintained.
+>
+> **Current version:** flamelet v2 (Python/pyinfra) — see the `main` branch.
+> For v1 → v2 migration guidance, see [MIGRATION.md](MIGRATION.md).
+
+---
+
 # flamelet
 
 A DevOps tool for remote infrastructure management.
