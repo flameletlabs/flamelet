@@ -1,6 +1,6 @@
 """Tests for config loaders (3-tier inheritance)."""
 
-from core.tasks.loader import load_service_config, load_packages_config
+from core.tasks.loader import load_packages_config, load_service_config
 
 
 class TestLoadServiceConfig:
