@@ -27,7 +27,8 @@ def add_wireguard_ops(state, hosts, config, target_hosts=None, task="all"):
                                     "pubkey": "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpP=",
                                     "allowed_ips": ["10.0.0.0/24"],
                                     "endpoint": "vpn-gateway.example.com:51820",
-                                    "keepalive": 25
+                                    "keepalive": 25,
+                                    "preshared_key": "xXyYzZaAbBcCdDeEfFgGhHiIjJkKlMmN="  # optional
                                 }
                             ]
                         }
@@ -78,7 +79,7 @@ def _add_wireguard_freebsd(state, host, iface_name, config):
         name=f"Enable WireGuard {iface_name} on {host.name}",
         commands=[
             f"sysrc wireguard_enable=YES",
-            f"sysrc wireguard_interfaces={iface_name}",
+            f"sysrc -a wireguard_interfaces+={iface_name}",
             f"service wireguard restart || true",
         ],
         host=host,
@@ -129,6 +130,8 @@ def _generate_wireguard_ini(config):
         lines.append("")
         lines.append("[Peer]")
         lines.append(f"PublicKey = {peer.get('pubkey', '')}")
+        if "preshared_key" in peer:
+            lines.append(f"PresharedKey = {peer['preshared_key']}")
         allowed_ips = peer.get("allowed_ips", [])
         lines.append(f"AllowedIPs = {', '.join(allowed_ips)}")
         if "endpoint" in peer:
