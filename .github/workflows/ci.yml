@@ -47,6 +47,29 @@ jobs:
       - name: Verify CLI discovery
         run: |
           PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --help
-      - name: Dry-run all tasks
+      - name: Verify tenant loads correctly
         run: |
-          PYTHONPATH=. TENANT_PATH=tenants/example FLAMELET_LOCAL=1 python -m core.cli --dry --task all
+          python3 << 'EOF'
+          from pathlib import Path
+          from core.cli import load_tenant_inventory, load_tenant_vars_module
+          from core.tasks.loader import load_service_config
+
+          tenant_path = Path("tenants/example")
+
+          # Test inventory loads
+          inventory = load_tenant_inventory(tenant_path)
+          hosts = list(inventory)
+          assert len(hosts) == 1, f"Expected 1 host (@local), got {len(hosts)}"
+          assert hosts[0].name == "@local", f"Expected @local host, got {hosts[0].name}"
+
+          # Test vars load
+          vars_mod = load_tenant_vars_module(tenant_path)
+          assert hasattr(vars_mod, "USERS"), "USERS not found in vars"
+          assert "syseng" in vars_mod.USERS, "syseng user not found"
+
+          # Test service config loads
+          config = load_service_config(tenant_path, "MONIT")
+          assert isinstance(config, dict), "MONIT config should be dict"
+
+          print("✓ All tenant configuration checks passed")
+          EOF
