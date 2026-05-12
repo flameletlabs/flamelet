@@ -2,7 +2,6 @@
 
 from pathlib import Path
 
-import pytest
 from core.cli import load_tenant_inventory, load_tenant_vars_module, build_add_ops_func
 from core.tasks.loader import load_service_config, load_packages_config
 

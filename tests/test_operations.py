@@ -1,8 +1,9 @@
 """Tests for all 23 framework operations."""
 
-import pytest
 from pathlib import Path
-from unittest.mock import Mock, MagicMock
+from unittest.mock import MagicMock, Mock
+
+import pytest
 
 
 class TestPhase1Operations:

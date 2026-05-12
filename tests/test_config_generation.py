@@ -1,6 +1,5 @@
 """Tests for configuration generation in operations."""
 
-import pytest
 from io import StringIO
 
 
