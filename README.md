@@ -368,6 +368,14 @@ See **CLAUDE.md** for the full AI-friendly reference.
 
 ---
 
+## Legacy v1 (bash/Ansible)
+
+The original flamelet v1 (bash/Ansible) is archived at the [`legacy/v1`](../../tree/legacy/v1)
+branch. It remains available for systems that cannot migrate to v2.
+
+See [`MIGRATION.md`](../../blob/legacy/v1/MIGRATION.md) on that branch for step-by-step upgrade guidance.
+
+---
 
 ## License
 
