@@ -1,5 +1,7 @@
 """Example home infrastructure inventory: 7 hosts (1 OpenBSD, 5 FreeBSD, 1 Debian)."""
 
+import os
+
 from pyinfra.api import Inventory
 
 
@@ -9,7 +11,12 @@ def build_inventory(local=False):
     Args:
         local: If True, use @local connector (for CI/testing without SSH).
                This runs operations on the local machine instead of via SSH.
+               Can also be triggered by FLAMELET_LOCAL environment variable.
     """
+    # Check environment variable for CI environments that can't pass parameters
+    if not local and os.environ.get("FLAMELET_LOCAL", "").lower() in ("1", "true", "yes"):
+        local = True
+
     if local:
         # CI/testing mode: use @local connector (no SSH needed)
         return Inventory(
