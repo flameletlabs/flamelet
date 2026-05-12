@@ -49,4 +49,4 @@ jobs:
           PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --help
       - name: Dry-run all tasks
         run: |
-          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task all
+          PYTHONPATH=. TENANT_PATH=tenants/example FLAMELET_LOCAL=1 python -m core.cli --dry --task all
