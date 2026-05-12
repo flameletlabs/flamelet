@@ -48,15 +48,18 @@ jobs:
         run: |
           PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --help
       - name: Verify tenant loads correctly
+        env:
+          FLAMELET_LOCAL: "1"
         run: |
           python3 << 'EOF'
+          import os
           from pathlib import Path
           from core.cli import load_tenant_inventory, load_tenant_vars_module
           from core.tasks.loader import load_service_config
 
           tenant_path = Path("tenants/example")
 
-          # Test inventory loads
+          # Test inventory loads (with @local mode from FLAMELET_LOCAL env var)
           inventory = load_tenant_inventory(tenant_path)
           hosts = list(inventory)
           assert len(hosts) == 1, f"Expected 1 host (@local), got {len(hosts)}"
