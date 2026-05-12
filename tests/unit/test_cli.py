@@ -1,9 +1,5 @@
 """Tests for CLI argument parsing and tenant discovery."""
 
-import sys
-from pathlib import Path
-from unittest.mock import MagicMock, patch
-
 import pytest
 
 from core.cli import (
