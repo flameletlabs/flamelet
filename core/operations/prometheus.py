@@ -202,7 +202,9 @@ def _install_prometheus(os_key):
 def _create_prometheus_user(os_key):
     """Return OS-specific Prometheus user creation command."""
     if os_key == "FreeBSD":
-        return "pw useradd -n prometheus -s /usr/sbin/nologin -m -d /nonexistent 2>/dev/null || true"
+        return (
+            "pw useradd -n prometheus -s /usr/sbin/nologin -m -d /nonexistent 2>/dev/null || true"
+        )
     elif os_key == "OpenBSD":
         return "useradd -s /usr/sbin/nologin -d /var/empty -m prometheus 2>/dev/null || true"
     else:  # Linux
