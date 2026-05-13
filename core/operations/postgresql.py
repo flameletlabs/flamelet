@@ -50,7 +50,7 @@ def add_postgresql_ops(state, hosts, config, target_hosts=None, task="all"):
             data_dir = "/var/postgresql/data"
         else:  # Linux
             pkg_name = f"postgresql-{version}"
-            data_dir = "/var/lib/postgresql/14/main"
+            data_dir = f"/var/lib/postgresql/{version}/main"
 
         # Install PostgreSQL
         add_op(

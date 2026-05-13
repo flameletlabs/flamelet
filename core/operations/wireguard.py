@@ -89,7 +89,7 @@ def _add_wireguard_freebsd(state, host, iface_name, config):
 
 def _add_wireguard_openbsd(state, host, iface_name, config):
     """Configure WireGuard on OpenBSD via /etc/hostname.<iface>"""
-    content = _generate_wireguard_openbsd(config)
+    content = _generate_wireguard_openbsd(config, iface_name)
 
     # Write OpenBSD hostname.<iface> file
     add_op(
@@ -171,7 +171,7 @@ def _generate_wireguard_ini(config):
     return "\n".join(lines)
 
 
-def _generate_wireguard_openbsd(config):
+def _generate_wireguard_openbsd(config, iface_name="wg0"):
     """Generate WireGuard config for OpenBSD /etc/hostname.<iface> format."""
     lines = []
     address = config.get("address", "")
@@ -208,6 +208,6 @@ def _generate_wireguard_openbsd(config):
     # Add routes for allowed IPs
     for peer in peers:
         for ip in peer.get("allowed_ips", []):
-            lines.append(f"!/sbin/route add -inet {ip} -link -iface wg0")
+            lines.append(f"!/sbin/route add -inet {ip} -link -iface {iface_name}")
 
     return "\n".join(lines)

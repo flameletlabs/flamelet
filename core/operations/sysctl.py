@@ -43,13 +43,21 @@ def add_sysctl_ops(state, hosts, sysctl_config, target_hosts=None, task="all"):
                 host=host,
             )
 
-            # On FreeBSD/OpenBSD, apply immediately
+            # Apply sysctl based on OS
             if os_key in ("FreeBSD", "OpenBSD"):
                 add_op(
                     state,
                     server.shell,
                     name=f"Apply sysctl on {host.name}",
                     commands=["sysctl -f /etc/sysctl.conf"],
+                    host=host,
+                )
+            elif os_key == "Linux":
+                add_op(
+                    state,
+                    server.shell,
+                    name=f"Apply sysctl on {host.name}",
+                    commands=["sysctl -p"],
                     host=host,
                 )
 

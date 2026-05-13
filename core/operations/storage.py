@@ -297,7 +297,7 @@ def _add_samba_shares(state, host, samba_config, os_key):
         server.shell,
         name=f"Install Samba on {host.name}",
         commands=[
-            "pkg install -y samba48" if os_key == "FreeBSD" else "apt-get install -y samba",
+            _samba_install_cmd(os_key),
         ],
         host=host,
     )
@@ -328,3 +328,13 @@ def _add_samba_shares(state, host, samba_config, os_key):
             ],
             host=host,
         )
+
+
+def _samba_install_cmd(os_key):
+    """Return OS-specific Samba install command."""
+    if os_key == "FreeBSD":
+        return "pkg install -y samba48"
+    elif os_key == "OpenBSD":
+        return "pkg_add samba"
+    else:  # Linux
+        return "apt-get install -y samba"

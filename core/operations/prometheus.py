@@ -92,7 +92,7 @@ def add_prometheus_ops(state, hosts, config, target_hosts=None, task="all"):
             name=f"Install Prometheus on {host.name}",
             commands=[
                 f"which prometheus || {_install_prometheus(os_key)}",
-                "useradd -s /sbin/nologin -M prometheus 2>/dev/null || true",
+                _create_prometheus_user(os_key),
                 f"chown -R prometheus:prometheus {conf_dir}",
             ],
             host=host,
@@ -197,3 +197,13 @@ def _install_prometheus(os_key):
         return "pkg_add prometheus"
     else:  # Linux (Debian)
         return "apt-get update && apt-get install -y prometheus"
+
+
+def _create_prometheus_user(os_key):
+    """Return OS-specific Prometheus user creation command."""
+    if os_key == "FreeBSD":
+        return "pw useradd -n prometheus -s /usr/sbin/nologin -m -d /nonexistent 2>/dev/null || true"
+    elif os_key == "OpenBSD":
+        return "useradd -s /usr/sbin/nologin -d /var/empty -m prometheus 2>/dev/null || true"
+    else:  # Linux
+        return "useradd -s /sbin/nologin -M prometheus 2>/dev/null || true"
