@@ -145,3 +145,43 @@ def setup_imports(start_path=None):
     if str(framework_root) not in sys.path:
         sys.path.insert(0, str(framework_root))
     return framework_root
+
+
+def get_tenants():
+    """Get all configured tenants as dict {name: path}.
+
+    Returns:
+        Dictionary mapping tenant names to paths
+    """
+    xdg_config_home = Path(os.environ.get("XDG_CONFIG_HOME", "~/.config")).expanduser()
+    tenants_dir = xdg_config_home / "flamelet" / "tenants"
+
+    result = {}
+    if tenants_dir.exists():
+        for tenant_path in tenants_dir.iterdir():
+            if tenant_path.is_dir() and (tenant_path / "inventory.py").exists():
+                result[tenant_path.name] = tenant_path
+
+    # Also include tenants/flamelet-example from framework root for development
+    try:
+        framework_root = find_framework_root()
+        dev_example = framework_root / "tenants" / "flamelet-example"
+        if dev_example.exists() and (dev_example / "inventory.py").exists():
+            result["flamelet-example"] = dev_example
+    except RuntimeError:
+        pass
+
+    return result
+
+
+def get_tenant_path(tenant_name):
+    """Get the path for a specific tenant by name.
+
+    Args:
+        tenant_name: Name of the tenant
+
+    Returns:
+        Path to tenant directory, or None if not found
+    """
+    tenants = get_tenants()
+    return tenants.get(tenant_name)

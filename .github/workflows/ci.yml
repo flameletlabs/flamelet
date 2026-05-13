@@ -46,7 +46,7 @@ jobs:
         run: pip install -e ".[dev]"
       - name: Verify CLI discovery
         run: |
-          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --help
+          PYTHONPATH=. TENANT_PATH=tenants/flamelet-example python -m core.cli --help
       - name: Verify tenant loads correctly
         env:
           FLAMELET_LOCAL: "1"
@@ -57,7 +57,7 @@ jobs:
           from core.cli import load_tenant_inventory, load_tenant_vars_module
           from core.tasks.loader import load_service_config
 
-          tenant_path = Path("tenants/example")
+          tenant_path = Path("tenants/flamelet-example")
 
           # Test inventory loads (with @local mode from FLAMELET_LOCAL env var)
           inventory = load_tenant_inventory(tenant_path)
@@ -81,17 +81,17 @@ jobs:
           FLAMELET_LOCAL: "1"
         run: |
           echo "Testing users operation..."
-          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task users -v | tail -5
+          PYTHONPATH=. TENANT_PATH=tenants/flamelet-example python -m core.cli --dry --task users -v | tail -5
           echo "Testing packages operation..."
-          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task packages -v | tail -5
+          PYTHONPATH=. TENANT_PATH=tenants/flamelet-example python -m core.cli --dry --task packages -v | tail -5
           echo "Testing sysctl operation..."
-          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task sysctl -v | tail -5
+          PYTHONPATH=. TENANT_PATH=tenants/flamelet-example python -m core.cli --dry --task sysctl -v | tail -5
           echo "Testing services operation..."
-          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task services -v | tail -5
+          PYTHONPATH=. TENANT_PATH=tenants/flamelet-example python -m core.cli --dry --task services -v | tail -5
           echo "Testing monit operation..."
-          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task monit -v | tail -5
+          PYTHONPATH=. TENANT_PATH=tenants/flamelet-example python -m core.cli --dry --task monit -v | tail -5
           echo "Testing docker operation..."
-          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task docker -v | tail -5
+          PYTHONPATH=. TENANT_PATH=tenants/flamelet-example python -m core.cli --dry --task docker -v | tail -5
       - name: Test real provisioning (apply operations)
         env:
           FLAMELET_LOCAL: "1"
@@ -103,7 +103,7 @@ jobs:
 
           # Test sysctl (kernel parameters)
           echo "[1/4] Testing sysctl provisioning..."
-          if PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --task sysctl -v 2>&1 | tee /tmp/sysctl.log | tail -8; then
+          if PYTHONPATH=. TENANT_PATH=tenants/flamelet-example python -m core.cli --task sysctl -v 2>&1 | tee /tmp/sysctl.log | tail -8; then
             if grep -q "net.ipv4.ip_forward" /tmp/sysctl.log; then
               echo "✓ sysctl operations executed"
             else
@@ -117,7 +117,7 @@ jobs:
 
           # Test monit (config generation)
           echo "[2/4] Testing monit provisioning..."
-          if PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --task monit -v 2>&1 | tee /tmp/monit.log | tail -8; then
+          if PYTHONPATH=. TENANT_PATH=tenants/flamelet-example python -m core.cli --task monit -v 2>&1 | tee /tmp/monit.log | tail -8; then
             if grep -q "monit" /tmp/monit.log; then
               echo "✓ monit operations executed"
             else
@@ -131,7 +131,7 @@ jobs:
 
           # Test packages (package list operation)
           echo "[3/4] Testing packages provisioning..."
-          if PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --task packages -v 2>&1 | tee /tmp/packages.log | tail -8; then
+          if PYTHONPATH=. TENANT_PATH=tenants/flamelet-example python -m core.cli --task packages -v 2>&1 | tee /tmp/packages.log | tail -8; then
             if grep -q "package" /tmp/packages.log; then
               echo "✓ packages operations executed"
             else
@@ -145,7 +145,7 @@ jobs:
 
           # Test services (systemd management)
           echo "[4/4] Testing services provisioning..."
-          if PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --task services -v 2>&1 | tee /tmp/services.log | tail -8; then
+          if PYTHONPATH=. TENANT_PATH=tenants/flamelet-example python -m core.cli --task services -v 2>&1 | tee /tmp/services.log | tail -8; then
             if grep -q "service" /tmp/services.log; then
               echo "✓ services operations executed"
             else

@@ -55,11 +55,11 @@ Verifies:
 
 ```bash
 # 1. Dry-run (plan without applying)
-FLAMELET_LOCAL=1 TENANT_PATH=tenants/example \
+FLAMELET_LOCAL=1 TENANT_PATH=tenants/flamelet-example \
   python3 -m core.cli --dry --task all -v
 
 # 2. Real provisioning (apply operations)
-FLAMELET_LOCAL=1 TENANT_PATH=tenants/example \
+FLAMELET_LOCAL=1 TENANT_PATH=tenants/flamelet-example \
   python3 -m core.cli --task all -v
 
 # 3. Verify results
@@ -130,7 +130,7 @@ Services Management:
 ### "Exit code X" failures
 - Real provisioning tests now fail the build on any error
 - Check `/tmp/{task}.log` in CI logs for full output
-- Verify tenant config at `tenants/example/vars/all.py` is correct
+- Verify tenant config at `tenants/flamelet-example/vars/all.py` is correct
 
 ## Adding New Operations
 
@@ -139,6 +139,6 @@ When adding a new operation, ensure:
 1. Operation logs a clear success message
 2. Verification script can check the result (update `tests/verify_provisioning.py`)
 3. CI workflow includes it in real provisioning tests (`.github/workflows/ci.yml`)
-4. Example tenant has test config in `tenants/example/vars/all.py`
+4. Example tenant has test config in `tenants/flamelet-example/vars/all.py`
 
 Then CI will automatically verify your new operation works.
