@@ -124,7 +124,9 @@ def build_add_ops_func(tenant_path: Path, tenant_vars):
                             packages_config[os_key] = pkg_cfg[os_key]
 
                     if packages_config:
-                        entry.op_func(state, inventory, packages_config, os_filtered_targets, task_name)
+                        entry.op_func(
+                            state, inventory, packages_config, os_filtered_targets, task_name
+                        )
 
                 # Handle autossh: dual ops (tunnels + gateway)
                 elif entry.op_type == "autossh":
