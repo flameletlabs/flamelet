@@ -92,3 +92,27 @@ jobs:
           PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task monit -v | tail -5
           echo "Testing docker operation..."
           PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task docker -v | tail -5
+      - name: Test real provisioning (apply operations)
+        env:
+          FLAMELET_LOCAL: "1"
+        run: |
+          echo "=== Real Provisioning Test (--apply) ==="
+          echo "Running all Linux-compatible operations on @local..."
+          echo ""
+          # Test sysctl (safe, writes kernel params)
+          echo "[1/4] Testing sysctl provisioning..."
+          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --task sysctl -v 2>&1 | tail -8
+          echo ""
+          # Test monit (safe, generates config)
+          echo "[2/4] Testing monit provisioning..."
+          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --task monit -v 2>&1 | tail -8
+          echo ""
+          # Test packages (safe, package list operation)
+          echo "[3/4] Testing packages provisioning..."
+          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --task packages -v 2>&1 | tail -8
+          echo ""
+          # Test services (safe, manages systemd)
+          echo "[4/4] Testing services provisioning..."
+          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --task services -v 2>&1 | tail -8
+          echo ""
+          echo "✓ Real provisioning tests completed"
