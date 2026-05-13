@@ -1,5 +1,7 @@
 """System configuration operations (/etc/sysctl.conf, sysrc, etc)."""
 
+from io import StringIO
+
 from pyinfra.api.operation import add_op
 from pyinfra.facts.server import Kernel
 from pyinfra.operations import files, server
@@ -35,7 +37,7 @@ def add_sysctl_ops(state, hosts, sysctl_config, target_hosts=None, task="all"):
                 state,
                 files.put,
                 name=f"Deploy /etc/sysctl.conf on {host.name}",
-                src=sysctl_content,
+                src=StringIO(sysctl_content),
                 dest="/etc/sysctl.conf",
                 mode="0644",
                 host=host,

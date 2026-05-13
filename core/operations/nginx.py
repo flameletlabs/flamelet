@@ -82,8 +82,9 @@ def add_nginx_ops(state, hosts, config, target_hosts=None, task="all"):
         add_op(
             state,
             server.service,
-            name=service_name,
-            state="started",
+            name=f"Enable and start nginx on {host.name}",
+            service=service_name,
+            running=True,
             enabled=True,
             host=host,
         )
