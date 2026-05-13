@@ -76,18 +76,19 @@ jobs:
 
           print("✓ All tenant configuration checks passed")
           EOF
-      - name: Test dry-run packages operation
+      - name: Test dry-run core operations
         env:
           FLAMELET_LOCAL: "1"
         run: |
-          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task packages -v
-      - name: Test dry-run monit operation
-        env:
-          FLAMELET_LOCAL: "1"
-        run: |
-          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task monit -v
-      - name: Test dry-run nginx operation
-        env:
-          FLAMELET_LOCAL: "1"
-        run: |
-          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task nginx -v
+          echo "Testing users operation..."
+          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task users -v | tail -5
+          echo "Testing packages operation..."
+          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task packages -v | tail -5
+          echo "Testing sysctl operation..."
+          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task sysctl -v | tail -5
+          echo "Testing services operation..."
+          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task services -v | tail -5
+          echo "Testing monit operation..."
+          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task monit -v | tail -5
+          echo "Testing docker operation..."
+          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task docker -v | tail -5

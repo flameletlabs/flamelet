@@ -21,7 +21,7 @@ def build_inventory(local=False):
         # CI/testing mode: use @local connector (no SSH needed)
         return Inventory(
             (
-                [("@local", {})],
+                [("@local", {"_sudo": True})],
                 {},
             ),
         )
