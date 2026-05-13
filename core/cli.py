@@ -53,6 +53,40 @@ def load_tenant_vars_module(tenant_path: Path):
     return vars_module
 
 
+def load_tenant_hosts(inventory):
+    """Extract host information from inventory.
+
+    Args:
+        inventory: pyinfra Inventory object
+
+    Returns:
+        List of dicts with {name, os, groups}
+    """
+    from pyinfra.facts.server import Kernel
+
+    hosts = []
+    for host in inventory:
+        # Get OS
+        try:
+            os_key = host.get_fact(Kernel)
+        except Exception:
+            os_key = "Unknown"
+
+        # Map kernel key to friendly name
+        os_name = {
+            "Linux": "Linux",
+            "FreeBSD": "FreeBSD",
+            "OpenBSD": "OpenBSD",
+        }.get(os_key, os_key)
+
+        # Get groups
+        groups = host.groups if hasattr(host, "groups") else []
+
+        hosts.append({"name": host.name, "os": os_name, "groups": list(groups)})
+
+    return hosts
+
+
 def build_add_ops_func(tenant_path: Path, tenant_vars):
     """Build the add_ops function that dispatches to all operations.
 

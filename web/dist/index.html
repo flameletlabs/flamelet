@@ -99,24 +99,52 @@
         }
 
         /* ═══════════════════════════════════════════════════════ */
-        /* Navigation */
+        /* Navigation - 3 Section Header */
         /* ═══════════════════════════════════════════════════════ */
         nav {
-            height: 64px;
             background: var(--bg-secondary);
             border-bottom: 1px solid var(--border);
             display: flex;
-            align-items: center;
-            padding: 0 32px;
-            gap: 48px;
+            flex-direction: column;
             transition: all 0.3s ease;
         }
 
-        .nav-container {
+        /* Row 1: Logo + Settings Anchors */
+        .nav-row-1 {
             display: flex;
             align-items: center;
-            gap: 48px;
-            flex: 1;
+            justify-content: space-between;
+            padding: 12px 32px;
+            gap: 16px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        /* Row 2: Tenant Selector (Primary Control) */
+        .nav-row-2 {
+            padding: 12px 32px;
+            border-bottom: 1px solid var(--border-light);
+            position: relative;
+            z-index: 1000;
+        }
+
+        /* Row 3: Navigation Links (Secondary) */
+        .nav-row-3 {
+            padding: 8px 32px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .nav-row-3::-webkit-scrollbar {
+            height: 2px;
+        }
+
+        .nav-row-3::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .nav-row-3::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 1px;
         }
 
         .logo {
@@ -137,12 +165,14 @@
 
         .nav-links {
             display: flex;
-            gap: 12px;
+            gap: 4px;
+            white-space: nowrap;
         }
 
         .nav-link {
             background: transparent;
             border: none;
+            border-bottom: 2px solid transparent;
             color: var(--text-tertiary);
             font-family: inherit;
             font-size: 13px;
@@ -150,25 +180,160 @@
             letter-spacing: 0;
             text-transform: capitalize;
             cursor: pointer;
-            padding: 10px 14px;
-            border-radius: 6px;
+            padding: 8px 12px;
+            border-radius: 0;
             transition: all 0.15s ease-out;
+            flex-shrink: 0;
         }
 
         .nav-link:hover {
             color: var(--text-secondary);
-            background: var(--bg-secondary);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border-bottom-color: var(--text-secondary);
         }
 
         .nav-link.active {
             color: var(--accent);
-            background: var(--accent-light);
-            box-shadow: inset 0 0 0 1px var(--accent);
+            border-bottom-color: var(--accent);
+            font-weight: 600;
         }
 
         .nav-spacer {
             flex: 1;
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Tenant Dropdown */
+        /* ═══════════════════════════════════════════════════════ */
+        .tenant-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            width: 100%;
+        }
+
+        .tenant-button {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px 16px;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease-out;
+            width: 100%;
+        }
+
+        .tenant-button:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-lighter);
+        }
+
+        .tenant-button-name {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .tenant-button-chevron {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            transition: transform 0.2s ease;
+        }
+
+        .tenant-button.open .tenant-button-chevron {
+            transform: rotate(180deg);
+        }
+
+        .tenant-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 6px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            min-width: 200px;
+            max-width: 300px;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: all 0.2s ease-out;
+            box-shadow: var(--shadow-md);
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .tenant-dropdown.open {
+            max-height: 400px;
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .tenant-dropdown-list {
+            list-style: none;
+            padding: 6px 0;
+            margin: 0;
+        }
+
+        .tenant-dropdown-item {
+            padding: 0;
+            margin: 0;
+        }
+
+        .tenant-dropdown-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 13px;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .tenant-dropdown-link:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .tenant-dropdown-link.active {
+            background: var(--accent-light);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .tenant-dropdown-check {
+            font-size: 12px;
+            color: var(--accent);
+            display: none;
+        }
+
+        .tenant-dropdown-link.active .tenant-dropdown-check {
+            display: block;
+        }
+
+        .tenant-dropdown-count {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: var(--text-tertiary);
+            margin-left: 8px;
         }
 
         .theme-toggle {
@@ -229,19 +394,14 @@
         /* Tenants Page */
         /* ═══════════════════════════════════════════════════════ */
         .tenants-layout {
-            display: grid;
-            grid-template-columns: 280px 1fr;
+            display: flex;
+            flex-direction: column;
             flex: 1;
             min-height: 0;
-            gap: 0;
         }
 
         .sidebar {
-            background: var(--bg-secondary);
-            border-right: 1px solid var(--border);
-            overflow-y: auto;
-            padding: 32px 0;
-            transition: all 0.3s ease;
+            display: none;
         }
 
         .sidebar-section {
@@ -708,27 +868,6 @@
         /* ═══════════════════════════════════════════════════════ */
         /* Map Page */
         /* ═══════════════════════════════════════════════════════ */
-        .map-header {
-            padding: 32px 40px;
-            border-bottom: 1px solid var(--border);
-            background: var(--bg-secondary);
-        }
-
-        .map-title {
-            font-size: 22px;
-            font-weight: 700;
-            letter-spacing: -0.3px;
-            color: var(--text-primary);
-            margin-bottom: 6px;
-        }
-
-        .map-tenant {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 13px;
-            color: var(--text-tertiary);
-            font-weight: 400;
-        }
-
         #leaflet-map {
             flex: 1;
             min-height: 0;
@@ -794,20 +933,43 @@
         }
 
         .map-locations-list {
-            padding: 32px 40px;
+            padding: 18px 32px;
             border-top: 1px solid var(--border);
             background: var(--bg-secondary);
-            max-height: 200px;
+            max-height: 140px;
             overflow-y: auto;
+            flex-shrink: 0;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                max-height: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 140px;
+            }
         }
 
         .map-location-item {
-            padding: 12px;
-            margin-bottom: 8px;
+            padding: 9px 12px;
+            margin-bottom: 5px;
             background: var(--bg-primary);
             border: 1px solid var(--border-light);
-            border-radius: 6px;
-            font-size: 13px;
+            border-radius: 4px;
+            font-size: 12px;
+            transition: all 0.12s ease;
+        }
+
+        .map-location-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .map-location-item:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--accent-light);
         }
 
         .map-location-name {
@@ -852,18 +1014,44 @@
         /* Tablet Breakpoint (≤ 900px) */
         /* ═══════════════════════════════════════════════════════ */
         @media (max-width: 900px) {
-            nav {
-                gap: 16px;
-                padding: 0 20px;
+            .nav-row-1 {
+                padding: 10px 20px;
             }
 
-            .nav-container {
-                gap: 24px;
+            .nav-row-2 {
+                padding: 10px 20px;
             }
 
-            .tenants-layout {
-                grid-template-columns: 220px 1fr;
+            .nav-row-3 {
+                padding: 8px 20px;
             }
+
+            .logo {
+                font-size: 15px;
+            }
+
+            .tenant-button {
+                padding: 9px 14px;
+                font-size: 13px;
+            }
+
+            .tenant-button-name {
+                max-width: 140px;
+            }
+
+            .nav-link {
+                padding: 8px 10px;
+                font-size: 12px;
+            }
+
+            .theme-toggle {
+                padding: 6px 8px;
+            }
+
+            .theme-toggle-text {
+                display: none;
+            }
+
 
             .sidebar {
                 padding: 20px 0;
@@ -921,65 +1109,92 @@
         /* Mobile Breakpoint (≤ 640px) */
         /* ═══════════════════════════════════════════════════════ */
         @media (max-width: 640px) {
-            nav {
-                height: auto;
-                min-height: 56px;
-                padding: 12px 16px;
-                flex-wrap: wrap;
-                gap: 8px;
+            /* Row 1: Logo + Settings (tight anchors) */
+            .nav-row-1 {
+                padding: 10px 16px;
+                border-bottom: 1px solid var(--border-light);
             }
 
-            .nav-container {
-                gap: 12px;
+            .logo {
+                font-size: 14px;
+                font-weight: 700;
             }
 
-            .nav-link {
-                padding: 10px 12px;
-                font-size: 12px;
+            .theme-toggle {
+                padding: 6px 6px;
+                font-size: 14px;
             }
 
             .theme-toggle-text {
                 display: none;
             }
 
-            .theme-toggle {
-                padding: 8px 10px;
+            /* Row 2: Tenant Selector (prominent, full width) */
+            .nav-row-2 {
+                padding: 10px 16px;
+                border-bottom: 1px solid var(--border-light);
             }
 
-            .tenants-layout {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto 1fr;
+            .tenant-button {
+                padding: 11px 14px;
+                font-size: 13px;
+                width: 100%;
+                background: var(--bg-hover);
+                border: 1px solid var(--border);
             }
 
-            .sidebar {
-                border-right: none;
-                border-bottom: 1px solid var(--border);
-                overflow-y: visible;
-                overflow-x: auto;
-                padding: 12px 0;
-                display: flex;
-                flex-direction: row;
-                align-items: center;
+            .tenant-button:hover {
+                border-color: var(--accent);
+                background: var(--accent-lighter);
             }
 
-            .sidebar-section {
-                padding: 0 12px;
-                display: flex;
-                flex-direction: row;
-                align-items: center;
-                gap: 6px;
-                margin-bottom: 0;
+            .tenant-button-name {
+                max-width: calc(100% - 30px);
+                font-size: 13px;
             }
 
-            .sidebar-label {
-                display: none;
+            .tenant-button-chevron {
+                width: 16px;
+                height: 16px;
+                flex-shrink: 0;
             }
 
-            .sidebar-button {
-                white-space: nowrap;
-                margin-bottom: 0;
-                padding: 8px 12px;
+            .tenant-dropdown {
+                min-width: calc(100vw - 32px);
+                left: -16px;
+                right: -16px;
+                width: auto;
             }
+
+            /* Row 3: Navigation (horizontal scroll tabs) */
+            .nav-row-3 {
+                padding: 0;
+                border-bottom: 1px solid var(--border-light);
+                background: var(--bg-primary);
+            }
+
+            .nav-links {
+                gap: 0;
+            }
+
+            .nav-link {
+                padding: 10px 12px;
+                font-size: 12px;
+                flex-shrink: 0;
+                border-radius: 0;
+                border-bottom: 2px solid transparent;
+            }
+
+            .nav-link:hover {
+                background: var(--bg-hover);
+            }
+
+            .nav-link.active {
+                border-bottom-color: var(--accent);
+                color: var(--accent);
+                background: transparent;
+            }
+
 
             .panel-header {
                 padding: 20px;
@@ -1023,8 +1238,34 @@
         /* Extra Small Breakpoint (≤ 480px) */
         /* ═══════════════════════════════════════════════════════ */
         @media (max-width: 480px) {
-            nav {
+            .nav-row-1 {
+                padding: 8px 12px;
+            }
+
+            .nav-row-2 {
+                padding: 8px 12px;
+            }
+
+            .nav-row-3 {
+                padding: 0;
+            }
+
+            .logo {
+                font-size: 13px;
+            }
+
+            .tenant-button {
                 padding: 10px 12px;
+                font-size: 12px;
+            }
+
+            .tenant-button-name {
+                max-width: calc(100% - 28px);
+            }
+
+            .nav-link {
+                padding: 8px 10px;
+                font-size: 11px;
             }
 
             .panel-header {
@@ -1047,8 +1288,30 @@
 </head>
 <body>
     <nav>
-        <div class="nav-container">
+        <!-- Row 1: Logo + Settings Anchors -->
+        <div class="nav-row-1">
             <div class="logo">Flamelet</div>
+            <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+                <span class="theme-toggle-icon" id="theme-icon">🌙</span>
+                <span class="theme-toggle-text" id="theme-label">Dark</span>
+            </button>
+        </div>
+
+        <!-- Row 2: Tenant Selector (Primary Control) -->
+        <div class="nav-row-2">
+            <div class="tenant-selector">
+                <button class="tenant-button" id="tenant-button">
+                    <span class="tenant-button-name" id="tenant-button-name">Select tenant</span>
+                    <span class="tenant-button-chevron">▾</span>
+                </button>
+                <div class="tenant-dropdown" id="tenant-dropdown">
+                    <ul class="tenant-dropdown-list" id="tenant-dropdown-list"></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 3: Navigation Links (Secondary) -->
+        <div class="nav-row-3">
             <div class="nav-links">
                 <button class="nav-link active" data-page="tenants">Tenants</button>
                 <button class="nav-link" data-page="operations">Operations</button>
@@ -1056,11 +1319,6 @@
                 <button class="nav-link" data-page="run">Execute</button>
             </div>
         </div>
-        <div class="nav-spacer"></div>
-        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
-            <span class="theme-toggle-icon" id="theme-icon">🌙</span>
-            <span class="theme-toggle-text" id="theme-label">Dark</span>
-        </button>
     </nav>
 
     <main>
@@ -1104,10 +1362,6 @@
 
         <!-- Map Page -->
         <div class="page" id="map-page">
-            <div class="map-header">
-                <div class="map-title">Map</div>
-                <div class="map-tenant" id="map-tenant-name">Select a tenant</div>
-            </div>
             <div id="leaflet-map"></div>
             <div class="map-locations-list" id="map-locations-list" style="display:none;"></div>
         </div>
@@ -1213,21 +1467,72 @@
         }
 
         /* ═══════════════════════════════════════════════════════ */
+        /* Tenant Dropdown */
+        /* ═══════════════════════════════════════════════════════ */
+        let allTenants = [];
+
+        function toggleTenantDropdown() {
+            const btn = document.getElementById('tenant-button');
+            const dropdown = document.getElementById('tenant-dropdown');
+            btn.classList.toggle('open');
+            dropdown.classList.toggle('open');
+        }
+
+        function closeTenantDropdown() {
+            const btn = document.getElementById('tenant-button');
+            const dropdown = document.getElementById('tenant-dropdown');
+            btn.classList.remove('open');
+            dropdown.classList.remove('open');
+        }
+
+        document.getElementById('tenant-button').addEventListener('click', toggleTenantDropdown);
+
+        // Close dropdown on click outside
+        document.addEventListener('click', (e) => {
+            const selector = document.querySelector('.tenant-selector');
+            if (!selector.contains(e.target)) {
+                closeTenantDropdown();
+            }
+        });
+
+        // Close dropdown on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeTenantDropdown();
+            }
+        });
+
+        /* ═══════════════════════════════════════════════════════ */
         /* Load Tenants */
         /* ═══════════════════════════════════════════════════════ */
         async function loadTenants() {
             try {
                 const res = await fetch(`${API}/tenants`);
-                const tenants = await res.json();
-                const list = document.getElementById('tenants-list');
-                tenants.forEach((t, idx) => {
-                    const btn = document.createElement('button');
-                    btn.className = 'sidebar-button' + (idx === 0 ? ' active' : '');
-                    btn.innerHTML = `<span>${t.name}</span><span class="sidebar-count">${t.host_count}</span>`;
-                    btn.addEventListener('click', () => selectTenant(t, btn));
-                    list.appendChild(btn);
+                allTenants = await res.json();
+                const list = document.getElementById('tenant-dropdown-list');
+                list.innerHTML = '';
+
+                allTenants.forEach((t, idx) => {
+                    const li = document.createElement('li');
+                    li.className = 'tenant-dropdown-item';
+                    const link = document.createElement('button');
+                    link.className = 'tenant-dropdown-link' + (idx === 0 ? ' active' : '');
+                    link.innerHTML = `
+                        <span>${t.name}</span>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="tenant-dropdown-count">${t.host_count} hosts</span>
+                            <span class="tenant-dropdown-check">✓</span>
+                        </div>
+                    `;
+                    link.addEventListener('click', () => {
+                        selectTenant(t);
+                        closeTenantDropdown();
+                    });
+                    li.appendChild(link);
+                    list.appendChild(li);
                 });
-                if (tenants.length) selectTenant(tenants[0], list.firstChild);
+
+                if (allTenants.length) selectTenant(allTenants[0]);
             } catch (e) {
                 console.error('Failed to load tenants:', e);
             }
@@ -1248,13 +1553,8 @@
                 btn.classList.toggle('active', btn.dataset.group === groupMethod);
             });
             // Reload current tenant with new grouping
-            const tenantBtn = document.querySelector('.sidebar-button.active');
-            if (tenantBtn) {
-                // Extract tenant name from the first span in the button
-                const tenantName = tenantBtn.querySelector('span').textContent;
-                const tenantPath = document.getElementById('selected-path').textContent;
-                const tenant = { name: tenantName, path: tenantPath };
-                selectTenant(tenant, tenantBtn);
+            if (currentTenant) {
+                selectTenant(currentTenant);
             }
         }
 
@@ -1319,14 +1619,24 @@
             });
         }
 
-        async function selectTenant(t, btn) {
-            document.querySelectorAll('.sidebar-button').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+        async function selectTenant(t) {
+            // Update header dropdown
+            document.getElementById('tenant-button-name').textContent = t.name;
+            document.querySelectorAll('.tenant-dropdown-link').forEach(link => {
+                link.classList.toggle('active', link.textContent.includes(t.name));
+            });
+
             document.getElementById('tenants-header').style.display = 'flex';
             document.getElementById('selected-tenant').textContent = t.name;
             document.getElementById('selected-path').textContent = t.path;
             currentTenant = t;
             locationCollapseState = {}; // Reset collapse state on tenant change
+
+            // Reload map if currently viewing map page
+            const mapPage = document.getElementById('map-page');
+            if (mapPage && mapPage.classList.contains('active')) {
+                loadMapForTenant(t.name);
+            }
 
             try {
                 const res = await fetch(`${API}/tenants/${t.name}/hosts`);
@@ -1503,7 +1813,6 @@
             if (!mapInstance) initMap();
 
             currentMapTenant = tenantName;
-            document.getElementById('map-tenant-name').textContent = tenantName;
 
             try {
                 const res = await fetch(`${API}/tenants/${tenantName}/locations`);

@@ -1,12 +1,14 @@
 """Tests for sudoers configuration operation."""
 
-import sys
+import importlib.util
 from pathlib import Path
 
 project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-
-from tenants.example.inventory import build_inventory  # noqa: E402
+_inv_path = project_root / "tenants" / "flamelet-example" / "inventory.py"
+_spec = importlib.util.spec_from_file_location("flamelet_example_inventory", _inv_path)
+_mod = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_mod)
+build_inventory = _mod.build_inventory
 
 
 class TestSudoersOperation:

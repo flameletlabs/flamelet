@@ -1,23 +1,25 @@
 """Tests for inventory modules."""
 
-import sys
+import importlib.util
 from pathlib import Path
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-
-from tenants.example.inventory import build_inventory  # noqa: E402
+_inv_path = project_root / "tenants" / "flamelet-example" / "inventory.py"
+_spec = importlib.util.spec_from_file_location("flamelet_example_inventory", _inv_path)
+_mod = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_mod)
+build_inventory = _mod.build_inventory
 
 
 class TestTenantInventory:
     """Test tenant inventory structure."""
 
     def test_host_count(self):
-        """Inventory should have 7 hosts total."""
+        """Inventory should have 8 hosts total."""
         inventory = build_inventory()
         hosts = list(inventory)
-        assert len(hosts) == 7
+        assert len(hosts) == 8
 
     def test_host_names(self):
         """Inventory should have correct host names."""

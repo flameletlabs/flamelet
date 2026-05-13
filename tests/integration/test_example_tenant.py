@@ -7,17 +7,17 @@ from core.tasks import TASK_REGISTRY
 from core.tasks.loader import load_packages_config, load_service_config
 
 # Example tenant on disk in the framework repo
-EXAMPLE_TENANT = Path(__file__).parent.parent.parent / "tenants" / "example"
+EXAMPLE_TENANT = Path(__file__).parent.parent.parent / "tenants" / "flamelet-example"
 
 
 class TestExampleTenant:
     """Test the example home tenant (full end-to-end config loading)."""
 
     def test_example_inventory_loads(self):
-        """Example tenant inventory should load 7 hosts."""
+        """Example tenant inventory should load 8 hosts."""
         inventory = load_tenant_inventory(EXAMPLE_TENANT)
         hosts = list(inventory)
-        assert len(hosts) == 7
+        assert len(hosts) == 8
         host_names = {h.name for h in hosts}
         assert "gw.example.com" in host_names
         assert "docker.example.com" in host_names
