@@ -206,10 +206,9 @@ K3S = {
     }
 }
 
-# VIRTUALIZATION — VM management (FreeBSD-only at op level; config here for testing)
-VIRTUALIZATION = {
+# BHYVE — FreeBSD bhyve VM management (FreeBSD-only)
+BHYVE = {
     "@local": {
-        "type": "bhyve",
         "zvol_pool": "vm-pool",
         "bridges": [{"name": "vm-bridge0", "interface": "em0"}],
         "vms": [
@@ -224,3 +223,6 @@ VIRTUALIZATION = {
         ],
     }
 }
+
+# JAILS — FreeBSD Bastille jail management (FreeBSD-only)
+JAILS = {}
