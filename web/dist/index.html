@@ -1,0 +1,1631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flamelet — Infrastructure Automation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Theme Variables - Light Mode (Refined) */
+        /* ═══════════════════════════════════════════════════════ */
+        :root {
+            --bg-primary: #fafbfc;
+            --bg-secondary: #f3f4f6;
+            --bg-tertiary: #e5e7eb;
+            --bg-elevated: #ffffff;
+            --bg-hover: #f0f1f5;
+
+            --border: #d1d5db;
+            --border-light: #e5e7eb;
+
+            --text-primary: #1a202c;
+            --text-secondary: #475569;
+            --text-tertiary: #78828f;
+            --text-muted: #b0bac9;
+
+            --accent: #3b82f6;
+            --accent-light: rgba(59, 130, 246, 0.08);
+            --accent-lighter: rgba(59, 130, 246, 0.04);
+            --accent-hover: rgba(59, 130, 246, 0.12);
+
+            --success: #10b981;
+            --success-light: rgba(16, 185, 129, 0.1);
+            --error: #ef4444;
+            --warning: #f59e0b;
+
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Theme Variables - Dark Mode (Refined) */
+        /* ═══════════════════════════════════════════════════════ */
+        [data-theme="dark"] {
+            --bg-primary: #0f1419;
+            --bg-secondary: #1a1f2e;
+            --bg-tertiary: #242d3d;
+            --bg-elevated: #2a3447;
+            --bg-hover: #2a3447;
+
+            --border: #3a4556;
+            --border-light: #2d3748;
+
+            --text-primary: #e8ecf1;
+            --text-secondary: #c5cdd5;
+            --text-tertiary: #8b95a5;
+            --text-muted: #6b7784;
+
+            --accent: #3b82f6;
+            --accent-light: rgba(59, 130, 246, 0.1);
+            --accent-lighter: rgba(59, 130, 246, 0.05);
+            --accent-hover: rgba(59, 130, 246, 0.15);
+
+            --success: #10b981;
+            --success-light: rgba(16, 185, 129, 0.1);
+            --error: #ef4444;
+            --warning: #f59e0b;
+
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Navigation */
+        /* ═══════════════════════════════════════════════════════ */
+        nav {
+            height: 64px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 32px;
+            gap: 48px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-container {
+            display: flex;
+            align-items: center;
+            gap: 48px;
+            flex: 1;
+        }
+
+        .logo {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+        }
+
+        .logo::before {
+            content: "◆";
+            font-size: 15px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 12px;
+        }
+
+        .nav-link {
+            background: transparent;
+            border: none;
+            color: var(--text-tertiary);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0;
+            text-transform: capitalize;
+            cursor: pointer;
+            padding: 10px 14px;
+            border-radius: 6px;
+            transition: all 0.15s ease-out;
+        }
+
+        .nav-link:hover {
+            color: var(--text-secondary);
+            background: var(--bg-secondary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .nav-link.active {
+            color: var(--accent);
+            background: var(--accent-light);
+            box-shadow: inset 0 0 0 1px var(--accent);
+        }
+
+        .nav-spacer {
+            flex: 1;
+        }
+
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent);
+        }
+
+        .theme-toggle-icon {
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle-text {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Main Layout */
+        /* ═══════════════════════════════════════════════════════ */
+        main {
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .page {
+            flex: 1;
+            min-height: 0;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Tenants Page */
+        /* ═══════════════════════════════════════════════════════ */
+        .tenants-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            flex: 1;
+            min-height: 0;
+            gap: 0;
+        }
+
+        .sidebar {
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            padding: 32px 0;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-section {
+            padding: 0 24px 32px;
+        }
+
+        .sidebar-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            padding: 0 12px 16px;
+        }
+
+        .sidebar-button {
+            width: 100%;
+            padding: 12px 16px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: left;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-button:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .sidebar-button.active {
+            background: var(--accent-light);
+            color: var(--accent);
+            font-weight: 600;
+            border: 1px solid var(--accent-light);
+        }
+
+        .sidebar-count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--bg-tertiary);
+            color: var(--text-tertiary);
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-light);
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Panel */
+        /* ═══════════════════════════════════════════════════════ */
+        .panel {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
+            background: var(--bg-primary);
+        }
+
+        .panel-header {
+            padding: 32px 40px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 32px;
+        }
+
+        .panel-title {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .panel-path {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--text-tertiary);
+            font-weight: 400;
+        }
+
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 40px 32px;
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Group Selector */
+        /* ═══════════════════════════════════════════════════════ */
+        .group-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            white-space: nowrap;
+        }
+
+        .group-label {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+        }
+
+        .group-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .group-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-lighter);
+        }
+
+        .group-btn.active {
+            background: var(--accent-light);
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Table */
+        /* ═══════════════════════════════════════════════════════ */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 32px;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: var(--bg-primary);
+            box-shadow: 0 1px 0 var(--border);
+        }
+
+        th {
+            padding: 14px 12px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--text-tertiary);
+            border-bottom: 2px solid var(--border);
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 14px 12px;
+            border-bottom: 1px solid var(--border-light);
+            color: var(--text-primary);
+        }
+
+        tbody tr {
+            transition: all 0.15s ease;
+        }
+
+        tbody tr:hover {
+            background: var(--bg-secondary);
+        }
+
+        .code {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            color: var(--accent);
+            font-weight: 400;
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Group Headers (Parent/Child Pattern) */
+        /* ═══════════════════════════════════════════════════════ */
+        .group-header {
+            background: var(--bg-secondary);
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .group-header:hover {
+            background: var(--bg-tertiary) !important;
+        }
+
+        .group-header-inner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 2px 0;
+        }
+
+        .group-toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            color: var(--text-tertiary);
+            transition: transform 0.22s ease;
+            flex-shrink: 0;
+        }
+
+        .group-toggle::before {
+            content: "▾";
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .group-toggle.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .group-name {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+        }
+
+        .group-count {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: var(--text-tertiary);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-light);
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: auto;
+        }
+
+        /* Host rows (child rows) */
+        .host-row {
+            transition: opacity 0.2s ease;
+            opacity: 1;
+        }
+
+        .host-row.collapsed {
+            display: none;
+            opacity: 0;
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Badges & Tags */
+        /* ═══════════════════════════════════════════════════════ */
+        .badge {
+            display: inline-block;
+            padding: 5px 11px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            font-family: 'JetBrains Mono', monospace;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .badge-linux {
+            background: rgba(37, 99, 235, 0.12);
+            color: var(--accent);
+            border-color: rgba(37, 99, 235, 0.2);
+        }
+
+        [data-theme="dark"] .badge-linux {
+            background: rgba(88, 166, 255, 0.12);
+            color: #58a6ff;
+            border-color: rgba(88, 166, 255, 0.2);
+        }
+
+        .badge-freebsd {
+            background: rgba(168, 85, 247, 0.12);
+            color: #a855f7;
+            border-color: rgba(168, 85, 247, 0.2);
+        }
+
+        .badge-openbsd {
+            background: rgba(234, 88, 12, 0.12);
+            color: var(--warning);
+            border-color: rgba(234, 88, 12, 0.2);
+        }
+
+        .tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            font-size: 12px;
+            padding: 5px 10px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border-radius: 6px;
+            border: 1px solid var(--border-light);
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .tag:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .tag-more {
+            font-size: 11px;
+            padding: 5px 8px;
+            background: var(--accent-lighter);
+            color: var(--accent);
+            border-radius: 6px;
+            border: 1px solid var(--accent-light);
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Operations Page */
+        /* ═══════════════════════════════════════════════════════ */
+        .ops-header {
+            padding: 32px 40px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .ops-title {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            color: var(--text-primary);
+        }
+
+        .ops-count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+        }
+
+        .search-box {
+            margin-left: auto;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            width: 320px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: var(--bg-secondary);
+            box-shadow: 0 0 0 3px var(--accent-lighter);
+        }
+
+        .os-col {
+            text-align: center;
+            width: 100px;
+        }
+
+        .check {
+            color: var(--success);
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .dash {
+            color: var(--text-tertiary);
+        }
+
+        .os-icon {
+            height: 18px;
+            display: inline-block;
+            vertical-align: middle;
+            color: var(--text-secondary);
+            transition: opacity 0.2s ease;
+            margin: 0 4px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-light);
+        }
+
+        .os-icon:hover {
+            opacity: 0.7;
+            border-color: var(--accent);
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Scrollbar */
+        /* ═══════════════════════════════════════════════════════ */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-tertiary);
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Empty State */
+        /* ═══════════════════════════════════════════════════════ */
+        .empty {
+            padding: 80px 40px;
+            text-align: center;
+            color: var(--text-tertiary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .empty p {
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Map Page */
+        /* ═══════════════════════════════════════════════════════ */
+        .map-header {
+            padding: 32px 40px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-secondary);
+        }
+
+        .map-title {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .map-tenant {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--text-tertiary);
+            font-weight: 400;
+        }
+
+        #leaflet-map {
+            flex: 1;
+            min-height: 0;
+            background: var(--bg-primary);
+        }
+
+        /* Leaflet overrides for theme */
+        .leaflet-container {
+            background: var(--bg-primary);
+            font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+        }
+
+        /* Marker Cluster styling */
+        .marker-cluster {
+            background: var(--accent-light);
+            border: 2px solid var(--accent);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 12px;
+            color: var(--accent);
+        }
+
+        .marker-cluster-small {
+            background: rgba(59, 130, 246, 0.15);
+        }
+
+        .marker-cluster-medium {
+            background: rgba(59, 130, 246, 0.25);
+        }
+
+        .marker-cluster-large {
+            background: rgba(59, 130, 246, 0.35);
+        }
+
+        [data-theme="dark"] .marker-cluster {
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        .leaflet-popup-content {
+            font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+            color: var(--text-primary);
+        }
+
+        .leaflet-popup-content-wrapper {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        [data-theme="dark"] .leaflet-popup-content-wrapper {
+            background: var(--bg-tertiary);
+        }
+
+        .leaflet-popup-tip {
+            background: var(--bg-elevated);
+        }
+
+        [data-theme="dark"] .leaflet-popup-tip {
+            background: var(--bg-tertiary);
+        }
+
+        .map-locations-list {
+            padding: 32px 40px;
+            border-top: 1px solid var(--border);
+            background: var(--bg-secondary);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .map-location-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .map-location-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .map-location-address {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: 4px;
+        }
+
+        .map-location-count {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Table Wrapper - allows horizontal scroll */
+        /* ═══════════════════════════════════════════════════════ */
+        .table-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Touch Target Fixes */
+        /* ═══════════════════════════════════════════════════════ */
+        .nav-link {
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            min-height: 44px;
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Tablet Breakpoint (≤ 900px) */
+        /* ═══════════════════════════════════════════════════════ */
+        @media (max-width: 900px) {
+            nav {
+                gap: 16px;
+                padding: 0 20px;
+            }
+
+            .nav-container {
+                gap: 24px;
+            }
+
+            .tenants-layout {
+                grid-template-columns: 220px 1fr;
+            }
+
+            .sidebar {
+                padding: 20px 0;
+            }
+
+            .sidebar-section {
+                padding: 0 12px 20px;
+            }
+
+            .panel-header {
+                padding: 24px 28px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+
+            .group-selector {
+                gap: 8px;
+            }
+
+            .group-btn {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+
+            .panel-content {
+                padding: 0 28px 24px;
+            }
+
+            .ops-header {
+                padding: 24px 28px;
+            }
+
+            .os-col {
+                width: 70px;
+            }
+
+            .group-selector {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            /* Show Location and Groups on tablet+ */
+            .col-location,
+            .col-groups {
+                display: table-cell;
+            }
+
+            table {
+                margin-top: 24px;
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Mobile Breakpoint (≤ 640px) */
+        /* ═══════════════════════════════════════════════════════ */
+        @media (max-width: 640px) {
+            nav {
+                height: auto;
+                min-height: 56px;
+                padding: 12px 16px;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .nav-container {
+                gap: 12px;
+            }
+
+            .nav-link {
+                padding: 10px 12px;
+                font-size: 12px;
+            }
+
+            .theme-toggle-text {
+                display: none;
+            }
+
+            .theme-toggle {
+                padding: 8px 10px;
+            }
+
+            .tenants-layout {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+
+            .sidebar {
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                overflow-y: visible;
+                overflow-x: auto;
+                padding: 12px 0;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+            }
+
+            .sidebar-section {
+                padding: 0 12px;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                gap: 6px;
+                margin-bottom: 0;
+            }
+
+            .sidebar-label {
+                display: none;
+            }
+
+            .sidebar-button {
+                white-space: nowrap;
+                margin-bottom: 0;
+                padding: 8px 12px;
+            }
+
+            .panel-header {
+                padding: 20px;
+            }
+
+            .panel-content {
+                padding: 0 20px 24px;
+            }
+
+            .ops-header {
+                flex-wrap: wrap;
+                padding: 16px 20px;
+                gap: 12px;
+            }
+
+            .search-box {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .os-col {
+                display: none;
+            }
+
+            /* OS icons visible on mobile (compact 18px), but hide Location and Groups */
+            .col-os {
+                display: table-cell;
+            }
+
+            .col-location,
+            .col-groups {
+                display: none;
+            }
+
+            table {
+                margin-top: 20px;
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Extra Small Breakpoint (≤ 480px) */
+        /* ═══════════════════════════════════════════════════════ */
+        @media (max-width: 480px) {
+            nav {
+                padding: 10px 12px;
+            }
+
+            .panel-header {
+                padding: 16px;
+            }
+
+            .panel-content {
+                padding: 0 16px 20px;
+            }
+
+            .ops-header {
+                padding: 12px 16px;
+            }
+
+            .empty {
+                padding: 40px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <div class="logo">Flamelet</div>
+            <div class="nav-links">
+                <button class="nav-link active" data-page="tenants">Tenants</button>
+                <button class="nav-link" data-page="operations">Operations</button>
+                <button class="nav-link" data-page="map">Map</button>
+                <button class="nav-link" data-page="run">Execute</button>
+            </div>
+        </div>
+        <div class="nav-spacer"></div>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+            <span class="theme-toggle-icon" id="theme-icon">🌙</span>
+            <span class="theme-toggle-text" id="theme-label">Dark</span>
+        </button>
+    </nav>
+
+    <main>
+        <!-- Tenants Page -->
+        <div class="page active" id="tenants-page">
+            <div class="tenants-layout">
+                <div class="sidebar">
+                    <div class="sidebar-section">
+                        <div class="sidebar-label">Environments</div>
+                        <div id="tenants-list"></div>
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header" style="display:none;" id="tenants-header">
+                        <div>
+                            <div class="panel-title" id="selected-tenant"></div>
+                            <div class="panel-path" id="selected-path"></div>
+                        </div>
+                        <div class="group-selector">
+                            <span class="group-label">Group by:</span>
+                            <button class="group-btn active" data-group="location">Location</button>
+                            <button class="group-btn" data-group="os">OS</button>
+                            <button class="group-btn" data-group="groups">Groups</button>
+                            <button class="group-btn" data-group="none">None</button>
+                        </div>
+                    </div>
+                    <div class="panel-content" id="tenants-content"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Operations Page -->
+        <div class="page" id="operations-page">
+            <div class="ops-header">
+                <div class="ops-title">Operations</div>
+                <div class="ops-count" id="ops-count">0 tasks</div>
+                <input type="search" class="search-box" id="ops-filter" placeholder="Search tasks...">
+            </div>
+            <div class="panel-content" id="ops-content"></div>
+        </div>
+
+        <!-- Map Page -->
+        <div class="page" id="map-page">
+            <div class="map-header">
+                <div class="map-title">Map</div>
+                <div class="map-tenant" id="map-tenant-name">Select a tenant</div>
+            </div>
+            <div id="leaflet-map"></div>
+            <div class="map-locations-list" id="map-locations-list" style="display:none;"></div>
+        </div>
+
+        <!-- Execute Page -->
+        <div class="page" id="run-page">
+            <div class="panel-content">
+                <div class="empty">
+                    <p>Deployment execution coming soon...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API = 'http://dev.baar:7070/api';
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Theme System */
+        /* ═══════════════════════════════════════════════════════ */
+        const ThemeManager = {
+            STORAGE_KEY: 'flamelet-theme',
+            LIGHT: 'light',
+            DARK: 'dark',
+
+            init() {
+                // Get saved theme or detect system preference
+                const saved = localStorage.getItem(this.STORAGE_KEY);
+                const theme = saved || this.getSystemPreference();
+                this.setTheme(theme);
+
+                // Listen for system theme changes
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                    const newTheme = e.matches ? this.DARK : this.LIGHT;
+                    this.setTheme(newTheme);
+                });
+
+                // Setup toggle button
+                document.getElementById('theme-toggle').addEventListener('click', () => {
+                    const current = document.documentElement.getAttribute('data-theme') || this.LIGHT;
+                    const next = current === this.LIGHT ? this.DARK : this.LIGHT;
+                    this.setTheme(next, true);
+                });
+            },
+
+            getSystemPreference() {
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? this.DARK : this.LIGHT;
+            },
+
+            setTheme(theme, persist = false) {
+                const html = document.documentElement;
+                const isDark = theme === this.DARK;
+
+                // Set data attribute
+                if (isDark) {
+                    html.setAttribute('data-theme', 'dark');
+                } else {
+                    html.removeAttribute('data-theme');
+                }
+
+                // Update button
+                const icon = document.getElementById('theme-icon');
+                const label = document.getElementById('theme-label');
+                icon.textContent = isDark ? '☀️' : '🌙';
+                label.textContent = isDark ? 'Light' : 'Dark';
+
+                // Persist if user explicitly toggled
+                if (persist) {
+                    localStorage.setItem(this.STORAGE_KEY, theme);
+                }
+            }
+        };
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Navigation */
+        /* ═══════════════════════════════════════════════════════ */
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                e.target.classList.add('active');
+                const pageName = e.target.dataset.page;
+                document.getElementById(pageName + '-page').classList.add('active');
+
+                // Load map when switching to map page
+                if (pageName === 'map') {
+                    if (currentTenant) {
+                        loadMapForTenant(currentTenant.name);
+                    }
+                    // Initialize map on first load
+                    if (!mapInstance) {
+                        setTimeout(() => { initMap(); }, 100);
+                    }
+                }
+            });
+        });
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* OS Icon Generator (Official Logo Text Badges) */
+        /* ═══════════════════════════════════════════════════════ */
+        function getOSIcon(os) {
+            return `<span class="os-icon os-icon-${os.toLowerCase().replace(/\s+/g, '-')}" title="${os}">${os}</span>`;
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Load Tenants */
+        /* ═══════════════════════════════════════════════════════ */
+        async function loadTenants() {
+            try {
+                const res = await fetch(`${API}/tenants`);
+                const tenants = await res.json();
+                const list = document.getElementById('tenants-list');
+                tenants.forEach((t, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'sidebar-button' + (idx === 0 ? ' active' : '');
+                    btn.innerHTML = `<span>${t.name}</span><span class="sidebar-count">${t.host_count}</span>`;
+                    btn.addEventListener('click', () => selectTenant(t, btn));
+                    list.appendChild(btn);
+                });
+                if (tenants.length) selectTenant(tenants[0], list.firstChild);
+            } catch (e) {
+                console.error('Failed to load tenants:', e);
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Grouping & State Management */
+        /* ═══════════════════════════════════════════════════════ */
+        let currentGroupBy = sessionStorage.getItem('groupBy') || 'location';
+        let locationCollapseState = {};
+        let currentTenant = null;
+
+        function setGroupBy(groupMethod) {
+            currentGroupBy = groupMethod;
+            sessionStorage.setItem('groupBy', groupMethod);
+            // Update selector UI
+            document.querySelectorAll('.group-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.group === groupMethod);
+            });
+            // Reload current tenant with new grouping
+            const tenantBtn = document.querySelector('.sidebar-button.active');
+            if (tenantBtn) {
+                // Extract tenant name from the first span in the button
+                const tenantName = tenantBtn.querySelector('span').textContent;
+                const tenantPath = document.getElementById('selected-path').textContent;
+                const tenant = { name: tenantName, path: tenantPath };
+                selectTenant(tenant, tenantBtn);
+            }
+        }
+
+        function groupHostsByLocation(hosts) {
+            const grouped = {};
+            hosts.forEach(h => {
+                const loc = h.location || '(no location)';
+                if (!grouped[loc]) grouped[loc] = [];
+                grouped[loc].push(h);
+            });
+            return Object.keys(grouped).sort().reduce((acc, key) => {
+                acc[key] = grouped[key];
+                return acc;
+            }, {});
+        }
+
+        function groupHostsByOS(hosts) {
+            const grouped = {};
+            hosts.forEach(h => {
+                const os = h.os || 'Unknown';
+                if (!grouped[os]) grouped[os] = [];
+                grouped[os].push(h);
+            });
+            return Object.keys(grouped).sort().reduce((acc, key) => {
+                acc[key] = grouped[key];
+                return acc;
+            }, {});
+        }
+
+        function groupHostsByGroups(hosts) {
+            const grouped = {};
+            hosts.forEach(h => {
+                const primaryGroup = h.groups.find(g => !['linux','freebsd','openbsd'].includes(g.toLowerCase())) || '(no group)';
+                if (!grouped[primaryGroup]) grouped[primaryGroup] = [];
+                grouped[primaryGroup].push(h);
+            });
+            return Object.keys(grouped).sort().reduce((acc, key) => {
+                acc[key] = grouped[key];
+                return acc;
+            }, {});
+        }
+
+        function groupHostsByNone(hosts) {
+            return { 'All Hosts': hosts };
+        }
+
+        function toggleGroup(groupName) {
+            locationCollapseState[groupName] = !locationCollapseState[groupName];
+            const isNowCollapsed = locationCollapseState[groupName];
+
+            // Toggle header chevron
+            const header = document.querySelector(`.group-header[data-group="${groupName}"]`);
+            if (header) {
+                const toggle = header.querySelector('.group-toggle');
+                if (toggle) toggle.classList.toggle('collapsed', isNowCollapsed);
+            }
+
+            // Toggle all child rows
+            const childRows = document.querySelectorAll(`.host-row[data-group="${groupName}"]`);
+            childRows.forEach(row => {
+                row.classList.toggle('collapsed', isNowCollapsed);
+            });
+        }
+
+        async function selectTenant(t, btn) {
+            document.querySelectorAll('.sidebar-button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('tenants-header').style.display = 'flex';
+            document.getElementById('selected-tenant').textContent = t.name;
+            document.getElementById('selected-path').textContent = t.path;
+            currentTenant = t;
+            locationCollapseState = {}; // Reset collapse state on tenant change
+
+            try {
+                const res = await fetch(`${API}/tenants/${t.name}/hosts`);
+                const hosts = await res.json();
+
+                // Use the selected grouping method
+                let grouped;
+                switch (currentGroupBy) {
+                    case 'os':
+                        grouped = groupHostsByOS(hosts);
+                        break;
+                    case 'groups':
+                        grouped = groupHostsByGroups(hosts);
+                        break;
+                    case 'none':
+                        grouped = groupHostsByNone(hosts);
+                        break;
+                    case 'location':
+                    default:
+                        grouped = groupHostsByLocation(hosts);
+                }
+
+                const content = document.getElementById('tenants-content');
+
+                let tbody = '<tbody>';
+                let rowNum = 1;
+
+                Object.entries(grouped).forEach(([groupName, groupHosts]) => {
+                    const isCollapsed = true; // All groups collapsed by default on all viewports
+                    locationCollapseState[groupName] = isCollapsed;
+                    const esc = groupName.replace(/'/g, "\\'");
+
+                    // Group header row (parent)
+                    tbody += `
+                        <tr class="group-header" data-group="${groupName}" onclick="toggleGroup('${esc}')">
+                            <td colspan="5">
+                                <div class="group-header-inner">
+                                    <span class="group-toggle${isCollapsed ? ' collapsed' : ''}"></span>
+                                    <span class="group-name">${groupName}</span>
+                                    <span class="group-count">${groupHosts.length} host${groupHosts.length !== 1 ? 's' : ''}</span>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+
+                    // Host rows (children) - all in same tbody
+                    groupHosts.forEach((h) => {
+                        const groupTags = h.groups.filter(g => !['linux','freebsd','openbsd'].includes(g.toLowerCase()));
+                        const displayGroups = groupTags.slice(0, 2);
+                        const moreCount = groupTags.length - 2;
+
+                        tbody += `
+                            <tr class="host-row${isCollapsed ? ' collapsed' : ''}" data-group="${groupName}">
+                                <td style="color:var(--text-tertiary);">${String(rowNum).padStart(2, '0')}</td>
+                                <td class="col-hostname code">${h.name}</td>
+                                <td class="col-os" style="text-align:center;">${getOSIcon(h.os)}</td>
+                                <td class="col-location" style="color:var(--text-secondary);">${h.location || '—'}</td>
+                                <td class="col-groups"><div class="tags">${displayGroups.map(g => `<span class="tag">${g}</span>`).join('')}${moreCount > 0 ? `<span class="tag-more">+${moreCount}</span>` : ''}</div></td>
+                            </tr>
+                        `;
+                        rowNum++;
+                    });
+                });
+
+                tbody += '</tbody>';
+
+                content.innerHTML = `
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr>
+                                <th style="width:50px;">#</th>
+                                <th class="col-hostname">Hostname</th>
+                                <th class="col-os">OS</th>
+                                <th class="col-location">Location</th>
+                                <th class="col-groups">Groups</th>
+                            </tr></thead>
+                            ${tbody}
+                        </table>
+                    </div>
+                `;
+            } catch (e) {
+                console.error('Failed to load hosts:', e);
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Load Operations */
+        /* ═══════════════════════════════════════════════════════ */
+        async function loadOperations() {
+            try {
+                const res = await fetch(`${API}/operations`);
+                const ops = await res.json();
+                document.getElementById('ops-count').textContent = `${ops.length} tasks`;
+
+                function render(filtered) {
+                    const content = document.getElementById('ops-content');
+                    content.innerHTML = `
+                        <div class="table-wrap">
+                            <table>
+                                <thead><tr>
+                                    <th style="width:50px;">#</th>
+                                    <th>Task</th>
+                                    <th>Config</th>
+                                    <th>Type</th>
+                                    <th class="os-col">Linux</th>
+                                    <th class="os-col">FreeBSD</th>
+                                    <th class="os-col">OpenBSD</th>
+                                </tr></thead>
+                                <tbody>
+                                    ${filtered.map((o, i) => `
+                                        <tr>
+                                            <td style="color:var(--text-tertiary);">${String(i+1).padStart(2, '0')}</td>
+                                            <td class="code">${o.task}</td>
+                                            <td class="code" style="color:var(--text-secondary);">${o.config_attr || '—'}</td>
+                                            <td><span class="badge" style="background:var(--bg-tertiary);border-color:var(--border);color:var(--text-secondary);">${o.op_type}</span></td>
+                                            <td class="os-col">${o.os_families?.includes('Linux') ? '<span class="check">✓</span>' : '<span class="dash">—</span>'}</td>
+                                            <td class="os-col">${o.os_families?.includes('FreeBSD') ? '<span class="check">✓</span>' : '<span class="dash">—</span>'}</td>
+                                            <td class="os-col">${o.os_families?.includes('OpenBSD') ? '<span class="check">✓</span>' : '<span class="dash">—</span>'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+
+                render(ops);
+                document.getElementById('ops-filter').addEventListener('input', (e) => {
+                    const filter = e.target.value.toLowerCase();
+                    const filtered = ops.filter(o =>
+                        o.task.toLowerCase().includes(filter) ||
+                        (o.config_attr || '').toLowerCase().includes(filter)
+                    );
+                    render(filtered);
+                });
+            } catch (e) {
+                console.error('Failed to load operations:', e);
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Map Initialization */
+        /* ═══════════════════════════════════════════════════════ */
+        let mapInstance = null;
+        let currentMapTenant = null;
+        let mapMarkers = [];
+        let markerClusterGroup = null;
+
+        function initMap() {
+            if (mapInstance) return;
+            mapInstance = L.map('leaflet-map').setView([48, 10], 4);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19,
+            }).addTo(mapInstance);
+            markerClusterGroup = L.markerClusterGroup({
+                maxClusterRadius: 50,
+                iconCreateFunction: function(cluster) {
+                    const count = cluster.getChildCount();
+                    let className = 'marker-cluster marker-cluster-small';
+                    if (count > 1) className = 'marker-cluster marker-cluster-medium';
+                    if (count > 5) className = 'marker-cluster marker-cluster-large';
+                    return L.divIcon({
+                        html: '<div><span>' + count + '</span></div>',
+                        className: className,
+                        iconSize: L.point(40, 40),
+                    });
+                },
+            });
+            mapInstance.addLayer(markerClusterGroup);
+        }
+
+        async function loadMapForTenant(tenantName) {
+            if (!mapInstance) initMap();
+
+            currentMapTenant = tenantName;
+            document.getElementById('map-tenant-name').textContent = tenantName;
+
+            try {
+                const res = await fetch(`${API}/tenants/${tenantName}/locations`);
+                if (!res.ok) throw new Error('Failed to load locations');
+                const locations = await res.json();
+
+                // Clear existing markers from cluster group
+                markerClusterGroup.clearLayers();
+                mapMarkers = [];
+
+                const locationsWithCoords = [];
+                const locationsWithoutCoords = [];
+
+                locations.forEach(loc => {
+                    if (loc.lat !== null && loc.lon !== null) {
+                        locationsWithCoords.push(loc);
+
+                        // Determine marker color based on host count
+                        let markerColor = '#3b82f6';
+                        if (loc.host_count === 0) {
+                            markerColor = '#9ca3af';
+                        } else if (loc.host_count >= 10) {
+                            markerColor = '#10b981';
+                        }
+
+                        // Add marker to cluster group
+                        const marker = L.circleMarker([loc.lat, loc.lon], {
+                            radius: 12,
+                            fillColor: markerColor,
+                            color: markerColor === '#9ca3af' ? '#6b7280' : '#1e40af',
+                            weight: 2,
+                            opacity: 1,
+                            fillOpacity: 0.85,
+                        });
+                        markerClusterGroup.addLayer(marker);
+
+                        // Host list HTML
+                        let hostListHtml = '';
+                        if (loc.hosts && loc.hosts.length > 0) {
+                            hostListHtml = `
+                                <div style="margin-top: 8px; max-height: 150px; overflow-y: auto; font-size: 11px;">
+                                    <div style="font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Hosts:</div>
+                                    ${loc.hosts.map(h => `
+                                        <div style="padding: 3px 0; color: var(--text-tertiary);">
+                                            <code style="background: var(--bg-tertiary); padding: 2px 4px; border-radius: 2px;">
+                                                ${h.name}
+                                            </code>
+                                            <span style="margin-left: 4px; font-size: 10px; color: var(--text-muted);">${h.os}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `;
+                        }
+
+                        // Popup content with enhanced styling
+                        const popupContent = `
+                            <div style="font-family: Outfit, sans-serif; width: 220px;">
+                                <div style="font-weight: 700; font-size: 13px; margin-bottom: 4px; color: var(--text-primary);">
+                                    ${loc.display_name}
+                                </div>
+                                ${loc.address ? `
+                                    <div style="font-size: 11px; color: var(--text-tertiary); margin-bottom: 6px; line-height: 1.4;">
+                                        ${loc.address}
+                                    </div>
+                                ` : ''}
+                                <div style="font-size: 12px; font-weight: 600; color: var(--accent); padding: 6px 0;">
+                                    ${loc.host_count} host${loc.host_count !== 1 ? 's' : ''}
+                                </div>
+                                ${hostListHtml}
+                            </div>
+                        `;
+                        marker.bindPopup(popupContent);
+                        mapMarkers.push(marker);
+                    } else {
+                        locationsWithoutCoords.push(loc);
+                    }
+                });
+
+                // Update locations list (for locations without coordinates)
+                const listDiv = document.getElementById('map-locations-list');
+                if (locationsWithoutCoords.length > 0) {
+                    listDiv.style.display = 'block';
+                    listDiv.innerHTML = locationsWithoutCoords.map(loc => `
+                        <div class="map-location-item">
+                            <div class="map-location-name">${loc.display_name}</div>
+                            ${loc.address ? `<div class="map-location-address">${loc.address}</div>` : ''}
+                            <div class="map-location-count">${loc.host_count} host${loc.host_count !== 1 ? 's' : ''}</div>
+                            ${loc.hosts && loc.hosts.length > 0 ? `
+                                <div style="margin-top: 6px; font-size: 11px;">
+                                    ${loc.hosts.map(h => `<div style="color: var(--text-tertiary);">${h.name} (${h.os})</div>`).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    `).join('');
+                } else {
+                    listDiv.style.display = 'none';
+                }
+
+                // Fit map to bounds if we have markers
+                if (mapMarkers.length > 0) {
+                    setTimeout(() => {
+                        mapInstance.fitBounds(markerClusterGroup.getBounds(), { padding: [50, 50] });
+                    }, 100);
+                }
+            } catch (e) {
+                console.error('Failed to load map data:', e);
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* Initialize */
+        /* ═══════════════════════════════════════════════════════ */
+        ThemeManager.init();
+        loadTenants();
+        loadOperations();
+
+        // Setup Group By selector buttons
+        document.querySelectorAll('.group-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                setGroupBy(btn.dataset.group);
+            });
+        });
+    </script>
+</body>
+</html>
