@@ -35,6 +35,8 @@ def add_node_exporter_ops(state, hosts, config, target_hosts=None, task="all"):
 
         if os_key == "FreeBSD":
             _configure_node_exporter_freebsd(state, host, listen_address, extra_args)
+        elif os_key == "OpenBSD":
+            _configure_node_exporter_openbsd(state, host, listen_address, extra_args)
         elif os_key == "Linux":
             _configure_node_exporter_linux(state, host, listen_address, extra_args)
 
@@ -50,6 +52,27 @@ def _configure_node_exporter_freebsd(state, host, listen_address, extra_args):
         commands.append(f"sysrc node_exporter_args='{extra_args}'")
 
     commands.append("service node_exporter restart || true")
+
+    add_op(
+        state,
+        server.shell,
+        name=f"Configure node_exporter on {host.name}",
+        commands=commands,
+        host=host,
+    )
+
+
+def _configure_node_exporter_openbsd(state, host, listen_address, extra_args):
+    """Configure node_exporter on OpenBSD via rcctl."""
+    commands = [
+        "pkg_add node_exporter",
+        "rcctl enable node_exporter",
+    ]
+
+    if extra_args:
+        commands.append(f"rcctl set node_exporter flags '{extra_args}'")
+
+    commands.append("rcctl restart node_exporter || true")
 
     add_op(
         state,
