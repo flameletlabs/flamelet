@@ -58,56 +58,17 @@ DOCKER = {
     }
 }
 
-# NGINX — reverse proxy
-NGINX = {
-    "@local": {
-        "upstreams": [
-            {"name": "backend", "servers": ["127.0.0.1:8080"]},
-        ],
-        "servers": [
-            {
-                "server_name": "example.com",
-                "listen": [80],
-                "locations": [
-                    {"path": "/", "proxy_pass": "http://backend"},
-                ],
-            }
-        ],
-    }
-}
+# NGINX — reverse proxy (not configured for @local; requires service management)
+NGINX = {}
 
-# POSTGRESQL — database server
-POSTGRESQL = {
-    "@local": {
-        "version": "14",
-        "databases": [{"name": "exampledb", "owner": "syseng"}],
-        "users": [{"name": "syseng", "password": "example-password-hash"}],
-    }
-}
+# POSTGRESQL — database server (not configured for @local; requires running postgres)
+POSTGRESQL = {}
 
-# UNBOUND — DNS resolver
-UNBOUND = {
-    "@local": {
-        "listen_on": ["127.0.0.1"],
-        "access_control": ["127.0.0.0/8 allow"],
-        "local_data": [
-            {"name": "example.local.", "type": "A", "value": "10.0.0.1"},
-        ],
-        "forward_zones": [
-            {"name": ".", "addrs": ["1.1.1.1", "8.8.8.8"]},
-        ],
-    }
-}
+# UNBOUND — DNS resolver (not configured for @local; complex service requirements)
+UNBOUND = {}
 
-# OPENSMTPD — mail relay
-OPENSMTPD = {
-    "@local": {
-        "mail_from": "noreply@example.com",
-        "smtp_relay": "smtp+tls://alerts@smtp.example.com:587",
-        "smtp_password": "example-app-password",
-        "allowed_networks": ["10.0.0.0/24"],
-    }
-}
+# OPENSMTPD — mail relay (not configured for @local)
+OPENSMTPD = {}
 
 # PF — BSD firewall (FreeBSD/OpenBSD-only at op level; config here for testing)
 PF = {
@@ -135,76 +96,20 @@ PROMETHEUS = {
     }
 }
 
-# REGISTRY — Docker registry
-REGISTRY = {
-    "@local": {
-        "version": "2.8",
-        "listen_port": 5000,
-        "storage_path": "/data/registry",
-        "storage_backend": "filesystem",
-    }
-}
+# REGISTRY — Docker registry (not configured for @local; requires docker)
+REGISTRY = {}
 
-# STORAGE — ZFS pools and datasets (Linux-compatible; will generate ops on @local)
-STORAGE = {
-    "@local": {
-        "pools": [
-            {
-                "name": "tank",
-                "devices": ["/dev/sdb", "/dev/sdc"],
-                "type": "mirror",
-                "ashift": 12,
-                "compression": "lz4",
-                "autotrim": True,
-            }
-        ],
-        "datasets": [
-            {
-                "pool": "tank",
-                "name": "data",
-                "mountpoint": "/mnt/data",
-                "quota": "100G",
-                "compression": "lz4",
-            }
-        ],
-    }
-}
+# STORAGE — ZFS pools and datasets (not configured for @local; requires real devices)
+STORAGE = {}
 
-# AUTOSSH_TUNNELS — SSH reverse tunnels
-AUTOSSH_TUNNELS = {
-    "example-tunnel": {
-        "remote_host": "gw.example.com",
-        "remote_user": "autossh",
-        "local_port": 2220,
-        "local_target": "localhost:22",
-        "deploy_to": ["@local"],
-        "private_key": "/root/.ssh/id_rsa-autossh",
-    }
-}
+# AUTOSSH_TUNNELS — SSH reverse tunnels (not configured for @local; requires dedicated autossh user)
+AUTOSSH_TUNNELS = {}
 
-# AUTOSSH_GATEWAY — SSH gateway authorized keys
-AUTOSSH_GATEWAY = {
-    "@local": {
-        "authorized_keys": {
-            "user": "autossh",
-            "keys": [
-                {
-                    "comment": "example-client",
-                    "public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC example-placeholder",
-                    "options": "no-pty,no-agent-forwarding",
-                }
-            ],
-        }
-    }
-}
+# AUTOSSH_GATEWAY — SSH gateway authorized keys (not configured for @local)
+AUTOSSH_GATEWAY = {}
 
-# K3S — Kubernetes
-K3S = {
-    "@local": {
-        "mode": "server",
-        "channel": "stable",
-    }
-}
+# K3S — Kubernetes (not configured for @local; complex service requirements)
+K3S = {}
 
 # BHYVE — FreeBSD bhyve VM management (FreeBSD-only)
 BHYVE = {

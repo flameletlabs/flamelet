@@ -102,8 +102,9 @@ def add_prometheus_ops(state, hosts, config, target_hosts=None, task="all"):
         add_op(
             state,
             server.service,
-            name="prometheus",
-            state="started",
+            name=f"Start Prometheus on {host.name}",
+            service="prometheus",
+            running=True,
             enabled=True,
             host=host,
         )

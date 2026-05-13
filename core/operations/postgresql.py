@@ -78,8 +78,9 @@ def add_postgresql_ops(state, hosts, config, target_hosts=None, task="all"):
         add_op(
             state,
             server.service,
-            name="postgresql",
-            state="started",
+            name=f"Start PostgreSQL on {host.name}",
+            service="postgresql",
+            running=True,
             enabled=True,
             host=host,
         )
@@ -92,7 +93,6 @@ def add_postgresql_ops(state, hosts, config, target_hosts=None, task="all"):
                 name=f"Create database {db['name']} on {host.name}",
                 database=db["name"],
                 owner=db.get("owner", "postgres"),
-                state="present",
                 host=host,
             )
 
@@ -104,7 +104,6 @@ def add_postgresql_ops(state, hosts, config, target_hosts=None, task="all"):
                 name=f"Create PostgreSQL user {user['name']} on {host.name}",
                 role=user["name"],
                 password=user.get("password"),
-                state="present",
                 superuser=user.get("superuser", False),
                 create_db=user.get("can_create_db", False),
                 create_role=user.get("can_create_role", False),
