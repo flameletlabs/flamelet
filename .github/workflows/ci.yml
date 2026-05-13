@@ -182,3 +182,6 @@ jobs:
           fi
           echo ""
           echo "✓ All real provisioning tests completed successfully"
+
+      - name: Verify provisioning effects
+        run: python tests/verify_provisioning.py --task sysctl --task monit --task services --task packages
