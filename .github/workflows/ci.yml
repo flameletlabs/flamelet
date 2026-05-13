@@ -9,14 +9,12 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-24.04
-    container: debian:13
     steps:
       - uses: actions/checkout@v4
-      - name: Install Python and dependencies
-        run: |
-          apt-get update && apt-get install -y python3 python3-pip
-      - name: Install ruff
-        run: pip install ruff
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff
       - name: Check code style
         run: ruff check .
       - name: Check formatting
@@ -24,28 +22,26 @@ jobs:
 
   test:
     runs-on: ubuntu-24.04
-    container: debian:13
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
-      - name: Install Python and build tools
-        run: |
-          apt-get update && apt-get install -y python${{ matrix.python-version }} python${{ matrix.python-version }}-venv python${{ matrix.python-version }}-dev build-essential git
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: python${{ matrix.python-version }} -m pip install -e ".[dev]"
+        run: pip install -e ".[dev]"
       - name: Run tests
-        run: python${{ matrix.python-version }} -m pytest tests/ -v --tb=short
+        run: python -m pytest tests/ -v --tb=short
 
   smoke:
     runs-on: ubuntu-24.04
-    container: debian:13
     steps:
       - uses: actions/checkout@v4
-      - name: Install Python
-        run: |
-          apt-get update && apt-get install -y python3 python3-pip git
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - name: Install dependencies
         run: pip install -e ".[dev]"
       - name: Verify CLI discovery
