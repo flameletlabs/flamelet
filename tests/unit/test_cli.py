@@ -72,6 +72,7 @@ class TestBuildAddOpsFunc:
 
         # Check that it's callable with the expected parameters
         import inspect
+
         sig = inspect.signature(add_ops)
         params = list(sig.parameters.keys())
         assert "state" in params

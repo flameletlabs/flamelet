@@ -5,8 +5,8 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
-from pyinfra.api.inventory import Inventory
 from pyinfra.api import Config, State
+from pyinfra.api.inventory import Inventory
 
 
 @pytest.fixture

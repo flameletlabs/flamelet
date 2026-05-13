@@ -25,9 +25,12 @@ def build_parser(task_choices=None):
     parser = argparse.ArgumentParser(description="Deploy infrastructure with pyinfra API")
     parser.add_argument("--limit", help="Hostname or group name to deploy to")
     parser.add_argument("--dry", action="store_true", help="Validate without making changes")
-    parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output with debug info")
-    parser.add_argument("--task", choices=task_choices, default="all",
-                        help="Which task(s) to run (default: all)")
+    parser.add_argument(
+        "--verbose", "-v", action="store_true", help="Verbose output with debug info"
+    )
+    parser.add_argument(
+        "--task", choices=task_choices, default="all", help="Which task(s) to run (default: all)"
+    )
     return parser
 
 

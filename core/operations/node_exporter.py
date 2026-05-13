@@ -1,8 +1,8 @@
 """Prometheus node_exporter configuration."""
 
 from pyinfra.api.operation import add_op
-from pyinfra.operations import server
 from pyinfra.facts.server import Kernel
+from pyinfra.operations import server
 
 
 def add_node_exporter_ops(state, hosts, config, target_hosts=None, task="all"):

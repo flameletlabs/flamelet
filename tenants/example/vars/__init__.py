@@ -4,7 +4,9 @@
 GROUPS = ["syseng", "keep"]
 
 # Example password hash (sha-512, from mkpasswd --method=sha-512 <<< "example-password-123")
-EXAMPLE_PASSWORD = "$6$rounds=4096$examplesalt$JiB7s7R6s7g9s7g5G4h5I6j6K7l7M8m8N9n9O0o0P1p1Q2q2R3r3S4s4T5t5U6u6"
+EXAMPLE_PASSWORD = (
+    "$6$rounds=4096$examplesalt$JiB7s7R6s7g9s7g5G4h5I6j6K7l7M8m8N9n9O0o0P1p1Q2q2R3r3S4s4T5t5U6u6"
+)
 
 # Example SSH public keys (placeholder format)
 SYSENG_KEYS = [
@@ -35,7 +37,7 @@ USERS = {
         "comment": "System Engineering",
         "password": EXAMPLE_PASSWORD,
         "groups": SUDO_GROUP,  # Dict will be resolved per-host by add_users
-        "shell": BASH,         # Dict will be resolved per-host by add_users
+        "shell": BASH,  # Dict will be resolved per-host by add_users
         "public_keys": SYSENG_KEYS,
     },
     "keep": {

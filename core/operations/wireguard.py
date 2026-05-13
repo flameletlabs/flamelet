@@ -1,11 +1,10 @@
 """WireGuard VPN configuration and management."""
 
-import json
 from io import StringIO
 
 from pyinfra.api.operation import add_op
-from pyinfra.operations import files, server
 from pyinfra.facts.server import Kernel
+from pyinfra.operations import files, server
 
 
 def add_wireguard_ops(state, hosts, config, target_hosts=None, task="all"):
@@ -78,9 +77,9 @@ def _add_wireguard_freebsd(state, host, iface_name, config):
         server.shell,
         name=f"Enable WireGuard {iface_name} on {host.name}",
         commands=[
-            f"sysrc wireguard_enable=YES",
+            "sysrc wireguard_enable=YES",
             f"sysrc -a wireguard_interfaces+={iface_name}",
-            f"service wireguard restart || true",
+            "service wireguard restart || true",
         ],
         host=host,
     )

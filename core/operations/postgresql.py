@@ -1,9 +1,10 @@
 """PostgreSQL database operations leveraging pyinfra built-ins."""
 
 from io import StringIO
+
 from pyinfra.api.operation import add_op
-from pyinfra.operations import server, files, postgresql
 from pyinfra.facts.server import Kernel
+from pyinfra.operations import files, postgresql, server
 
 
 def add_postgresql_ops(state, hosts, config, target_hosts=None, task="all"):
@@ -44,15 +45,12 @@ def add_postgresql_ops(state, hosts, config, target_hosts=None, task="all"):
         if os_key == "FreeBSD":
             pkg_name = f"postgresql{version}-server"
             data_dir = f"/var/db/postgres/data{version}"
-            conf_dir = f"/usr/local/etc/postgresql/data{version}"
         elif os_key == "OpenBSD":
             pkg_name = f"postgresql-server-{version}"
             data_dir = "/var/postgresql/data"
-            conf_dir = "/var/postgresql/data"
         else:  # Linux
             pkg_name = f"postgresql-{version}"
             data_dir = "/var/lib/postgresql/14/main"
-            conf_dir = "/etc/postgresql/14/main"
 
         # Install PostgreSQL
         add_op(

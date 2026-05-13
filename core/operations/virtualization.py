@@ -1,8 +1,8 @@
 """FreeBSD virtualization operations (vm-bhyve VMs and Bastille jails)."""
 
 from pyinfra.api.operation import add_op
-from pyinfra.operations import server, files
 from pyinfra.facts.server import Kernel
+from pyinfra.operations import files, server
 
 
 def add_virtualization_ops(state, hosts, config, target_hosts=None, task="all"):
@@ -76,9 +76,9 @@ def _add_bhyve_ops(state, host, spec):
         server.shell,
         name=f"Initialize vm-bhyve on {host.name}",
         commands=[
-            f"pw groupadd -n vm -M 2>/dev/null || true",
-            f"mkdir -p /etc/vm /var/lib/vm && chown vm:vm /var/lib/vm /etc/vm",
-            f"echo 'vm_enable=\"YES\"' >> /etc/rc.conf.local 2>/dev/null || true",
+            "pw groupadd -n vm -M 2>/dev/null || true",
+            "mkdir -p /etc/vm /var/lib/vm && chown vm:vm /var/lib/vm /etc/vm",
+            "echo 'vm_enable=\"YES\"' >> /etc/rc.conf.local 2>/dev/null || true",
         ],
         host=host,
     )

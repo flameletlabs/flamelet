@@ -15,26 +15,26 @@ class TaskEntry:
 
 def _init_registry() -> dict[str, list[TaskEntry]]:
     """Build TASK_REGISTRY after all imports are available."""
-    from core.operations.users import add_user_ops
-    from core.operations.sudo import add_sudoers_ops
-    from core.operations.packages import add_package_ops
-    from core.operations.sysctl import add_sysctl_ops
-    from core.operations.services import add_service_ops
-    from core.operations.autossh import add_autossh_ops, add_autossh_gateway_ops
-    from core.operations.wireguard import add_wireguard_ops
-    from core.operations.unbound import add_unbound_ops
-    from core.operations.monit import add_monit_ops
-    from core.operations.opensmtpd import add_opensmtpd_ops
-    from core.operations.pf import add_pf_ops
+    from core.operations.autossh import add_autossh_gateway_ops, add_autossh_ops
     from core.operations.docker import add_docker_ops
-    from core.operations.node_exporter import add_node_exporter_ops
     from core.operations.k3s import add_k3s_ops
-    from core.operations.virtualization import add_virtualization_ops
-    from core.operations.storage import add_storage_ops
+    from core.operations.monit import add_monit_ops
     from core.operations.nginx import add_nginx_ops
+    from core.operations.node_exporter import add_node_exporter_ops
+    from core.operations.opensmtpd import add_opensmtpd_ops
+    from core.operations.packages import add_package_ops
+    from core.operations.pf import add_pf_ops
     from core.operations.postgresql import add_postgresql_ops
     from core.operations.prometheus import add_prometheus_ops
     from core.operations.registry import add_registry_ops
+    from core.operations.services import add_service_ops
+    from core.operations.storage import add_storage_ops
+    from core.operations.sudo import add_sudoers_ops
+    from core.operations.sysctl import add_sysctl_ops
+    from core.operations.unbound import add_unbound_ops
+    from core.operations.users import add_user_ops
+    from core.operations.virtualization import add_virtualization_ops
+    from core.operations.wireguard import add_wireguard_ops
 
     return {
         "users": [TaskEntry(add_user_ops, None, "users")],

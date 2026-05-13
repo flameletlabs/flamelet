@@ -1,9 +1,9 @@
 """Docker Container Registry operations."""
 
 from io import StringIO
+
 from pyinfra.api.operation import add_op
-from pyinfra.operations import server, files
-from pyinfra.facts.server import Kernel
+from pyinfra.operations import files, server
 
 
 def add_registry_ops(state, hosts, config, target_hosts=None, task="all"):
@@ -36,9 +36,6 @@ def add_registry_ops(state, hosts, config, target_hosts=None, task="all"):
             continue
 
         spec = config[host.name]
-        os_key = host.get_fact(Kernel)
-
-        version = spec.get("version", "2.8")
         storage_path = spec.get("storage_path", "/data/registry")
         listen_port = spec.get("listen_port", 5000)
 
@@ -101,9 +98,9 @@ def add_registry_ops(state, hosts, config, target_hosts=None, task="all"):
             name=f"Start Docker Registry on {host.name}",
             commands=[
                 f"cd {storage_path}",
-                f"docker-compose pull",
-                f"docker-compose up -d",
-                f"docker-compose ps",
+                "docker-compose pull",
+                "docker-compose up -d",
+                "docker-compose ps",
             ],
             host=host,
         )
@@ -114,7 +111,7 @@ def add_registry_ops(state, hosts, config, target_hosts=None, task="all"):
             server.shell,
             name=f"Registry health check on {host.name}",
             commands=[
-                f"sleep 5",
+                "sleep 5",
                 f"curl -s http://localhost:{listen_port}/v2/ | grep -q '{{}}' && echo 'Registry healthy'",
             ],
             host=host,
@@ -137,43 +134,53 @@ def _generate_registry_config(spec, storage_path):
 
     # Storage backend configuration
     if storage_backend == "filesystem":
-        config_lines.extend([
-            "  filesystem:",
-            f"    rootdirectory: {storage_path}/data",
-        ])
+        config_lines.extend(
+            [
+                "  filesystem:",
+                f"    rootdirectory: {storage_path}/data",
+            ]
+        )
     elif storage_backend == "s3":
-        config_lines.extend([
-            "  s3:",
-            f"    accesskey: {spec.get('s3_accesskey', '')}",
-            f"    secretkey: {spec.get('s3_secretkey', '')}",
-            f"    region: {spec.get('s3_region', 'us-east-1')}",
-            f"    bucket: {spec.get('s3_bucket', 'registry')}",
-        ])
+        config_lines.extend(
+            [
+                "  s3:",
+                f"    accesskey: {spec.get('s3_accesskey', '')}",
+                f"    secretkey: {spec.get('s3_secretkey', '')}",
+                f"    region: {spec.get('s3_region', 'us-east-1')}",
+                f"    bucket: {spec.get('s3_bucket', 'registry')}",
+            ]
+        )
 
     # Authentication
     auth = spec.get("auth", {})
     if auth.get("type") == "htpasswd":
-        config_lines.extend([
-            "auth:",
-            "  htpasswd:",
-            f"    realm: Docker Registry",
-            f"    path: {storage_path}/auth/htpasswd",
-        ])
+        config_lines.extend(
+            [
+                "auth:",
+                "  htpasswd:",
+                "    realm: Docker Registry",
+                f"    path: {storage_path}/auth/htpasswd",
+            ]
+        )
 
     # HTTP/HTTPS
     if spec.get("tls"):
-        config_lines.extend([
-            "http:",
-            f"  addr: 0.0.0.0:5000",
-            "  tls:",
-            f"    certificate: {storage_path}/certs/cert.pem",
-            f"    key: {storage_path}/certs/key.pem",
-        ])
+        config_lines.extend(
+            [
+                "http:",
+                "  addr: 0.0.0.0:5000",
+                "  tls:",
+                f"    certificate: {storage_path}/certs/cert.pem",
+                f"    key: {storage_path}/certs/key.pem",
+            ]
+        )
     else:
-        config_lines.extend([
-            "http:",
-            f"  addr: 0.0.0.0:5000",
-        ])
+        config_lines.extend(
+            [
+                "http:",
+                "  addr: 0.0.0.0:5000",
+            ]
+        )
 
     return "\n".join(config_lines)
 
@@ -242,12 +249,12 @@ def _generate_compose_yml(spec, storage_path, listen_port):
         "services:",
         "  registry:",
         f"    image: registry:{version}",
-        f"    container_name: registry",
+        "    container_name: registry",
         "    restart: unless-stopped",
         "    ports:",
         f"      - '{listen_port}:5000'",
         "    environment:",
-        f"      REGISTRY_CONFIG_PATH: /etc/docker/registry/config.yml",
+        "      REGISTRY_CONFIG_PATH: /etc/docker/registry/config.yml",
         "    volumes:",
         f"      - {storage_path}/data:/var/lib/registry",
         f"      - {storage_path}/config.yml:/etc/docker/registry/config.yml:ro",

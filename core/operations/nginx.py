@@ -1,9 +1,10 @@
 """Nginx HTTP/HTTPS reverse proxy and load balancer operations."""
 
 from io import StringIO
+
 from pyinfra.api.operation import add_op
-from pyinfra.operations import server, files
 from pyinfra.facts.server import Kernel
+from pyinfra.operations import files, server
 
 
 def add_nginx_ops(state, hosts, config, target_hosts=None, task="all"):
@@ -116,7 +117,7 @@ def _generate_nginx_config(spec):
         "",
         "    log_format main '$remote_addr - $remote_user [$time_local] \"$request\" '",
         "                    '$status $body_bytes_sent \"$http_referer\" '",
-        "                    '\"$http_user_agent\" \"$http_x_forwarded_for\";",
+        '                    \'"$http_user_agent" "$http_x_forwarded_for";',
         "",
         "    access_log /var/log/nginx/access.log main;",
         "",
@@ -132,33 +133,33 @@ def _generate_nginx_config(spec):
     # Add upstream blocks
     for upstream in spec.get("upstreams", []):
         config_lines.append(f"    upstream {upstream['name']} {{")
-        for server in upstream.get("servers", []):
-            config_lines.append(f"        server {server};")
+        for srv in upstream.get("servers", []):
+            config_lines.append(f"        server {srv};")
         config_lines.append("    }")
         config_lines.append("")
 
     # Add server blocks
-    for server in spec.get("servers", []):
+    for srv_block in spec.get("servers", []):
         config_lines.append("    server {")
 
         # Listen directives
-        for port in server.get("listen", [80]):
+        for port in srv_block.get("listen", [80]):
             if port == 443:
                 config_lines.append(f"        listen {port} ssl http2;")
             else:
                 config_lines.append(f"        listen {port};")
 
         # Server name
-        config_lines.append(f"        server_name {server.get('server_name', '_')};")
+        config_lines.append(f"        server_name {srv_block.get('server_name', '_')};")
 
         # SSL directives
-        if "ssl_cert" in server:
-            config_lines.append(f"        ssl_certificate {server['ssl_cert']};")
-        if "ssl_key" in server:
-            config_lines.append(f"        ssl_certificate_key {server['ssl_key']};")
+        if "ssl_cert" in srv_block:
+            config_lines.append(f"        ssl_certificate {srv_block['ssl_cert']};")
+        if "ssl_key" in srv_block:
+            config_lines.append(f"        ssl_certificate_key {srv_block['ssl_key']};")
 
         # Location blocks
-        for location in server.get("locations", []):
+        for location in srv_block.get("locations", []):
             path = location.get("path", "/")
             config_lines.append(f"        location {path} {{")
 
@@ -166,7 +167,9 @@ def _generate_nginx_config(spec):
                 config_lines.append(f"            proxy_pass {location['proxy_pass']};")
                 config_lines.append("            proxy_set_header Host $host;")
                 config_lines.append("            proxy_set_header X-Real-IP $remote_addr;")
-                config_lines.append("            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;")
+                config_lines.append(
+                    "            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;"
+                )
                 config_lines.append("            proxy_set_header X-Forwarded-Proto $scheme;")
 
             if "root" in location:

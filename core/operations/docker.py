@@ -5,7 +5,6 @@ from io import StringIO
 
 from pyinfra.api.operation import add_op
 from pyinfra.operations import files, server
-from pyinfra.facts.server import Kernel
 
 
 def add_docker_ops(state, hosts, config, target_hosts=None, task="all"):
@@ -38,7 +37,6 @@ def add_docker_ops(state, hosts, config, target_hosts=None, task="all"):
         if host.name not in config:
             continue
 
-        os_key = host.get_fact(Kernel)
         docker_config = config[host.name]
 
         # Write daemon.json

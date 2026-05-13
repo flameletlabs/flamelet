@@ -40,7 +40,13 @@ def build_inventory(local=False):
         # OS groups (privilege escalation config)
         openbsd=(["gw.example.com"], {"_doas": True}),
         freebsd=(
-            ["nas.example.com", "hypervisor.example.com", "worker-1.example.com", "worker-2.example.com", "worker-3.example.com"],
+            [
+                "nas.example.com",
+                "hypervisor.example.com",
+                "worker-1.example.com",
+                "worker-2.example.com",
+                "worker-3.example.com",
+            ],
             {"_sudo": True},
         ),
         debian=(["docker.example.com"], {"_sudo": True, "ssh_user": "debian"}),

@@ -6,7 +6,6 @@ from core.cli import build_add_ops_func, load_tenant_inventory, load_tenant_vars
 from core.tasks import TASK_REGISTRY
 from core.tasks.loader import load_packages_config, load_service_config
 
-
 # Example tenant on disk in the framework repo
 EXAMPLE_TENANT = Path(__file__).parent.parent.parent / "tenants" / "example"
 
@@ -82,7 +81,15 @@ class TestExampleTenant:
 
     def test_all_service_configs_loadable(self):
         """Every service in all.py should load without error."""
-        service_names = ["MONIT", "WIREGUARD", "DOCKER", "SERVICES", "SYSCTL", "POSTGRESQL", "NGINX"]
+        service_names = [
+            "MONIT",
+            "WIREGUARD",
+            "DOCKER",
+            "SERVICES",
+            "SYSCTL",
+            "POSTGRESQL",
+            "NGINX",
+        ]
         for service_name in service_names:
             config = load_service_config(EXAMPLE_TENANT, service_name)
             assert isinstance(config, dict)

@@ -43,7 +43,11 @@ class TestTenantInventory:
     def test_freebsd_no_doas(self):
         """FreeBSD hosts should not have _doas set."""
         inventory = build_inventory()
-        freebsd_hosts = [h for h in inventory if h.name.startswith("nas.") or "worker-" in h.name or "hypervisor" in h.name]
+        freebsd_hosts = [
+            h
+            for h in inventory
+            if h.name.startswith("nas.") or "worker-" in h.name or "hypervisor" in h.name
+        ]
         for host in freebsd_hosts:
             assert host.data.get("_doas") is not True
 

@@ -1,8 +1,8 @@
 """Storage operations (ZFS pools, datasets, snapshots, NFS/SMB exports)."""
 
 from pyinfra.api.operation import add_op
-from pyinfra.operations import server
 from pyinfra.facts.server import Kernel
+from pyinfra.operations import server
 
 
 def add_storage_ops(state, hosts, config, target_hosts=None, task="all"):
@@ -308,7 +308,6 @@ def _add_samba_shares(state, host, samba_config, os_key):
         name = share.get("name")
         path = share.get("path")
         comment = share.get("comment", "")
-        permissions = share.get("permissions", "public")
 
         smb_config_lines.append(f"""[{name}]
     comment = {comment}

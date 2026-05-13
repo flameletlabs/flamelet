@@ -3,8 +3,8 @@
 from io import StringIO
 
 from pyinfra.api.operation import add_op
-from pyinfra.operations import files, server
 from pyinfra.facts.server import Kernel
+from pyinfra.operations import files, server
 
 
 def add_monit_ops(state, hosts, config, target_hosts=None, task="all"):
@@ -118,7 +118,7 @@ def _generate_monitrc(config):
         lines.append("  with timeout 30 seconds")
         hostgroup = config.get("mmonit_hostgroup")
         if hostgroup:
-            lines.append(f"  with hostgroups [ \"{hostgroup}\" ]")
+            lines.append(f'  with hostgroups [ "{hostgroup}" ]')
         lines.append("")
 
     # HTTP daemon

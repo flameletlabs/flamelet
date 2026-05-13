@@ -3,8 +3,8 @@
 from io import StringIO
 
 from pyinfra.api.operation import add_op
-from pyinfra.operations import files, server
 from pyinfra.facts.server import Kernel
+from pyinfra.operations import files, server
 
 
 def add_unbound_ops(state, hosts, config, target_hosts=None, task="all"):
@@ -93,7 +93,7 @@ def _generate_unbound_config(config):
 def _generate_unbound_conf(config):
     """Generate unbound.conf content."""
     lines = ["server:"]
-    lines.append("    chroot: \"\"")
+    lines.append('    chroot: ""')
     lines.append("    pidfile: /var/run/unbound.pid")
     lines.append("    directory: /var/unbound")
     lines.append("    do-not-query-localhost: yes")
@@ -119,15 +119,15 @@ def _generate_unbound_conf(config):
         name = entry.get("name", "")
         rtype = entry.get("type", "A")
         value = entry.get("value", "")
-        lines.append(f"    local-data: \"{name} IN {rtype} {value}\"")
+        lines.append(f'    local-data: "{name} IN {rtype} {value}"')
 
     # Forward zones
     if config.get("forward_zones"):
         lines.append("")
         for zone in config["forward_zones"]:
             zone_name = zone.get("name", ".")
-            lines.append(f"forward-zone:")
-            lines.append(f"    name: \"{zone_name}\"")
+            lines.append("forward-zone:")
+            lines.append(f'    name: "{zone_name}"')
             for addr in zone.get("addrs", []):
                 lines.append(f"    forward-addr: {addr}")
 
