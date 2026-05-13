@@ -76,3 +76,18 @@ jobs:
 
           print("✓ All tenant configuration checks passed")
           EOF
+      - name: Test dry-run packages operation
+        env:
+          FLAMELET_LOCAL: "1"
+        run: |
+          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task packages
+      - name: Test dry-run monit operation
+        env:
+          FLAMELET_LOCAL: "1"
+        run: |
+          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task monit
+      - name: Test dry-run nginx operation
+        env:
+          FLAMELET_LOCAL: "1"
+        run: |
+          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task nginx
