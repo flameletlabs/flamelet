@@ -6,17 +6,25 @@ from typing import Callable, Optional
 
 @dataclass
 class TaskEntry:
-    """Maps a task to an operation function and its config attribute."""
+    """Maps a task to an operation function and its config attribute.
+
+    os_families: Optional list of OS kernel strings this operation supports.
+                 None = all OS families. Examples: ["Linux"], ["FreeBSD"],
+                 ["FreeBSD", "OpenBSD"]. Uses pyinfra Kernel fact values.
+    """
 
     op_func: Callable
     config_attr: Optional[str]
     op_type: str
+    os_families: Optional[list[str]] = None
 
 
 def _init_registry() -> dict[str, list[TaskEntry]]:
     """Build TASK_REGISTRY after all imports are available."""
     from core.operations.autossh import add_autossh_gateway_ops, add_autossh_ops
+    from core.operations.bhyve import add_bhyve_ops
     from core.operations.docker import add_docker_ops
+    from core.operations.jails import add_jail_ops
     from core.operations.k3s import add_k3s_ops
     from core.operations.monit import add_monit_ops
     from core.operations.nginx import add_nginx_ops
@@ -33,7 +41,6 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
     from core.operations.sysctl import add_sysctl_ops
     from core.operations.unbound import add_unbound_ops
     from core.operations.users import add_user_ops
-    from core.operations.virtualization import add_virtualization_ops
     from core.operations.wireguard import add_wireguard_ops
 
     return {
@@ -46,20 +53,21 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
             TaskEntry(add_autossh_ops, "AUTOSSH_TUNNELS", "autossh"),
             TaskEntry(add_autossh_gateway_ops, "AUTOSSH_GATEWAY", "autossh"),
         ],
-        "wireguard": [TaskEntry(add_wireguard_ops, "WIREGUARD", "standard")],
+        "wireguard": [TaskEntry(add_wireguard_ops, "WIREGUARD", "standard", ["FreeBSD", "OpenBSD"])],
         "unbound": [TaskEntry(add_unbound_ops, "UNBOUND", "standard")],
         "monit": [TaskEntry(add_monit_ops, "MONIT", "standard")],
         "opensmtpd": [TaskEntry(add_opensmtpd_ops, "OPENSMTPD", "standard")],
-        "pf": [TaskEntry(add_pf_ops, "PF", "standard")],
-        "docker": [TaskEntry(add_docker_ops, "DOCKER", "standard")],
+        "pf": [TaskEntry(add_pf_ops, "PF", "standard", ["FreeBSD", "OpenBSD"])],
+        "docker": [TaskEntry(add_docker_ops, "DOCKER", "standard", ["Linux"])],
         "node_exporter": [TaskEntry(add_node_exporter_ops, "NODE_EXPORTER", "standard")],
-        "k3s": [TaskEntry(add_k3s_ops, "K3S", "standard")],
-        "virtualization": [TaskEntry(add_virtualization_ops, "VIRTUALIZATION", "standard")],
-        "storage": [TaskEntry(add_storage_ops, "STORAGE", "standard")],
+        "k3s": [TaskEntry(add_k3s_ops, "K3S", "standard", ["Linux"])],
+        "bhyve": [TaskEntry(add_bhyve_ops, "BHYVE", "standard", ["FreeBSD"])],
+        "jails": [TaskEntry(add_jail_ops, "JAILS", "standard", ["FreeBSD"])],
+        "storage": [TaskEntry(add_storage_ops, "STORAGE", "standard", ["FreeBSD", "Linux"])],
         "nginx": [TaskEntry(add_nginx_ops, "NGINX", "standard")],
         "postgresql": [TaskEntry(add_postgresql_ops, "POSTGRESQL", "standard")],
         "prometheus": [TaskEntry(add_prometheus_ops, "PROMETHEUS", "standard")],
-        "registry": [TaskEntry(add_registry_ops, "REGISTRY", "standard")],
+        "registry": [TaskEntry(add_registry_ops, "REGISTRY", "standard", ["Linux"])],
     }
 
 

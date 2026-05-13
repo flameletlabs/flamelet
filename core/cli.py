@@ -82,6 +82,17 @@ def build_add_ops_func(tenant_path: Path, tenant_vars):
             entries = TASK_REGISTRY[task_name]
 
             for entry in entries:
+                # Pre-filter hosts by OS family if specified
+                os_filtered_targets = target_hosts
+                if entry.os_families:
+                    available_hosts = target_hosts if target_hosts else list(inventory)
+                    os_filtered_targets = [
+                        h for h in available_hosts if h.get_fact(Kernel) in entry.os_families
+                    ]
+                    # Skip operation if no hosts match the OS family requirement
+                    if not os_filtered_targets:
+                        continue
+
                 # Handle users: special case, loads from tenant_vars
                 if entry.op_type == "users":
                     entry.op_func(
@@ -89,7 +100,7 @@ def build_add_ops_func(tenant_path: Path, tenant_vars):
                         inventory,
                         users_config=getattr(tenant_vars, "USERS", {}),
                         group_names=getattr(tenant_vars, "GROUPS", []),
-                        target_hosts=target_hosts,
+                        target_hosts=os_filtered_targets,
                         task=task_name,
                     )
 
@@ -99,12 +110,12 @@ def build_add_ops_func(tenant_path: Path, tenant_vars):
                         state,
                         inventory,
                         users_config=getattr(tenant_vars, "USERS", {}),
-                        target_hosts=target_hosts,
+                        target_hosts=os_filtered_targets,
                     )
 
                 # Handle packages: per-host OS detection
                 elif entry.op_type == "packages":
-                    targets = target_hosts if target_hosts else list(inventory)
+                    targets = os_filtered_targets if os_filtered_targets else list(inventory)
                     packages_config = {}
                     for host in targets:
                         os_key = host.get_fact(Kernel)
@@ -113,19 +124,19 @@ def build_add_ops_func(tenant_path: Path, tenant_vars):
                             packages_config[os_key] = pkg_cfg[os_key]
 
                     if packages_config:
-                        entry.op_func(state, inventory, packages_config, target_hosts, task_name)
+                        entry.op_func(state, inventory, packages_config, os_filtered_targets, task_name)
 
                 # Handle autossh: dual ops (tunnels + gateway)
                 elif entry.op_type == "autossh":
                     config = load_service_config(tenant_path, entry.config_attr)
                     if config:
-                        entry.op_func(state, inventory, config, target_hosts, task_name)
+                        entry.op_func(state, inventory, config, os_filtered_targets, task_name)
 
                 # Handle standard service configs
                 else:
                     config = load_service_config(tenant_path, entry.config_attr)
                     if config:
-                        entry.op_func(state, inventory, config, target_hosts, task_name)
+                        entry.op_func(state, inventory, config, os_filtered_targets, task_name)
 
     return add_ops
 
