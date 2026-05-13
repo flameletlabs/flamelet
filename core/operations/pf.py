@@ -10,6 +10,10 @@ from pyinfra.operations import files, server
 def add_pf_ops(state, hosts, config, target_hosts=None, task="all"):
     """Configure pf firewall on OpenBSD/FreeBSD hosts.
 
+    Handles OS-specific differences:
+    - FreeBSD: enables via sysrc (rc.conf)
+    - OpenBSD: enables via rcctl
+
     Args:
         state: pyinfra State object
         hosts: Inventory object
@@ -17,7 +21,6 @@ def add_pf_ops(state, hosts, config, target_hosts=None, task="all"):
             {
                 "firewall.example.com": {
                     "rules": "# verbatim pf.conf content\npass in proto tcp to port { 22, 80, 443 }",
-                    "validate_cmd": "/sbin/pfctl -nf %s",
                 }
             }
         target_hosts: list of Host objects (default: all)
@@ -62,7 +65,7 @@ def add_pf_ops(state, hosts, config, target_hosts=None, task="all"):
             host=host,
         )
 
-        # Enable pf on FreeBSD
+        # Enable pf on FreeBSD vs OpenBSD (different service management)
         if os_key == "FreeBSD":
             add_op(
                 state,
@@ -71,6 +74,17 @@ def add_pf_ops(state, hosts, config, target_hosts=None, task="all"):
                 commands=[
                     "sysrc pf_enable=YES",
                     "sysrc pf_rules=/etc/pf.conf",
+                ],
+                host=host,
+            )
+        elif os_key == "OpenBSD":
+            add_op(
+                state,
+                server.shell,
+                name=f"Enable pf on {host.name}",
+                commands=[
+                    "rcctl enable pf",
+                    "rcctl start pf",
                 ],
                 host=host,
             )
