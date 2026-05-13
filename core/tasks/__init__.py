@@ -66,7 +66,9 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
         "k3s": [TaskEntry(add_k3s_ops, "K3S", "standard", ["Linux"])],
         "bhyve": [TaskEntry(add_bhyve_ops, "BHYVE", "standard", ["FreeBSD"])],
         "jails": [TaskEntry(add_jail_ops, "JAILS", "standard", ["FreeBSD"])],
-        "virtualization": [TaskEntry(add_virtualization_ops, "VIRTUALIZATION", "standard", ["FreeBSD"])],
+        "virtualization": [
+            TaskEntry(add_virtualization_ops, "VIRTUALIZATION", "standard", ["FreeBSD"])
+        ],
         "storage": [TaskEntry(add_storage_ops, "STORAGE", "standard", ["FreeBSD", "Linux"])],
         "nginx": [TaskEntry(add_nginx_ops, "NGINX", "standard")],
         "postgresql": [TaskEntry(add_postgresql_ops, "POSTGRESQL", "standard")],
