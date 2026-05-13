@@ -80,14 +80,14 @@ jobs:
         env:
           FLAMELET_LOCAL: "1"
         run: |
-          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task packages
+          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task packages -v
       - name: Test dry-run monit operation
         env:
           FLAMELET_LOCAL: "1"
         run: |
-          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task monit
+          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task monit -v
       - name: Test dry-run nginx operation
         env:
           FLAMELET_LOCAL: "1"
         run: |
-          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task nginx
+          PYTHONPATH=. TENANT_PATH=tenants/example python -m core.cli --dry --task nginx -v
