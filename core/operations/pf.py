@@ -39,7 +39,6 @@ def add_pf_ops(state, hosts, config, target_hosts=None, task="all"):
 
         pf_config = config[host.name]
         rules = pf_config.get("rules", "")
-        validate_cmd = pf_config.get("validate_cmd", "/sbin/pfctl -nf %s")  # noqa: F841
 
         # Write pf.conf
         add_op(
@@ -54,7 +53,18 @@ def add_pf_ops(state, hosts, config, target_hosts=None, task="all"):
             host=host,
         )
 
-        # Reload pf rules
+        # Validate pf rules syntax before reloading
+        add_op(
+            state,
+            server.shell,
+            name=f"Validate pf rules on {host.name}",
+            commands=[
+                "/sbin/pfctl -nf /etc/pf.conf",
+            ],
+            host=host,
+        )
+
+        # Reload pf rules (only if validation passed)
         add_op(
             state,
             server.shell,
