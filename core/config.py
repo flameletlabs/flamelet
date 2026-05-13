@@ -26,9 +26,7 @@ def load_config():
         try:
             import tomli as tomllib
         except ModuleNotFoundError:
-            raise RuntimeError(
-                "tomllib/tomli not available. Install with: pip install tomli"
-            )
+            raise RuntimeError("tomllib/tomli not available. Install with: pip install tomli")
 
     config_path = get_config_path()
     if not config_path.exists():
@@ -55,8 +53,7 @@ def get_tenant_path(tenant_name):
 
     if tenant_name not in tenants:
         raise KeyError(
-            f"Tenant '{tenant_name}' not registered. "
-            f"Add to {get_config_path()} under [tenants]"
+            f"Tenant '{tenant_name}' not registered. Add to {get_config_path()} under [tenants]"
         )
 
     tenant_path = Path(tenants[tenant_name]).expanduser().resolve()

@@ -1,7 +1,5 @@
 """Tests for configuration generation in operations."""
 
-from io import StringIO
-
 
 class TestNginxConfigGeneration:
     """Test nginx configuration generation."""
@@ -9,6 +7,7 @@ class TestNginxConfigGeneration:
     def test_nginx_config_generator_exists(self):
         """Verify nginx config generator function exists."""
         from core.operations.nginx import _generate_nginx_config
+
         assert callable(_generate_nginx_config)
 
     def test_nginx_basic_config_generation(self):
@@ -16,18 +15,14 @@ class TestNginxConfigGeneration:
         from core.operations.nginx import _generate_nginx_config
 
         spec = {
-            "upstreams": [
-                {"name": "backend", "servers": ["10.0.0.1:8080"]}
-            ],
+            "upstreams": [{"name": "backend", "servers": ["10.0.0.1:8080"]}],
             "servers": [
                 {
                     "server_name": "example.com",
                     "listen": [80],
-                    "locations": [
-                        {"path": "/", "proxy_pass": "http://backend"}
-                    ]
+                    "locations": [{"path": "/", "proxy_pass": "http://backend"}],
                 }
-            ]
+            ],
         }
 
         config = _generate_nginx_config(spec)
@@ -48,9 +43,9 @@ class TestNginxConfigGeneration:
                     "listen": [443],
                     "ssl_cert": "/etc/ssl/certs/cert.pem",
                     "ssl_key": "/etc/ssl/private/key.pem",
-                    "locations": []
+                    "locations": [],
                 }
-            ]
+            ],
         }
 
         config = _generate_nginx_config(spec)
@@ -65,6 +60,7 @@ class TestPrometheusConfigGeneration:
     def test_prometheus_yaml_generator_exists(self):
         """Verify Prometheus YAML generator function exists."""
         from core.operations.prometheus import _generate_prometheus_yml
+
         assert callable(_generate_prometheus_yml)
 
     def test_prometheus_basic_config_generation(self):
@@ -73,9 +69,7 @@ class TestPrometheusConfigGeneration:
 
         spec = {
             "scrape_interval": "15s",
-            "scrape_targets": [
-                {"job_name": "node", "targets": ["localhost:9100"]}
-            ]
+            "scrape_targets": [{"job_name": "node", "targets": ["localhost:9100"]}],
         }
 
         config = _generate_prometheus_yml(spec, "/etc/prometheus")
@@ -89,13 +83,7 @@ class TestPrometheusConfigGeneration:
         """Test Prometheus alert rules generation."""
         from core.operations.prometheus import _generate_alert_rules
 
-        rules = [
-            {
-                "alert": "HighCPU",
-                "expr": "node_cpu > 80",
-                "severity": "warning"
-            }
-        ]
+        rules = [{"alert": "HighCPU", "expr": "node_cpu > 80", "severity": "warning"}]
 
         config = _generate_alert_rules(rules)
         assert isinstance(config, str)
@@ -110,16 +98,14 @@ class TestRegistryConfigGeneration:
     def test_registry_config_generator_exists(self):
         """Verify registry config generator function exists."""
         from core.operations.registry import _generate_registry_config
+
         assert callable(_generate_registry_config)
 
     def test_registry_filesystem_config_generation(self):
         """Test registry filesystem config generation."""
         from core.operations.registry import _generate_registry_config
 
-        spec = {
-            "storage_backend": "filesystem",
-            "auth": {}
-        }
+        spec = {"storage_backend": "filesystem", "auth": {}}
 
         config = _generate_registry_config(spec, "/data/registry")
         assert isinstance(config, str)
@@ -129,6 +115,7 @@ class TestRegistryConfigGeneration:
     def test_registry_compose_generator_exists(self):
         """Verify registry compose generator function exists."""
         from core.operations.registry import _generate_compose_yml
+
         assert callable(_generate_compose_yml)
 
     def test_registry_compose_generation(self):
@@ -151,6 +138,7 @@ class TestUnboundConfigGeneration:
     def test_unbound_config_generator_exists(self):
         """Verify unbound config generator exists."""
         from core.operations.unbound import _generate_unbound_config
+
         assert callable(_generate_unbound_config)
 
     def test_unbound_basic_config_generation(self):
@@ -160,7 +148,7 @@ class TestUnboundConfigGeneration:
         spec = {
             "listen_on": ["127.0.0.1"],
             "access_control": ["127.0.0.0/8 allow"],
-            "forward_zones": []
+            "forward_zones": [],
         }
 
         config = _generate_unbound_config(spec)
@@ -175,18 +163,14 @@ class TestWireGuardConfigGeneration:
     def test_wireguard_freebsd_config_generator_exists(self):
         """Verify WireGuard FreeBSD config generator exists."""
         from core.operations.wireguard import _generate_wg_freebsd_config
+
         assert callable(_generate_wg_freebsd_config)
 
     def test_wireguard_freebsd_config_generation(self):
         """Test WireGuard FreeBSD config generation."""
         from core.operations.wireguard import _generate_wg_freebsd_config
 
-        spec = {
-            "address": "10.50.0.1/24",
-            "port": 51820,
-            "private_key": "test_key",
-            "peers": []
-        }
+        spec = {"address": "10.50.0.1/24", "port": 51820, "private_key": "test_key", "peers": []}
 
         config = _generate_wg_freebsd_config(spec)
         assert isinstance(config, str)
@@ -201,6 +185,7 @@ class TestPFConfigGeneration:
     def test_pf_config_deployment(self):
         """Verify pf config can be deployed."""
         from core.operations.pf import add_pf_ops
+
         assert callable(add_pf_ops)
 
     def test_pf_rules_format(self):
@@ -221,18 +206,14 @@ class TestMonitConfigGeneration:
     def test_monit_config_generator_exists(self):
         """Verify monit config generator exists."""
         from core.operations.monit import _generate_monit_config
+
         assert callable(_generate_monit_config)
 
     def test_monit_basic_config_generation(self):
         """Test basic monit config generation."""
         from core.operations.monit import _generate_monit_config
 
-        spec = {
-            "daemon": 120,
-            "httpd_port": 2812,
-            "httpd_password": "test123",
-            "checks": {}
-        }
+        spec = {"daemon": 120, "httpd_port": 2812, "httpd_password": "test123", "checks": {}}
 
         config = _generate_monit_config(spec, "monitor.example.com")
         assert isinstance(config, str)
@@ -246,6 +227,7 @@ class TestOpenSMTPDConfigGeneration:
     def test_opensmtpd_config_generator_exists(self):
         """Verify OpenSMTPD config generator exists."""
         from core.operations.opensmtpd import _generate_smtpd_config
+
         assert callable(_generate_smtpd_config)
 
     def test_opensmtpd_basic_config_generation(self):
@@ -268,16 +250,13 @@ class TestPostgreSQLConfigGeneration:
     def test_postgresql_operation_exists(self):
         """Verify PostgreSQL operation exists."""
         from core.operations.postgresql import add_postgresql_ops
+
         assert callable(add_postgresql_ops)
 
     def test_postgresql_replication_config(self):
         """Test PostgreSQL replication configuration."""
-        from core.operations.postgresql import _setup_replication
 
-        replication_spec = {
-            "mode": "primary",
-            "backup_slot": "standby_slot"
-        }
+        replication_spec = {"mode": "primary", "backup_slot": "standby_slot"}
 
         # Should not error when setting up replication
         assert replication_spec["mode"] in ["primary", "standby"]
@@ -289,18 +268,15 @@ class TestDockerConfigGeneration:
     def test_docker_operation_exists(self):
         """Verify Docker operation exists."""
         from core.operations.docker import add_docker_ops
+
         assert callable(add_docker_ops)
 
     def test_docker_daemon_config_generation(self):
         """Test Docker daemon.json generation."""
-        spec = {
-            "daemon": {
-                "insecure-registries": ["registry.local"],
-                "log-driver": "journald"
-            }
-        }
+        spec = {"daemon": {"insecure-registries": ["registry.local"], "log-driver": "journald"}}
 
         import json
+
         config_json = json.dumps(spec["daemon"], indent=2)
         assert isinstance(config_json, str)
         assert "insecure-registries" in config_json
@@ -313,10 +289,7 @@ class TestConfigValidation:
         """Test that generated nginx config is valid."""
         from core.operations.nginx import _generate_nginx_config
 
-        spec = {
-            "upstreams": [],
-            "servers": []
-        }
+        spec = {"upstreams": [], "servers": []}
 
         config = _generate_nginx_config(spec)
         # Should have basic nginx structure
@@ -327,10 +300,7 @@ class TestConfigValidation:
         """Test that generated Prometheus YAML is valid."""
         from core.operations.prometheus import _generate_prometheus_yml
 
-        spec = {
-            "scrape_interval": "15s",
-            "scrape_targets": []
-        }
+        spec = {"scrape_interval": "15s", "scrape_targets": []}
 
         yaml_content = _generate_prometheus_yml(spec, "/etc/prometheus")
         # Should be valid YAML (basic check)

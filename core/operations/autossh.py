@@ -146,7 +146,7 @@ def add_autossh_ops(state, hosts, autossh_config, target_hosts=None, task="all")
                     server.shell,
                     name=f"Enable and start autossh service {tunnel_name} on {host.name}",
                     commands=[
-                        f"systemctl daemon-reload",
+                        "systemctl daemon-reload",
                         f"systemctl enable autossh-{tunnel_name}.service",
                         f"systemctl start autossh-{tunnel_name}.service",
                     ],
@@ -210,9 +210,9 @@ def add_autossh_gateway_ops(state, hosts, gateway_config, target_hosts=None, tas
             key_options = key_entry.get("options", "no-pty,no-agent-forwarding")
 
             if key_options:
-                auth_key_line = f'{key_options} {public_key} {comment}'
+                auth_key_line = f"{key_options} {public_key} {comment}"
             else:
-                auth_key_line = f'{public_key} {comment}'
+                auth_key_line = f"{public_key} {comment}"
 
             add_op(
                 state,

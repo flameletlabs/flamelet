@@ -9,14 +9,14 @@ from pyinfra.operations import server
 
 # OS-specific config: Alpine, Debian, FreeBSD, OpenBSD
 BASH = {
-    "Alpine":  "/bin/sh",
-    "Linux":   "/bin/bash",
+    "Alpine": "/bin/sh",
+    "Linux": "/bin/bash",
     "FreeBSD": "/usr/local/bin/bash",
     "OpenBSD": "/usr/local/bin/bash",
 }
 SUDO_GROUP = {
-    "Alpine":  "wheel",
-    "Linux":   "sudo",
+    "Alpine": "wheel",
+    "Linux": "sudo",
     "FreeBSD": "wheel",
     "OpenBSD": "wheel",
 }

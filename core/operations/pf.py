@@ -3,8 +3,8 @@
 from io import StringIO
 
 from pyinfra.api.operation import add_op
-from pyinfra.operations import files, server
 from pyinfra.facts.server import Kernel
+from pyinfra.operations import files, server
 
 
 def add_pf_ops(state, hosts, config, target_hosts=None, task="all"):
@@ -36,7 +36,7 @@ def add_pf_ops(state, hosts, config, target_hosts=None, task="all"):
 
         pf_config = config[host.name]
         rules = pf_config.get("rules", "")
-        validate_cmd = pf_config.get("validate_cmd", "/sbin/pfctl -nf %s")
+        validate_cmd = pf_config.get("validate_cmd", "/sbin/pfctl -nf %s")  # noqa: F841
 
         # Write pf.conf
         add_op(

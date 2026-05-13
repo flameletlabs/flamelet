@@ -1,9 +1,10 @@
 """Prometheus monitoring server operations."""
 
 from io import StringIO
+
 from pyinfra.api.operation import add_op
-from pyinfra.operations import server, files
 from pyinfra.facts.server import Kernel
+from pyinfra.operations import files, server
 
 
 def add_prometheus_ops(state, hosts, config, target_hosts=None, task="all"):
@@ -91,7 +92,7 @@ def add_prometheus_ops(state, hosts, config, target_hosts=None, task="all"):
             name=f"Install Prometheus on {host.name}",
             commands=[
                 f"which prometheus || {_install_prometheus(os_key)}",
-                f"useradd -s /sbin/nologin -M prometheus 2>/dev/null || true",
+                "useradd -s /sbin/nologin -M prometheus 2>/dev/null || true",
                 f"chown -R prometheus:prometheus {conf_dir}",
             ],
             host=host,
@@ -115,23 +116,25 @@ def _generate_prometheus_yml(spec, conf_dir):
         "global:",
         f"  scrape_interval: {spec.get('scrape_interval', '15s')}",
         f"  evaluation_interval: {spec.get('evaluation_interval', '15s')}",
-        f"  external_labels:",
-        f"    instance: prometheus",
+        "  external_labels:",
+        "    instance: prometheus",
         "",
     ]
 
     # Alerting configuration
     if spec.get("alert_rules"):
-        yaml_lines.extend([
-            "alerting:",
-            "  alertmanagers:",
-            f"    - static_configs:",
-            f"        - targets: ['{spec.get('alert_manager', 'localhost:9093')}']",
-            "",
-            "rule_files:",
-            f"  - '{conf_dir}/alert.rules.yml'",
-            "",
-        ])
+        yaml_lines.extend(
+            [
+                "alerting:",
+                "  alertmanagers:",
+                "    - static_configs:",
+                f"        - targets: ['{spec.get('alert_manager', 'localhost:9093')}']",
+                "",
+                "rule_files:",
+                f"  - '{conf_dir}/alert.rules.yml'",
+                "",
+            ]
+        )
 
     # Scrape targets
     yaml_lines.append("scrape_configs:")
@@ -140,11 +143,13 @@ def _generate_prometheus_yml(spec, conf_dir):
         job_name = target.get("job_name", "default")
         targets_list = target.get("targets", ["localhost:9090"])
 
-        yaml_lines.extend([
-            f"  - job_name: '{job_name}'",
-            f"    static_configs:",
-            f"      - targets:",
-        ])
+        yaml_lines.extend(
+            [
+                f"  - job_name: '{job_name}'",
+                "    static_configs:",
+                "      - targets:",
+            ]
+        )
 
         for t in targets_list:
             yaml_lines.append(f"          - '{t}'")
@@ -168,16 +173,18 @@ def _generate_alert_rules(alert_rules):
     ]
 
     for rule in alert_rules:
-        yaml_lines.extend([
-            f"      - alert: {rule['alert']}",
-            f"        expr: {rule['expr']}",
-            f"        for: {rule.get('for', '5m')}",
-            f"        labels:",
-            f"          severity: {rule.get('severity', 'warning')}",
-            f"        annotations:",
-            f"          summary: \"{rule.get('summary', rule['alert'])}\"",
-            f"          description: \"{rule.get('description', '')}\"",
-        ])
+        yaml_lines.extend(
+            [
+                f"      - alert: {rule['alert']}",
+                f"        expr: {rule['expr']}",
+                f"        for: {rule.get('for', '5m')}",
+                "        labels:",
+                f"          severity: {rule.get('severity', 'warning')}",
+                "        annotations:",
+                f'          summary: "{rule.get("summary", rule["alert"])}"',
+                f'          description: "{rule.get("description", "")}"',
+            ]
+        )
 
     return "\n".join(yaml_lines)
 

@@ -3,8 +3,8 @@
 from io import StringIO
 
 from pyinfra.api.operation import add_op
-from pyinfra.operations import files, server
 from pyinfra.facts.server import Kernel
+from pyinfra.operations import files, server
 
 
 def add_opensmtpd_ops(state, hosts, config, target_hosts=None, task="all"):
@@ -147,23 +147,25 @@ def _generate_smtpd_conf(config, conf_dir):
 
     # Actions
     lines.append("# Actions")
-    lines.append("action \"local_mail\" mbox alias <aliases>")
+    lines.append('action "local_mail" mbox alias <aliases>')
 
     smtp_relay = config.get("smtp_relay", "")
     if smtp_relay:
-        lines.append(f"action \"outbound\" relay host {smtp_relay} auth <secrets> mail-from \"{config.get('mail_from')}\"")
+        lines.append(
+            f'action "outbound" relay host {smtp_relay} auth <secrets> mail-from "{config.get("mail_from")}"'
+        )
     else:
-        lines.append(f"action \"outbound\" relay mail-from \"{config.get('mail_from')}\"")
+        lines.append(f'action "outbound" relay mail-from "{config.get("mail_from")}"')
     lines.append("")
 
     # Rules
     lines.append("# Rules")
-    lines.append("match from local for local action \"local_mail\"")
-    lines.append("match from local for any action \"outbound\"")
+    lines.append('match from local for local action "local_mail"')
+    lines.append('match from local for any action "outbound"')
 
     if "allowed_networks" in config:
         for network in config["allowed_networks"]:
-            lines.append(f"match from src {network} for any action \"outbound\"")
+            lines.append(f'match from src {network} for any action "outbound"')
     lines.append("")
 
     return "\n".join(lines)

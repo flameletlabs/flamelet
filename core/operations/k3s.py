@@ -2,7 +2,6 @@
 
 from pyinfra.api.operation import add_op
 from pyinfra.operations import server
-from pyinfra.facts.server import Kernel
 
 
 def add_k3s_ops(state, hosts, config, target_hosts=None, task="all"):
@@ -32,8 +31,6 @@ def add_k3s_ops(state, hosts, config, target_hosts=None, task="all"):
         spec = config[host.name]
         mode = spec.get("mode", "agent")
         channel = spec.get("channel", "latest")
-        install_dir = spec.get("install_dir", "/usr/local/bin")
-        systemd_dir = spec.get("systemd_dir", "/etc/systemd/system")
 
         # Install k3s via official script
         install_cmd = f"curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL={channel}"

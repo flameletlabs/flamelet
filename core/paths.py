@@ -32,6 +32,7 @@ def find_framework_root(start_path=None):
     # Strategy 3: Relative to calling script (for local development tenants/*/run.py)
     if start_path is None:
         import inspect
+
         frame = inspect.currentframe().f_back
         start_path = Path(frame.f_globals["__file__"]).parent
 
@@ -99,6 +100,7 @@ def find_tenant_path(tenant_name=None):
 
     # Strategy 3: Relative path from tenant script location
     import inspect
+
     frame = inspect.currentframe().f_back
     script_path = Path(frame.f_globals["__file__"]).resolve()
     if "tenants" in script_path.parts:
@@ -112,11 +114,11 @@ def find_tenant_path(tenant_name=None):
         return Path.cwd()
 
     raise RuntimeError(
-        f"Cannot find tenant configuration. Tried:\n"
-        f"  1. TENANT_PATH environment variable\n"
-        f"  2. XDG_CONFIG_HOME/flamelet/tenants (~/.config/flamelet/tenants)\n"
-        f"  3. Local development paths (tenants/*/)\n"
-        f"  4. Current working directory"
+        "Cannot find tenant configuration. Tried:\n"
+        "  1. TENANT_PATH environment variable\n"
+        "  2. XDG_CONFIG_HOME/flamelet/tenants (~/.config/flamelet/tenants)\n"
+        "  3. Local development paths (tenants/*/)\n"
+        "  4. Current working directory"
     )
 
 
@@ -138,6 +140,7 @@ def setup_imports(start_path=None):
         Path object pointing to framework root
     """
     import sys
+
     framework_root = find_framework_root(start_path)
     if str(framework_root) not in sys.path:
         sys.path.insert(0, str(framework_root))

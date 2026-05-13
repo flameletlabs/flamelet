@@ -1,9 +1,7 @@
 """Integration tests for config loading during deployment."""
 
-from pathlib import Path
-
-from core.cli import load_tenant_inventory, load_tenant_vars_module, build_add_ops_func
-from core.tasks.loader import load_service_config, load_packages_config
+from core.cli import build_add_ops_func, load_tenant_inventory, load_tenant_vars_module
+from core.tasks.loader import load_packages_config, load_service_config
 
 
 class TestDeploymentConfigLoading:

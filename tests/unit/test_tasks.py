@@ -38,9 +38,9 @@ class TestTaskRegistry:
         """Config attributes should be None or strings."""
         for task_name, entries in TASK_REGISTRY.items():
             for entry in entries:
-                assert (
-                    entry.config_attr is None or isinstance(entry.config_attr, str)
-                ), f"{task_name}: config_attr must be None or str"
+                assert entry.config_attr is None or isinstance(entry.config_attr, str), (
+                    f"{task_name}: config_attr must be None or str"
+                )
 
     def test_users_and_sudo_have_no_config_attr(self):
         """Users and sudo tasks should have config_attr=None."""

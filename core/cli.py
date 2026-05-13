@@ -4,10 +4,10 @@ import importlib.util
 import sys
 from pathlib import Path
 
-from core.paths import find_framework_root, find_tenant_path, setup_imports
-from core.runner import build_parser, run_deployment, STANDARD_TASKS
+from core.paths import find_tenant_path, setup_imports
+from core.runner import STANDARD_TASKS, build_parser, run_deployment
 from core.tasks import TASK_REGISTRY
-from core.tasks.loader import load_service_config, load_packages_config
+from core.tasks.loader import load_packages_config, load_service_config
 
 
 def load_tenant_inventory(tenant_path: Path):
@@ -28,7 +28,7 @@ def load_tenant_inventory(tenant_path: Path):
     spec.loader.exec_module(inventory_module)
 
     if not hasattr(inventory_module, "build_inventory"):
-        raise RuntimeError(f"inventory.py must define build_inventory() function")
+        raise RuntimeError("inventory.py must define build_inventory() function")
 
     return inventory_module.build_inventory()
 
