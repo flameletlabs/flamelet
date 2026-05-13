@@ -52,6 +52,8 @@ def add_wireguard_ops(state, hosts, config, target_hosts=None, task="all"):
                 _add_wireguard_freebsd(state, host, iface_name, iface_config)
             elif os_key == "OpenBSD":
                 _add_wireguard_openbsd(state, host, iface_name, iface_config)
+            elif os_key == "Linux":
+                _add_wireguard_linux(state, host, iface_name, iface_config)
 
 
 def _add_wireguard_freebsd(state, host, iface_name, config):
@@ -108,6 +110,34 @@ def _add_wireguard_openbsd(state, host, iface_name, config):
         server.shell,
         name=f"Activate WireGuard {iface_name} on {host.name}",
         commands=[f"sh /etc/netstart {iface_name}"],
+        host=host,
+    )
+
+
+def _add_wireguard_linux(state, host, iface_name, config):
+    """Configure WireGuard on Linux via /etc/wireguard/<iface>.conf + wg-quick."""
+    content = _generate_wireguard_ini(config)
+
+    add_op(
+        state,
+        files.put,
+        name=f"Deploy WireGuard config {iface_name} on {host.name}",
+        src=StringIO(content),
+        dest=f"/etc/wireguard/{iface_name}.conf",
+        mode="0640",
+        user="root",
+        group="root",
+        host=host,
+    )
+
+    add_op(
+        state,
+        server.shell,
+        name=f"Enable WireGuard {iface_name} on {host.name}",
+        commands=[
+            f"systemctl enable wg-quick@{iface_name}",
+            f"systemctl restart wg-quick@{iface_name} || true",
+        ],
         host=host,
     )
 

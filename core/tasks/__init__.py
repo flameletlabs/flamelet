@@ -54,7 +54,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
             TaskEntry(add_autossh_gateway_ops, "AUTOSSH_GATEWAY", "autossh"),
         ],
         "wireguard": [
-            TaskEntry(add_wireguard_ops, "WIREGUARD", "standard", ["FreeBSD", "OpenBSD"])
+            TaskEntry(add_wireguard_ops, "WIREGUARD", "standard", ["FreeBSD", "OpenBSD", "Linux"])
         ],
         "unbound": [TaskEntry(add_unbound_ops, "UNBOUND", "standard")],
         "monit": [TaskEntry(add_monit_ops, "MONIT", "standard")],

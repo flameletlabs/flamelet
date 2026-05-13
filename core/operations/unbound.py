@@ -72,6 +72,17 @@ def add_unbound_ops(state, hosts, config, target_hosts=None, task="all"):
                 ],
                 host=host,
             )
+        elif os_key == "OpenBSD":
+            add_op(
+                state,
+                server.shell,
+                name=f"Enable Unbound on {host.name}",
+                commands=[
+                    "rcctl enable unbound",
+                    "rcctl restart unbound || true",
+                ],
+                host=host,
+            )
         elif os_key == "Linux":
             add_op(
                 state,

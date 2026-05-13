@@ -65,8 +65,8 @@ def add_service_ops(state, hosts, service_config, target_hosts=None, task="all")
                         host=host,
                     )
 
-            elif os_key in ("FreeBSD", "OpenBSD"):
-                # service(8) / rc.d
+            elif os_key == "FreeBSD":
+                # sysrc + service(8)
                 if enabled:
                     add_op(
                         state,
@@ -98,5 +98,41 @@ def add_service_ops(state, hosts, service_config, target_hosts=None, task="all")
                         server.shell,
                         name=f"Restart {service_name} on {host.name}",
                         commands=[f"service {service_name} restart"],
+                        host=host,
+                    )
+
+            elif os_key == "OpenBSD":
+                # rcctl (OpenBSD service manager)
+                if enabled:
+                    add_op(
+                        state,
+                        server.shell,
+                        name=f"Enable {service_name} on {host.name}",
+                        commands=[f"rcctl enable {service_name}"],
+                        host=host,
+                    )
+
+                if state_action == "started":
+                    add_op(
+                        state,
+                        server.shell,
+                        name=f"Start {service_name} on {host.name}",
+                        commands=[f"rcctl start {service_name}"],
+                        host=host,
+                    )
+                elif state_action == "stopped":
+                    add_op(
+                        state,
+                        server.shell,
+                        name=f"Stop {service_name} on {host.name}",
+                        commands=[f"rcctl stop {service_name}"],
+                        host=host,
+                    )
+                elif state_action == "restarted":
+                    add_op(
+                        state,
+                        server.shell,
+                        name=f"Restart {service_name} on {host.name}",
+                        commands=[f"rcctl restart {service_name}"],
                         host=host,
                     )
