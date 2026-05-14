@@ -977,6 +977,216 @@
             color: var(--text-primary);
         }
 
+        /* ═══════════════════════════════════════════════════════ */
+        /* Services Page */
+        /* ═══════════════════════════════════════════════════════ */
+        .services-header {
+            padding: 32px 40px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .services-title {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            color: var(--text-primary);
+        }
+
+        .services-filters {
+            display: flex;
+            gap: 12px;
+            flex: 1;
+            min-width: 250px;
+            align-items: center;
+        }
+
+        .services-filters .search-box {
+            flex: 1;
+            margin: 0;
+        }
+
+        .view-mode {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .view-mode:hover {
+            border-color: var(--accent-light);
+            background: var(--bg-tertiary);
+        }
+
+        .service-item {
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .service-item:hover {
+            border-color: var(--accent-light);
+            background: var(--bg-tertiary);
+            transform: translateX(2px);
+        }
+
+        .service-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .service-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .service-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            padding: 4px 8px;
+            background: var(--accent-light);
+            color: var(--accent);
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .service-count {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .service-hosts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .service-host-tag {
+            font-size: 11px;
+            padding: 4px 10px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border-light);
+            transition: all 0.12s ease;
+        }
+
+        .service-host-tag:hover {
+            background: var(--accent-light);
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .service-detail {
+            padding: 16px 20px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            margin-top: 12px;
+            font-size: 12px;
+        }
+
+        .service-detail-row {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .service-detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .service-detail-label {
+            color: var(--text-tertiary);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+
+        .service-detail-value {
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .service-keys {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .service-key {
+            font-size: 10px;
+            padding: 2px 6px;
+            background: var(--bg-primary);
+            color: var(--accent);
+            border-radius: 3px;
+            border: 1px solid var(--accent-light);
+        }
+
+        .host-service-item {
+            padding: 12px 16px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.15s ease;
+        }
+
+        .host-service-item:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--accent-light);
+        }
+
+        .host-service-name {
+            font-size: 13px;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .host-service-attr {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            font-family: 'JetBrains Mono', monospace;
+            padding: 2px 6px;
+            background: var(--bg-secondary);
+            border-radius: 3px;
+        }
+
+        .services-loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .services-empty {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-tertiary);
+        }
+
         .map-location-address {
             font-size: 12px;
             color: var(--text-tertiary);
@@ -1316,6 +1526,7 @@
                 <button class="nav-link active" data-page="tenants">Tenants</button>
                 <button class="nav-link" data-page="operations">Operations</button>
                 <button class="nav-link" data-page="map">Map</button>
+                <button class="nav-link" data-page="services">Services</button>
                 <button class="nav-link" data-page="run">Execute</button>
             </div>
         </div>
@@ -1364,6 +1575,21 @@
         <div class="page" id="map-page">
             <div id="leaflet-map"></div>
             <div class="map-locations-list" id="map-locations-list" style="display:none;"></div>
+        </div>
+
+        <!-- Services Page -->
+        <div class="page" id="services-page">
+            <div class="services-header">
+                <div class="services-title">Services</div>
+                <div class="services-filters">
+                    <input type="search" class="search-box" id="services-filter" placeholder="Filter services or hosts...">
+                    <select id="services-view-mode" class="view-mode">
+                        <option value="services">View: Services</option>
+                        <option value="hosts">View: Hosts</option>
+                    </select>
+                </div>
+            </div>
+            <div class="panel-content" id="services-content"></div>
         </div>
 
         <!-- Execute Page -->
@@ -1456,6 +1682,32 @@
                         setTimeout(() => { initMap(); }, 100);
                     }
                 }
+
+                // Load services when switching to services page
+                if (pageName === 'services') {
+                    currentViewMode = 'services';
+                    document.getElementById('services-view-mode').value = 'services';
+                    loadServices();
+                }
+            });
+        });
+
+        // Services view mode switcher
+        document.getElementById('services-view-mode').addEventListener('change', (e) => {
+            currentViewMode = e.target.value;
+            if (currentViewMode === 'services') {
+                loadServices();
+            } else if (currentViewMode === 'hosts') {
+                loadServicesForHost();
+            }
+        });
+
+        // Services search/filter
+        document.getElementById('services-filter').addEventListener('input', (e) => {
+            const filter = e.target.value.toLowerCase();
+            document.querySelectorAll('.service-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(filter) ? 'block' : 'none';
             });
         });
 
@@ -1636,6 +1888,16 @@
             const mapPage = document.getElementById('map-page');
             if (mapPage && mapPage.classList.contains('active')) {
                 loadMapForTenant(t.name);
+            }
+
+            // Reload services if currently viewing services page
+            const servicesPage = document.getElementById('services-page');
+            if (servicesPage && servicesPage.classList.contains('active')) {
+                if (currentViewMode === 'services') {
+                    loadServices();
+                } else {
+                    loadServicesForHost();
+                }
             }
 
             try {
@@ -1923,11 +2185,139 @@
         }
 
         /* ═══════════════════════════════════════════════════════ */
+        /* Load Services */
+        /* ═══════════════════════════════════════════════════════ */
+        let servicesCache = {};
+        let currentViewMode = 'services';
+
+        async function loadServices() {
+            if (!currentTenant) return;
+
+            const content = document.getElementById('services-content');
+            content.innerHTML = '<div class="services-loading">Loading services...</div>';
+
+            try {
+                const res = await fetch(`${API}/tenants/${currentTenant.name}/services`);
+                if (!res.ok) throw new Error('Failed to load services');
+                const services = await res.json();
+                servicesCache = {};
+
+                if (services.length === 0) {
+                    content.innerHTML = '<div class="services-empty">No services configured for this tenant</div>';
+                    return;
+                }
+
+                // Sort by host count descending
+                services.sort((a, b) => b.host_count - a.host_count);
+
+                let html = '';
+                for (const service of services) {
+                    const displayName = service.name.replace(/_/g, ' ');
+                    html += `
+                        <div class="service-item" data-service="${service.name}">
+                            <div class="service-header">
+                                <div class="service-name">${displayName}</div>
+                                <div class="service-badge">${service.config_attr}</div>
+                                <div class="service-count">${service.host_count} host${service.host_count !== 1 ? 's' : ''}</div>
+                            </div>
+                            <div class="service-hosts">
+                                ${service.hosts.slice(0, 5).map(h => `<span class="service-host-tag">${h}</span>`).join('')}
+                                ${service.hosts.length > 5 ? `<span class="service-host-tag">+${service.hosts.length - 5} more</span>` : ''}
+                            </div>
+                        </div>
+                    `;
+                    servicesCache[service.name] = service;
+                }
+
+                content.innerHTML = html;
+
+                // Add click handlers for service expansion
+                document.querySelectorAll('.service-item').forEach(item => {
+                    item.addEventListener('click', async () => {
+                        const serviceName = item.dataset.service;
+                        const detailDiv = item.querySelector('.service-detail');
+
+                        if (detailDiv) {
+                            detailDiv.remove();
+                        } else {
+                            // Load detail
+                            const detRes = await fetch(`${API}/tenants/${currentTenant.name}/services/${serviceName}`);
+                            const detail = await detRes.json();
+
+                            const hosts = detail.hosts || [];
+                            const detailHtml = `
+                                <div class="service-detail">
+                                    ${hosts.map(h => `
+                                        <div class="service-detail-row">
+                                            <div class="service-detail-label">${h.hostname}</div>
+                                            <div>
+                                                ${h.check_count ? `<div style="margin-bottom: 6px;"><strong>${h.check_count} checks</strong></div>` : ''}
+                                                <div class="service-keys">${h.config_keys.map(k => `<span class="service-key">${k}</span>`).join('')}</div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `;
+                            item.insertAdjacentHTML('beforeend', detailHtml);
+                        }
+                    });
+                });
+            } catch (e) {
+                console.error('Failed to load services:', e);
+                content.innerHTML = '<div class="services-empty">Error loading services</div>';
+            }
+        }
+
+        async function loadServicesForHost() {
+            if (!currentTenant) return;
+
+            const content = document.getElementById('services-content');
+            content.innerHTML = '<div class="services-loading">Loading hosts...</div>';
+
+            try {
+                // Get all hosts
+                const hostRes = await fetch(`${API}/tenants/${currentTenant.name}/hosts`);
+                const hosts = await hostRes.json();
+
+                if (hosts.length === 0) {
+                    content.innerHTML = '<div class="services-empty">No hosts in this tenant</div>';
+                    return;
+                }
+
+                let html = '';
+                for (const host of hosts) {
+                    const servRes = await fetch(`${API}/tenants/${currentTenant.name}/hosts/${host.name}/services`);
+                    const services = await servRes.json();
+
+                    html += `
+                        <div class="service-item">
+                            <div class="service-header">
+                                <div class="service-name" style="font-family: 'JetBrains Mono', monospace;">${host.name}</div>
+                                <div class="service-count">${services.length} service${services.length !== 1 ? 's' : ''}</div>
+                            </div>
+                            ${services.length > 0 ? `
+                                <div class="service-hosts">
+                                    ${services.map(s => `<span class="service-host-tag">${s.name.replace(/_/g, ' ')}</span>`).join('')}
+                                </div>
+                            ` : '<div style="color: var(--text-tertiary); font-size: 12px; margin-top: 4px;">No services configured</div>'}
+                        </div>
+                    `;
+                }
+
+                content.innerHTML = html;
+            } catch (e) {
+                console.error('Failed to load host services:', e);
+                content.innerHTML = '<div class="services-empty">Error loading hosts</div>';
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
         /* Initialize */
         /* ═══════════════════════════════════════════════════════ */
         ThemeManager.init();
         loadTenants();
         loadOperations();
+        loadServices();
 
         // Setup Group By selector buttons
         document.querySelectorAll('.group-btn').forEach(btn => {
