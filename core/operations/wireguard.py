@@ -86,6 +86,22 @@ def _add_wireguard_freebsd(state, host, iface_name, config):
         host=host,
     )
 
+    # Add routes for AllowedIPs (FreeBSD doesn't auto-create them like Linux does)
+    peers = config.get("peers", [])
+    route_commands = []
+    for peer in peers:
+        for ip in peer.get("allowed_ips", []):
+            route_commands.append(f"route add -inet {ip} -link -iface {iface_name} || true")
+
+    if route_commands:
+        add_op(
+            state,
+            server.shell,
+            name=f"Add routes for WireGuard {iface_name} on {host.name}",
+            commands=route_commands,
+            host=host,
+        )
+
 
 def _add_wireguard_openbsd(state, host, iface_name, config):
     """Configure WireGuard on OpenBSD via /etc/hostname.<iface>"""
