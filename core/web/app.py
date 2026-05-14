@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 
-from core.web.api import tenants, operations, runs, stream
+from core.web.api import tenants, operations, runs, stream, services
 from core.web.db import init_db
 
 # Initialize database on module load
@@ -35,6 +35,7 @@ app.include_router(tenants.router, prefix="/api")
 app.include_router(operations.router, prefix="/api")
 app.include_router(runs.router, prefix="/api")
 app.include_router(stream.router, prefix="/api")
+app.include_router(services.router, prefix="/api")
 
 
 # Serve Svelte SPA (if built)
