@@ -220,6 +220,10 @@ def _generate_wireguard_openbsd(config, iface_name="wg0"):
         lines.append("")
         lines.append(f"wgpeer {pubkey} \\")
 
+        # Preshared key (optional, must come before allowed IPs)
+        if "preshared_key" in peer:
+            lines.append(f"  wgpsk {peer['preshared_key']} \\")
+
         # Allowed IPs
         allowed_ips = peer.get("allowed_ips", [])
         for ip in allowed_ips:
