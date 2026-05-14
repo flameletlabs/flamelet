@@ -981,7 +981,7 @@
         /* Services Page */
         /* ═══════════════════════════════════════════════════════ */
         .services-header {
-            padding: 32px 40px;
+            padding: 24px 40px;
             border-bottom: 1px solid var(--border);
             background: var(--bg-secondary);
             display: flex;
@@ -995,19 +995,21 @@
             font-weight: 700;
             letter-spacing: -0.3px;
             color: var(--text-primary);
+            flex-shrink: 0;
         }
 
         .services-filters {
             display: flex;
             gap: 12px;
             flex: 1;
-            min-width: 250px;
+            min-width: 280px;
             align-items: center;
         }
 
         .services-filters .search-box {
             flex: 1;
             margin: 0;
+            min-width: 200px;
         }
 
         .view-mode {
@@ -1020,11 +1022,18 @@
             font-size: 13px;
             cursor: pointer;
             transition: all 0.15s ease;
+            flex-shrink: 0;
         }
 
         .view-mode:hover {
             border-color: var(--accent-light);
             background: var(--bg-tertiary);
+        }
+
+        .view-mode:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-lighter);
         }
 
         .service-item {
@@ -1035,18 +1044,44 @@
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.15s ease;
+            position: relative;
         }
 
         .service-item:hover {
             border-color: var(--accent-light);
-            background: var(--bg-tertiary);
-            transform: translateX(2px);
+            background: var(--bg-hover);
+        }
+
+        .service-item:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-lighter);
+        }
+
+        .service-item.expanded {
+            background: var(--bg-secondary);
+            border-color: var(--accent-light);
+        }
+
+        .service-chevron {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            color: var(--text-secondary);
+            transition: transform 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .service-item.expanded .service-chevron {
+            transform: rotate(90deg);
         }
 
         .service-header {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
             margin-bottom: 8px;
         }
 
@@ -1102,6 +1137,18 @@
             border-radius: 4px;
             margin-top: 12px;
             font-size: 12px;
+            animation: slideDown 0.2s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 1000px;
+            }
         }
 
         .service-detail-row {
@@ -1143,26 +1190,29 @@
             border: 1px solid var(--accent-light);
         }
 
+        .host-service-item-wrapper {
+            display: block;
+        }
+
         .host-service-item {
-            padding: 12px 16px;
+            padding: 16px 20px;
             background: var(--bg-primary);
             border: 1px solid var(--border);
             border-radius: 6px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            margin-bottom: 12px;
             transition: all 0.15s ease;
         }
 
         .host-service-item:hover {
-            background: var(--bg-tertiary);
+            background: var(--bg-hover);
             border-color: var(--accent-light);
         }
 
         .host-service-name {
-            font-size: 13px;
+            font-size: 14px;
+            font-weight: 600;
             color: var(--text-primary);
+            font-family: 'IBM Plex Mono', monospace;
             flex: 1;
         }
 
@@ -1177,14 +1227,68 @@
 
         .services-loading {
             text-align: center;
-            padding: 40px;
+            padding: 60px 40px;
             color: var(--text-secondary);
+            font-size: 14px;
         }
 
         .services-empty {
             text-align: center;
-            padding: 40px;
+            padding: 60px 40px;
             color: var(--text-tertiary);
+            font-size: 14px;
+        }
+
+        .services-no-results {
+            text-align: center;
+            padding: 60px 40px;
+            color: var(--text-tertiary);
+            font-size: 14px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .services-header {
+                padding: 20px 24px;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .services-title {
+                margin-bottom: 12px;
+            }
+
+            .services-filters {
+                min-width: 100%;
+                flex-direction: column;
+            }
+
+            .services-filters .search-box {
+                min-width: 100%;
+            }
+
+            .view-mode {
+                min-width: 100%;
+            }
+
+            .service-item {
+                padding: 12px 16px;
+                margin-bottom: 10px;
+            }
+
+            .service-header {
+                flex-wrap: wrap;
+            }
+
+            .service-detail {
+                margin-top: 8px;
+                padding: 12px 16px;
+            }
+
+            .service-detail-row {
+                grid-template-columns: 100px 1fr;
+                gap: 8px;
+            }
         }
 
         .map-location-address {
@@ -1705,10 +1809,31 @@
         // Services search/filter
         document.getElementById('services-filter').addEventListener('input', (e) => {
             const filter = e.target.value.toLowerCase();
-            document.querySelectorAll('.service-item').forEach(item => {
-                const text = item.textContent.toLowerCase();
-                item.style.display = text.includes(filter) ? 'block' : 'none';
+            const content = document.getElementById('services-content');
+            let visibleCount = 0;
+
+            // Search both service items and host items
+            document.querySelectorAll('.service-item, .host-service-item-wrapper').forEach(item => {
+                const searchText = item.dataset.searchText || item.textContent.toLowerCase();
+                const matches = !filter || searchText.includes(filter);
+                item.style.display = matches ? 'block' : 'none';
+                if (matches) visibleCount++;
             });
+
+            // Show "no results" message if filter is active and no items match
+            let noResultsDiv = content.querySelector('.services-no-results');
+            if (filter && visibleCount === 0) {
+                if (!noResultsDiv) {
+                    content.insertAdjacentHTML('beforeend', '<div class="services-no-results">No services or hosts match your search</div>');
+                }
+            } else if (noResultsDiv) {
+                noResultsDiv.remove();
+            }
+        });
+
+        // Clear search filter when changing view mode or tenant
+        document.getElementById('services-view-mode').addEventListener('change', () => {
+            document.getElementById('services-filter').value = '';
         });
 
         /* ═══════════════════════════════════════════════════════ */
@@ -2214,8 +2339,9 @@
                 for (const service of services) {
                     const displayName = service.name.replace(/_/g, ' ');
                     html += `
-                        <div class="service-item" data-service="${service.name}">
+                        <div class="service-item" data-service="${service.name}" data-search-text="${displayName.toLowerCase()} ${service.config_attr.toLowerCase()}">
                             <div class="service-header">
+                                <span class="service-chevron">›</span>
                                 <div class="service-name">${displayName}</div>
                                 <div class="service-badge">${service.config_attr}</div>
                                 <div class="service-count">${service.host_count} host${service.host_count !== 1 ? 's' : ''}</div>
@@ -2233,32 +2359,46 @@
 
                 // Add click handlers for service expansion
                 document.querySelectorAll('.service-item').forEach(item => {
-                    item.addEventListener('click', async () => {
+                    item.addEventListener('click', async (e) => {
+                        if (e.target.closest('.service-host-tag')) return; // Ignore clicks on host tags
+
                         const serviceName = item.dataset.service;
                         const detailDiv = item.querySelector('.service-detail');
+                        const isExpanded = item.classList.contains('expanded');
 
-                        if (detailDiv) {
-                            detailDiv.remove();
+                        if (detailDiv || isExpanded) {
+                            detailDiv?.remove();
+                            item.classList.remove('expanded');
                         } else {
-                            // Load detail
-                            const detRes = await fetch(`${API}/tenants/${currentTenant.name}/services/${serviceName}`);
-                            const detail = await detRes.json();
+                            item.classList.add('expanded');
+                            // Show loading state
+                            item.insertAdjacentHTML('beforeend', '<div class="service-detail"><div style="text-align: center; color: var(--text-secondary); padding: 12px;">Loading...</div></div>');
 
-                            const hosts = detail.hosts || [];
-                            const detailHtml = `
-                                <div class="service-detail">
-                                    ${hosts.map(h => `
-                                        <div class="service-detail-row">
-                                            <div class="service-detail-label">${h.hostname}</div>
-                                            <div>
-                                                ${h.check_count ? `<div style="margin-bottom: 6px;"><strong>${h.check_count} checks</strong></div>` : ''}
-                                                <div class="service-keys">${h.config_keys.map(k => `<span class="service-key">${k}</span>`).join('')}</div>
+                            try {
+                                const detRes = await fetch(`${API}/tenants/${currentTenant.name}/services/${serviceName}`);
+                                const detail = await detRes.json();
+
+                                const hosts = detail.hosts || [];
+                                const detailHtml = `
+                                    <div class="service-detail">
+                                        ${hosts.map(h => `
+                                            <div class="service-detail-row">
+                                                <div class="service-detail-label">${h.hostname}</div>
+                                                <div>
+                                                    ${h.check_count ? `<div style="margin-bottom: 6px;"><strong>${h.check_count} checks</strong></div>` : ''}
+                                                    <div class="service-keys">${h.config_keys.map(k => `<span class="service-key">${k}</span>`).join('')}</div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            `;
-                            item.insertAdjacentHTML('beforeend', detailHtml);
+                                        `).join('')}
+                                    </div>
+                                `;
+                                const loadingDiv = item.querySelector('.service-detail');
+                                loadingDiv.outerHTML = detailHtml;
+                            } catch (err) {
+                                console.error('Failed to load service detail:', err);
+                                const loadingDiv = item.querySelector('.service-detail');
+                                loadingDiv.textContent = 'Failed to load details';
+                            }
                         }
                     });
                 });
@@ -2284,22 +2424,30 @@
                     return;
                 }
 
-                let html = '';
-                for (const host of hosts) {
+                // Batch fetch all host services in parallel for better performance
+                const hostDataPromises = hosts.map(async (host) => {
                     const servRes = await fetch(`${API}/tenants/${currentTenant.name}/hosts/${host.name}/services`);
                     const services = await servRes.json();
+                    return { host, services };
+                });
 
+                const hostData = await Promise.all(hostDataPromises);
+
+                let html = '';
+                for (const { host, services } of hostData) {
                     html += `
-                        <div class="service-item">
-                            <div class="service-header">
-                                <div class="service-name" style="font-family: 'JetBrains Mono', monospace;">${host.name}</div>
-                                <div class="service-count">${services.length} service${services.length !== 1 ? 's' : ''}</div>
-                            </div>
-                            ${services.length > 0 ? `
-                                <div class="service-hosts">
-                                    ${services.map(s => `<span class="service-host-tag">${s.name.replace(/_/g, ' ')}</span>`).join('')}
+                        <div class="host-service-item-wrapper" data-search-text="${host.name.toLowerCase()}">
+                            <div class="host-service-item">
+                                <div class="service-header">
+                                    <div class="host-service-name">${host.name}</div>
+                                    <div class="service-count">${services.length} service${services.length !== 1 ? 's' : ''}</div>
                                 </div>
-                            ` : '<div style="color: var(--text-tertiary); font-size: 12px; margin-top: 4px;">No services configured</div>'}
+                                ${services.length > 0 ? `
+                                    <div class="service-hosts">
+                                        ${services.map(s => `<span class="service-host-tag">${s.name.replace(/_/g, ' ')}</span>`).join('')}
+                                    </div>
+                                ` : '<div style="color: var(--text-tertiary); font-size: 12px; margin-top: 4px;">No services configured</div>'}
+                            </div>
                         </div>
                     `;
                 }
