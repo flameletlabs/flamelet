@@ -1,8 +1,9 @@
 """Tenant and host listing endpoints."""
 
 from fastapi import APIRouter
+
+from core.cli import load_tenant_inventory
 from core.paths import get_tenants
-from core.cli import load_tenant_inventory, load_tenant_hosts
 
 router = APIRouter()
 
@@ -25,8 +26,8 @@ async def list_tenants():
 @router.get("/tenants/{tenant_name}/hosts")
 async def list_hosts(tenant_name: str):
     """List hosts in a tenant."""
+
     from core.paths import get_tenant_path
-    from pyinfra.facts.server import Kernel
 
     tenant_path = get_tenant_path(tenant_name)
     if not tenant_path:
@@ -55,12 +56,9 @@ async def list_hosts(tenant_name: str):
         # Extract location from hostname (last segment after last dot)
         location = host.name.split(".")[-1] if "." in host.name else ""
 
-        hosts.append({
-            "name": host.name,
-            "os": os_name,
-            "location": location,
-            "groups": list(groups)
-        })
+        hosts.append(
+            {"name": host.name, "os": os_name, "location": location, "groups": list(groups)}
+        )
 
     return hosts
 
@@ -68,9 +66,9 @@ async def list_hosts(tenant_name: str):
 @router.get("/tenants/{tenant_name}/locations")
 async def list_locations(tenant_name: str):
     """Return location metadata for a tenant, merged with live host details."""
-    from core.paths import get_tenant_path
     import importlib.util
-    import sys
+
+    from core.paths import get_tenant_path
 
     tenant_path = get_tenant_path(tenant_name)
     if not tenant_path:
@@ -81,9 +79,7 @@ async def list_locations(tenant_name: str):
     if not vars_module_path.exists():
         return {"error": f"Tenant '{tenant_name}' has no vars/__init__.py"}
 
-    spec = importlib.util.spec_from_file_location(
-        f"tenant_vars_{tenant_name}", vars_module_path
-    )
+    spec = importlib.util.spec_from_file_location(f"tenant_vars_{tenant_name}", vars_module_path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     locations_meta = getattr(mod, "LOCATIONS", {})
@@ -110,10 +106,12 @@ async def list_locations(tenant_name: str):
         elif "linux" in groups_lower:
             os_name = "Linux"
 
-        location_hosts[loc].append({
-            "name": host.name,
-            "os": os_name,
-        })
+        location_hosts[loc].append(
+            {
+                "name": host.name,
+                "os": os_name,
+            }
+        )
 
     result = []
     # Merge: include all locations from metadata + any from hostnames not in metadata
@@ -121,14 +119,16 @@ async def list_locations(tenant_name: str):
     for loc in sorted(all_locations):
         meta = locations_meta.get(loc, {})
         hosts = location_hosts.get(loc, [])
-        result.append({
-            "name": loc,
-            "display_name": meta.get("display_name", loc),
-            "address": meta.get("address", ""),
-            "lat": meta.get("lat"),
-            "lon": meta.get("lon"),
-            "host_count": len(hosts),
-            "hosts": hosts,
-        })
+        result.append(
+            {
+                "name": loc,
+                "display_name": meta.get("display_name", loc),
+                "address": meta.get("address", ""),
+                "lat": meta.get("lat"),
+                "lon": meta.get("lon"),
+                "host_count": len(hosts),
+                "hosts": hosts,
+            }
+        )
 
     return result

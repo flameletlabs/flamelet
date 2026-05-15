@@ -31,7 +31,6 @@ def build_inventory(local=False):
         ("web-01.london", {"ssh_hostname": "10.10.0.11"}),  # FreeBSD web server
         ("web-02.london", {"ssh_hostname": "10.10.0.12"}),  # FreeBSD web server
         ("db.london", {"ssh_hostname": "10.10.0.20"}),  # Debian database
-
         # New York (4 hosts)
         ("gw.newyork", {"ssh_hostname": "10.20.0.1"}),  # OpenBSD gateway
         ("worker-01.newyork", {"ssh_hostname": "10.20.0.11"}),  # FreeBSD compute worker
@@ -45,8 +44,10 @@ def build_inventory(local=False):
         openbsd=(["gw.london", "gw.newyork"], {"_doas": True}),
         freebsd=(
             [
-                "web-01.london", "web-02.london",
-                "worker-01.newyork", "worker-02.newyork",
+                "web-01.london",
+                "web-02.london",
+                "worker-01.newyork",
+                "worker-02.newyork",
             ],
             {"_sudo": True},
         ),

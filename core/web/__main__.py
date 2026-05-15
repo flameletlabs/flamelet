@@ -1,6 +1,7 @@
 """Flamelet Web UI entry point."""
 
 import uvicorn
+
 from core.web.app import app
 
 

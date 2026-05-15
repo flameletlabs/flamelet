@@ -1,8 +1,10 @@
 """Server-Sent Events streaming for live logs."""
 
+import asyncio
+
 from fastapi import APIRouter
 from sse_starlette.sse import EventSourceResponse
-import asyncio
+
 from core.web.db import get_run, get_run_logs_since
 
 router = APIRouter()

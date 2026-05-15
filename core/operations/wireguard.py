@@ -134,7 +134,9 @@ def _add_wireguard_openbsd(state, host, iface_name, config):
     route_commands = []
     for peer in peers:
         for ip in peer.get("allowed_ips", []):
-            route_commands.append(f"route add -inet {ip} -link -iface {iface_name} 2>/dev/null || true")
+            route_commands.append(
+                f"route add -inet {ip} -link -iface {iface_name} 2>/dev/null || true"
+            )
 
     if route_commands:
         add_op(

@@ -1,6 +1,7 @@
 """Service configuration query endpoints."""
 
 from fastapi import APIRouter
+
 from core.paths import get_tenant_path
 from core.tasks import TASK_REGISTRY
 from core.tasks.loader import load_service_config
@@ -39,12 +40,14 @@ async def list_services(tenant_name: str):
                 hosts = sorted(config.keys()) if config else []
 
                 if hosts:  # Only return services with at least one host
-                    services.append({
-                        "name": task_name,
-                        "config_attr": config_attr,
-                        "host_count": len(hosts),
-                        "hosts": hosts,
-                    })
+                    services.append(
+                        {
+                            "name": task_name,
+                            "config_attr": config_attr,
+                            "host_count": len(hosts),
+                            "hosts": hosts,
+                        }
+                    )
             except Exception:
                 # Service config missing or load failed — skip it
                 pass
@@ -130,10 +133,12 @@ async def get_host_services(tenant_name: str, hostname: str):
             try:
                 config = load_service_config(tenant_path, config_attr)
                 if hostname in config:
-                    services.append({
-                        "name": task_name,
-                        "config_attr": config_attr,
-                    })
+                    services.append(
+                        {
+                            "name": task_name,
+                            "config_attr": config_attr,
+                        }
+                    )
             except Exception:
                 # Service config missing or load failed — skip it
                 pass
@@ -188,12 +193,14 @@ async def get_topology(tenant_name: str):
         # Extract location from hostname (last segment after final dot)
         location = hostname.split(".")[-1] if "." in hostname else "unknown"
 
-        nodes.append({
-            "id": hostname,
-            "os": "unknown",  # Would need to cross-reference with inventory
-            "location": location,
-            "wg_interfaces": interfaces if interfaces else None,
-        })
+        nodes.append(
+            {
+                "id": hostname,
+                "os": "unknown",  # Would need to cross-reference with inventory
+                "location": location,
+                "wg_interfaces": interfaces if interfaces else None,
+            }
+        )
 
     # Build WireGuard edges
     edges = []
@@ -227,14 +234,16 @@ async def get_topology(tenant_name: str):
                     continue
                 edge_ids.add(edge_id)
 
-                edges.append({
-                    "id": edge_id,
-                    "from": hostname,
-                    "to": peer_host,
-                    "type": "wireguard",
-                    "interface": iface_name,
-                    "direction": "spoke-to-hub" if peer_host == "core.home" else "peer-to-peer",
-                })
+                edges.append(
+                    {
+                        "id": edge_id,
+                        "from": hostname,
+                        "to": peer_host,
+                        "type": "wireguard",
+                        "interface": iface_name,
+                        "direction": "spoke-to-hub" if peer_host == "core.home" else "peer-to-peer",
+                    }
+                )
 
     # Build AutoSSH edges
     for tunnel_name, tunnel_config in autossh_tunnels_config.items():
@@ -256,15 +265,17 @@ async def get_topology(tenant_name: str):
             edge_id = f"autossh:{tunnel_name}"
             if edge_id not in edge_ids:
                 edge_ids.add(edge_id)
-                edges.append({
-                    "id": edge_id,
-                    "from": from_host,
-                    "to": display_host,
-                    "type": "autossh",
-                    "local_port": local_port,
-                    "remote_host": remote_host,
-                    "direction": "reverse-tunnel",
-                })
+                edges.append(
+                    {
+                        "id": edge_id,
+                        "from": from_host,
+                        "to": display_host,
+                        "type": "autossh",
+                        "local_port": local_port,
+                        "remote_host": remote_host,
+                        "direction": "reverse-tunnel",
+                    }
+                )
 
     # Build location groups
     locations = {}
