@@ -147,13 +147,13 @@ def add_bastille_ops(state, hosts, config, target_hosts=None, task="all"):
                     host=host,
                 )
 
-            # Network: static IP (skip for DHCP / 0.0.0.0)
+            # Network configuration
+            net_cmds = []
             if ip and ip != "0.0.0.0":
-                net_cmds = [
-                    _sysrc(jail_name, "ifconfig_vnet0", f"inet {ip}"),
-                ]
-                if gateway:
-                    net_cmds.append(_sysrc(jail_name, "defaultrouter", gateway))
+                net_cmds.append(_sysrc(jail_name, "ifconfig_vnet0", f"inet {ip}"))
+            if gateway:
+                net_cmds.append(_sysrc(jail_name, "defaultrouter", gateway))
+            if net_cmds:
                 net_cmds.append(
                     f"bastille cmd {jail_name} sh /etc/netstart vnet0 2>/dev/null || true"
                 )
