@@ -264,10 +264,6 @@
 </div>
 
 <style>
-  :global {
-    --diagram-width: 800px;
-  }
-
   .container {
     display: flex;
     flex-direction: column;
