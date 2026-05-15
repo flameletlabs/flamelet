@@ -54,11 +54,12 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
         print(f"[DEBUG] Task(s): {args.task}")
         print(f"[DEBUG] Dry-run: {args.dry}")
 
-    # Apply --limit: filter hosts or group
+    # Apply --limit: filter hosts or group (supports comma-separated hostnames)
     target_hosts = None
     if args.limit:
-        target_hosts = [h for h in inventory if h.name == args.limit]
-        if not target_hosts:
+        names = {n.strip() for n in args.limit.split(",")}
+        target_hosts = [h for h in inventory if h.name in names]
+        if not target_hosts and len(names) == 1:
             try:
                 target_hosts = list(inventory.get_group(args.limit) or [])
             except Exception:

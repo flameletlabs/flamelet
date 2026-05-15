@@ -16,17 +16,16 @@ class LogCapture:
 
     def __init__(self, run_id):
         self.run_id = run_id
+        self._real_stdout = sys.stdout  # snapshot before replacement to avoid recursion
 
     def write(self, line):
-        """Write a line to both stdout and database."""
         if line.strip():
-            sys.stdout.write(line)
-            sys.stdout.flush()
+            self._real_stdout.write(line)
+            self._real_stdout.flush()
             insert_log(self.run_id, time.time(), line.rstrip())
 
     def flush(self):
-        """Flush stdout."""
-        sys.stdout.flush()
+        self._real_stdout.flush()
 
 
 def run_deployment_background(run_id, tenant_name, task, target_hosts, dry_run=True):
@@ -59,14 +58,14 @@ def run_deployment_background(run_id, tenant_name, task, target_hosts, dry_run=T
 
             try:
                 # Build args object for run_deployment
+                limit = None
+                if target_hosts and target_hosts != ["all"]:
+                    limit = ",".join(target_hosts)
+
                 args = argparse.Namespace(
                     task=task,
                     dry=dry_run,
-                    limit=None
-                    if target_hosts == ["all"]
-                    else target_hosts[0]
-                    if target_hosts
-                    else None,
+                    limit=limit,
                     verbose=True,
                 )
 
