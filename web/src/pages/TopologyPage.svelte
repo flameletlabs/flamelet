@@ -618,135 +618,235 @@
   @media (max-width: 900px) {
     .header {
       padding: clamp(8px, 1.2vw, 12px) clamp(12px, 1.5vw, 16px);
+      gap: 8px;
     }
 
-    .title {
-      font-size: clamp(10px, 1.4vw, 12px);
+    .header h1 {
+      font-size: clamp(16px, 2vw, 20px);
     }
 
-    .tenant-select {
-      font-size: clamp(10px, 1.2vw, 11px);
-    }
-
-    svg {
-      width: 100%;
-      height: clamp(300px, 60vh, 500px);
+    .controls select,
+    .controls button {
+      font-size: clamp(11px, 1.2vw, 13px);
+      padding: clamp(4px, 0.6vw, 6px) clamp(6px, 1vw, 8px);
     }
 
     .sidebar {
       padding: clamp(8px, 1.2vw, 12px);
+      width: 180px;
     }
 
-    .node-detail-title {
-      font-size: clamp(11px, 1.4vw, 12px);
+    .section h3 {
+      font-size: clamp(9px, 1.2vw, 11px);
     }
 
-    .iface-name, .peer-name {
-      font-size: clamp(9px, 1.2vw, 10px);
+    .location-item,
+    .legend-item {
+      font-size: clamp(11px, 1.3vw, 12px);
+    }
+
+    .diagram {
+      max-width: 95vw;
+      height: auto;
     }
   }
 
   @media (max-width: 768px) {
-    .layout {
+    .main {
       grid-template-columns: 1fr;
-      grid-template-rows: auto 1fr auto;
+      grid-template-rows: 1fr auto;
     }
 
     .header {
-      padding: clamp(8px, 1.2vw, 10px);
+      padding: clamp(8px, 1.2vw, 10px) clamp(12px, 1.5vw, 14px);
+      flex-direction: column;
+      gap: 6px;
     }
 
-    .title {
-      font-size: clamp(10px, 1.3vw, 11px);
+    .header h1 {
+      font-size: clamp(14px, 1.8vw, 18px);
+      margin: 0;
     }
 
-    .tenant-select {
-      font-size: clamp(9px, 1vw, 10px);
-      padding: clamp(3px, 0.6vw, 5px) clamp(6px, 1vw, 8px);
+    .controls {
+      width: 100%;
+      gap: 6px;
     }
 
-    svg {
-      height: clamp(250px, 50vh, 400px);
-      margin: clamp(8px, 1.2vw, 10px);
-      border: 1px solid var(--border);
-      border-radius: 3px;
+    .controls select,
+    .controls button {
+      flex: 1;
+      font-size: clamp(10px, 1.1vw, 11px);
+      padding: clamp(4px, 0.8vw, 6px);
     }
 
     .sidebar {
-      max-height: 200px;
-      border-top: 1px solid var(--border);
       border-right: none;
+      border-top: 1px solid var(--border);
+      max-height: 160px;
       padding: clamp(8px, 1.2vw, 10px);
-      overflow-y: auto;
+      width: 100%;
     }
 
-    .node-detail-title {
-      font-size: clamp(10px, 1.2vw, 11px);
-      margin-bottom: 4px;
+    .diagram-container {
+      order: -1;
+      min-height: 250px;
     }
 
-    .iface-section, .edges-section {
-      margin-bottom: clamp(8px, 1vw, 10px);
+    .diagram {
+      max-width: 98vw;
     }
 
-    .iface-addr {
+    .detail-panel {
+      left: 0;
+      max-height: 180px;
+    }
+
+    .section h3 {
       font-size: clamp(9px, 1.1vw, 10px);
+      margin-bottom: 8px;
+    }
+
+    .location-item,
+    .legend-item {
+      font-size: clamp(10px, 1vw, 11px);
+    }
+
+    .iface-name,
+    .peer-name {
+      font-size: clamp(10px, 1.1vw, 11px);
     }
   }
 
   @media (max-width: 640px) {
+    .container {
+      height: 100vh;
+    }
+
     .header {
-      flex-direction: column;
-      gap: clamp(6px, 1vw, 8px);
-      padding: clamp(6px, 1vw, 8px);
+      padding: clamp(6px, 1vw, 8px) clamp(8px, 1.2vw, 10px);
+      gap: 4px;
     }
 
-    .tenant-select {
+    .header h1 {
+      font-size: clamp(13px, 1.6vw, 16px);
+    }
+
+    .controls {
       width: 100%;
+      gap: 4px;
     }
 
-    svg {
-      height: clamp(200px, 40vh, 300px);
-      margin: clamp(6px, 1vw, 8px);
+    .controls select,
+    .controls button {
+      flex: 1;
+      font-size: clamp(10px, 1vw, 11px);
+      padding: clamp(4px, 0.6vw, 5px) clamp(4px, 0.8vw, 6px);
+    }
+
+    .main {
+      grid-template-columns: 1fr;
     }
 
     .sidebar {
-      max-height: 150px;
+      max-height: 140px;
+      padding: clamp(6px, 1vw, 8px);
     }
 
-    .node-detail-title {
-      font-size: clamp(10px, 1.2vw, 11px);
+    .diagram-container {
+      min-height: 220px;
+      overflow-x: auto;
+      overflow-y: hidden;
     }
 
-    .iface-name, .peer-name {
+    .diagram {
+      min-width: 600px;
+      width: auto;
+      height: auto;
+    }
+
+    .section h3 {
       font-size: clamp(8px, 1vw, 9px);
+      margin-bottom: 6px;
+    }
+
+    .location-item,
+    .legend-item {
+      font-size: clamp(10px, 0.9vw, 11px);
+      margin-bottom: clamp(4px, 0.8vw, 5px);
+    }
+
+    .detail-panel {
+      max-height: 160px;
+      font-size: clamp(10px, 0.9vw, 11px);
+    }
+
+    .detail-header h3 {
+      font-size: clamp(11px, 1vw, 12px);
+    }
+
+    .iface-name,
+    .peer-name {
+      font-size: clamp(9px, 0.9vw, 10px);
     }
 
     .edge-type {
-      font-size: 8px;
+      font-size: clamp(8px, 0.8vw, 9px);
       padding: 1px 4px;
     }
   }
 
   @media (max-width: 480px) {
-    svg {
-      height: clamp(150px, 35vh, 250px);
+    .header {
+      padding: 6px 8px;
+    }
+
+    .header h1 {
+      font-size: 13px;
+    }
+
+    .controls select,
+    .controls button {
+      font-size: 10px;
+      padding: 4px 6px;
     }
 
     .sidebar {
       max-height: 120px;
+      padding: 6px 8px;
     }
 
-    .node-detail-title {
+    .diagram {
+      min-width: 500px;
+    }
+
+    .section h3 {
+      font-size: 8px;
+      margin-bottom: 4px;
+    }
+
+    .location-item,
+    .legend-item {
       font-size: 10px;
+      margin-bottom: 3px;
     }
 
-    .iface-name {
-      font-size: 8px;
+    .detail-panel {
+      max-height: 140px;
     }
 
+    .detail-header h3 {
+      font-size: 11px;
+    }
+
+    .iface-name,
     .peer-name {
+      font-size: 9px;
+    }
+
+    .edge-type {
       font-size: 8px;
+      padding: 1px 3px;
     }
   }
 </style>
