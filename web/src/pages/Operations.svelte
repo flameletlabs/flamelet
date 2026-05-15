@@ -284,7 +284,7 @@
 
   .op-num {
     font-family: var(--mono);
-    font-size: 12px;
+    font-size: clamp(11px, 2.5vw, 13px);
     font-weight: 700;
     color: var(--text-dim);
     min-width: 28px;
@@ -292,9 +292,10 @@
 
   .op-title {
     flex: 1;
-    font-size: 14px;
+    font-size: clamp(14px, 3.5vw, 16px);
     font-weight: 700;
     color: var(--text);
+    font-family: var(--ui);
   }
 
   .op-badge {
@@ -311,11 +312,12 @@
   }
 
   .card-meta {
-    font-size: 12px;
+    font-size: clamp(12px, 2.5vw, 13px);
     color: var(--text-muted);
     margin-bottom: 10px;
     padding-bottom: 10px;
     border-bottom: 1px solid var(--border);
+    font-family: var(--ui);
   }
 
   .os-row {
@@ -327,13 +329,17 @@
     flex: 1;
     padding: 8px;
     text-align: center;
-    font-size: 11px;
+    font-size: clamp(11px, 2.2vw, 12px);
     font-weight: 600;
     background: var(--bg-3);
     border: 1px solid var(--border);
     border-radius: 4px;
     color: var(--text-dim);
     transition: all 200ms;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .os-item.active {
