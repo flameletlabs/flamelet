@@ -41,6 +41,14 @@
     selectedHosts = next
   }
 
+  function selectAll() {
+    selectedHosts = new Set(hosts.map(h => h.name))
+  }
+
+  function selectNone() {
+    selectedHosts = new Set()
+  }
+
   async function startRun() {
     running = true
     logLines = []
@@ -96,11 +104,11 @@
       <div class="host-section">
         <div class="section-label">
           HOSTS
-          <button class="link-btn" onclick={() => (selectedHosts = new Set(hosts.map(h => h.name)))}>
+          <button class="link-btn" on:click={selectAll}>
             all
           </button>
           /
-          <button class="link-btn" onclick={() => (selectedHosts = new Set())}> none </button>
+          <button class="link-btn" on:click={selectNone}> none </button>
         </div>
         {#each hosts as h}
           <label class="host-row">
@@ -204,12 +212,15 @@
     background: var(--bg-3);
     border: 1px solid var(--border);
     color: var(--text);
-    font-family: var(--mono);
-    font-size: 12px;
-    padding: 6px 10px;
-    border-radius: 2px;
+    font-family: var(--ui);
+    font-size: clamp(11px, 1.4vw, 12px);
+    font-weight: 500;
+    padding: clamp(5px, 0.8vw, 8px) clamp(8px, 1.2vw, 10px);
+    border-radius: 3px;
     cursor: pointer;
     outline: none;
+    -webkit-appearance: none;
+    appearance: none;
   }
 
   select:focus {
@@ -398,6 +409,131 @@
     }
     50% {
       opacity: 0;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .layout {
+      grid-template-columns: 240px 1fr;
+    }
+
+    aside {
+      max-height: none;
+    }
+
+    .form-body {
+      gap: clamp(12px, 1.5vw, 16px);
+      padding: clamp(12px, 1.5vw, 16px);
+    }
+
+    label span {
+      font-size: 9px;
+    }
+
+    select {
+      font-size: clamp(10px, 1.3vw, 11px);
+    }
+
+    .host-name {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .layout {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
+    }
+
+    aside {
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      max-height: 35vh;
+      overflow-y: auto;
+    }
+
+    .terminal-panel {
+      min-height: 0;
+    }
+
+    .form-body {
+      padding: clamp(12px, 1.5vw, 14px);
+      gap: clamp(10px, 1.2vw, 14px);
+    }
+
+    .host-section {
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    .terminal {
+      padding: clamp(10px, 1.5vw, 14px);
+      font-size: clamp(10px, 1.3vw, 11px);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .form-body {
+      padding: clamp(10px, 1.2vw, 12px);
+      gap: clamp(8px, 1vw, 10px);
+    }
+
+    label span {
+      font-size: 8px;
+    }
+
+    select {
+      font-size: clamp(9px, 1.2vw, 10px);
+      padding: clamp(4px, 0.6vw, 6px) clamp(6px, 1vw, 8px);
+    }
+
+    .section-label {
+      font-size: 8px;
+    }
+
+    .host-name {
+      font-size: 9px;
+    }
+
+    .terminal-header {
+      padding: clamp(6px, 1vw, 8px) clamp(10px, 1.5vw, 12px);
+      font-size: 8px;
+    }
+
+    .terminal {
+      padding: clamp(8px, 1.2vw, 10px) clamp(8px, 1.5vw, 12px);
+      font-size: clamp(9px, 1.2vw, 10px);
+      line-height: 1.6;
+    }
+
+    .log-line {
+      gap: clamp(8px, 1.2vw, 10px);
+    }
+
+    .ts {
+      font-size: clamp(8px, 1vw, 9px);
+      min-width: 60px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .host-section {
+      max-height: 100px;
+    }
+
+    .form-body {
+      padding: 8px 10px;
+      gap: 6px;
+    }
+
+    select {
+      font-size: 9px;
+      padding: 3px 5px;
+    }
+
+    .terminal {
+      font-size: 9px;
+      padding: 8px;
     }
   }
 </style>

@@ -103,12 +103,15 @@
     background: var(--bg-3);
     border: 1px solid var(--border);
     color: var(--text);
-    font-family: var(--mono);
-    font-size: 12px;
-    padding: 5px 10px;
-    border-radius: 2px;
-    width: 200px;
+    font-family: var(--ui);
+    font-size: clamp(11px, 1.4vw, 12px);
+    font-weight: 400;
+    padding: clamp(5px, 0.8vw, 7px) clamp(8px, 1.2vw, 10px);
+    border-radius: 3px;
+    width: clamp(150px, 20vw, 250px);
     outline: none;
+    -webkit-appearance: none;
+    appearance: none;
   }
 
   input:focus {
@@ -206,5 +209,124 @@
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+  }
+
+  @media (max-width: 900px) {
+    .toolbar {
+      padding: clamp(8px, 1.2vw, 12px) clamp(12px, 1.5vw, 20px);
+      gap: clamp(8px, 1.2vw, 12px);
+    }
+
+    .title {
+      font-size: 9px;
+    }
+
+    .count {
+      font-size: 10px;
+    }
+
+    input {
+      width: clamp(120px, 18vw, 200px);
+    }
+
+    th, td {
+      padding: clamp(6px, 1vw, 8px) clamp(8px, 1.2vw, 12px);
+      font-size: clamp(9px, 1.3vw, 11px);
+    }
+
+    .task-name {
+      font-size: clamp(11px, 1.5vw, 12px);
+    }
+
+    .os-col {
+      width: 60px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .toolbar {
+      flex-wrap: wrap;
+      padding: clamp(8px, 1.2vw, 10px);
+      gap: clamp(6px, 1vw, 8px);
+    }
+
+    input {
+      width: 100%;
+      margin-left: 0;
+      order: 3;
+    }
+
+    .title, .count {
+      font-size: clamp(8px, 1.2vw, 9px);
+    }
+
+    th, td {
+      padding: clamp(5px, 0.8vw, 6px);
+      font-size: clamp(8px, 1.2vw, 9px);
+    }
+
+    .task-name {
+      font-size: clamp(10px, 1.3vw, 11px);
+    }
+
+    .col-num {
+      display: none;
+    }
+
+    .os-col {
+      width: 50px;
+    }
+
+    .attr {
+      display: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .toolbar {
+      padding: clamp(6px, 1vw, 8px);
+    }
+
+    th, td {
+      padding: clamp(4px, 0.6vw, 5px);
+      font-size: clamp(7px, 1vw, 8px);
+    }
+
+    .type-badge {
+      font-size: 8px;
+      padding: 1px 4px;
+    }
+
+    .check {
+      font-size: 11px;
+    }
+
+    .os-col {
+      width: 45px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .toolbar {
+      padding: 6px 8px;
+    }
+
+    input {
+      font-size: 11px;
+      padding: 4px 6px;
+    }
+
+    th, td {
+      padding: 4px;
+      font-size: 7px;
+    }
+
+    .task-name {
+      font-size: 9px;
+    }
+
+    .type-badge {
+      font-size: 7px;
+    }
   }
 </style>

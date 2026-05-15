@@ -398,4 +398,131 @@
     font-size: 10px;
     font-family: var(--mono);
   }
+
+  @media (max-width: 900px) {
+    .header {
+      padding: clamp(8px, 1.2vw, 12px) clamp(12px, 1.5vw, 16px);
+    }
+
+    .title {
+      font-size: clamp(10px, 1.4vw, 12px);
+    }
+
+    .toggle-group {
+      gap: clamp(6px, 1vw, 8px);
+    }
+
+    .toggle-btn {
+      font-size: clamp(9px, 1.2vw, 10px);
+      padding: clamp(4px, 0.8vw, 6px) clamp(8px, 1.2vw, 10px);
+    }
+
+    .service-item {
+      margin: clamp(4px, 0.8vw, 6px);
+      padding: clamp(8px, 1.2vw, 10px);
+    }
+
+    .service-name {
+      font-size: clamp(12px, 1.6vw, 13px);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
+
+    aside {
+      max-height: 200px;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .content {
+      min-height: 0;
+    }
+
+    .header {
+      padding: clamp(8px, 1.2vw, 10px);
+    }
+
+    .title {
+      font-size: clamp(10px, 1.3vw, 11px);
+    }
+
+    .toggle-btn {
+      font-size: clamp(8px, 1vw, 9px);
+      padding: clamp(3px, 0.6vw, 4px) clamp(6px, 1vw, 8px);
+    }
+
+    .filter-input {
+      padding: clamp(4px, 0.8vw, 5px);
+      font-size: clamp(10px, 1.2vw, 11px);
+    }
+
+    .search-label {
+      font-size: clamp(8px, 1vw, 9px);
+    }
+  }
+
+  @media (max-width: 640px) {
+    aside {
+      max-height: 150px;
+    }
+
+    .header {
+      flex-direction: column;
+      gap: clamp(6px, 1vw, 8px);
+      padding: clamp(6px, 1vw, 8px);
+    }
+
+    .toggle-group {
+      width: 100%;
+    }
+
+    .toggle-btn {
+      flex: 1;
+      font-size: clamp(8px, 1vw, 9px);
+    }
+
+    .service-name {
+      font-size: clamp(11px, 1.4vw, 12px);
+    }
+
+    .detail-hostname {
+      font-size: clamp(10px, 1.2vw, 11px);
+    }
+
+    .service-key {
+      font-size: 9px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    aside {
+      max-height: 120px;
+    }
+
+    .header {
+      padding: 6px 8px;
+    }
+
+    .service-item {
+      margin: 3px;
+      padding: 6px 8px;
+    }
+
+    .service-name {
+      font-size: 11px;
+    }
+
+    .toggle-btn {
+      font-size: 8px;
+      padding: 3px 6px;
+    }
+
+    .filter-input {
+      font-size: 10px;
+    }
+  }
 </style>
