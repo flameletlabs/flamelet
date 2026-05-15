@@ -64,7 +64,7 @@
   <aside>
     <div class="sidebar-header">TENANTS</div>
     {#each tenants as t}
-      <button class="tenant-row" class:active={selected?.name === t.name} onclick={() => selectTenant(t)}>
+      <button class="tenant-row" class:active={selected?.name === t.name} onclick={() => selectTenant(t)} style="animation-delay: {tenants.indexOf(t) * 50}ms;">
         <span class="tenant-name">{t.name}</span>
         <span class="tenant-count">{t.host_count}</span>
       </button>
@@ -74,66 +74,108 @@
   <section class="panel">
     {#if selected}
       <div class="panel-header">
-        <span class="mono">{selected.name}</span>
-        <span class="path mono">{selected.path}</span>
+        <div class="header-content">
+          <div class="tenant-title">{selected.name}</div>
+          <div class="tenant-path mono">{selected.path}</div>
+        </div>
       </div>
 
       <div class="group-selector">
         <span class="group-label">Group by:</span>
-        <button class="group-btn" class:active={groupBy === 'location'} on:click={() => setGroupBy('location')}>Location</button>
-        <button class="group-btn" class:active={groupBy === 'os'} on:click={() => setGroupBy('os')}>OS</button>
-        <button class="group-btn" class:active={groupBy === 'groups'} on:click={() => setGroupBy('groups')}>Groups</button>
-        <button class="group-btn" class:active={groupBy === 'none'} on:click={() => setGroupBy('none')}>None</button>
+        <div class="btn-group">
+          <button class="group-btn" class:active={groupBy === 'location'} on:click={() => setGroupBy('location')}>Location</button>
+          <button class="group-btn" class:active={groupBy === 'os'} on:click={() => setGroupBy('os')}>OS</button>
+          <button class="group-btn" class:active={groupBy === 'groups'} on:click={() => setGroupBy('groups')}>Groups</button>
+          <button class="group-btn" class:active={groupBy === 'none'} on:click={() => setGroupBy('none')}>None</button>
+        </div>
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th class="col-num">#</th>
-            <th>HOSTNAME</th>
-            <th>OS</th>
-            <th>LOCATION</th>
-            <th>GROUPS</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each Object.entries(grouped) as [groupName, groupHosts]}
-            <tr class="group-header" on:click={() => toggleGroup(groupName)}>
-              <td colspan="5">
-                <div class="group-header-inner">
-                  <span class="group-toggle" class:collapsed={collapseState[groupName]}>›</span>
-                  <span class="group-name">{groupName}</span>
-                  <span class="group-count">{groupHosts.length} host{groupHosts.length !== 1 ? 's' : ''}</span>
-                </div>
-              </td>
+      <!-- Desktop Table View -->
+      <div class="table-view">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-num">#</th>
+              <th>HOSTNAME</th>
+              <th>OS</th>
+              <th>LOCATION</th>
+              <th>GROUPS</th>
             </tr>
-
-            {#each groupHosts as host, i}
-              <tr
-                class="host-row"
-                class:collapsed={collapseState[groupName]}
-                class:selected={selectedHost?.name === host.name}
-                on:click={() => selectedHost = host}
-              >
-                <td class="col-num mono">{String(i+1).padStart(2,'0')}</td>
-                <td class="mono hostname">{host.name}</td>
-                <td class="col-os">
-                  <span class="badge badge-{host.os.toLowerCase()}">{host.os}</span>
-                </td>
-                <td class="col-location" style="color:var(--text-muted);">{host.location || '—'}</td>
-                <td class="groups">
-                  {#each host.groups.filter(g => !['linux','freebsd','openbsd'].includes(g.toLowerCase())).slice(0, 2) as g}
-                    <span class="tag">{g}</span>
-                  {/each}
-                  {#if host.groups.filter(g => !['linux','freebsd','openbsd'].includes(g.toLowerCase())).length > 2}
-                    <span class="tag-more">+{host.groups.filter(g => !['linux','freebsd','openbsd'].includes(g.toLowerCase())).length - 2}</span>
-                  {/if}
+          </thead>
+          <tbody>
+            {#each Object.entries(grouped) as [groupName, groupHosts]}
+              <tr class="group-header" on:click={() => toggleGroup(groupName)}>
+                <td colspan="5">
+                  <div class="group-header-inner">
+                    <span class="group-toggle" class:collapsed={collapseState[groupName]}>›</span>
+                    <span class="group-name">{groupName}</span>
+                    <span class="group-count">{groupHosts.length} host{groupHosts.length !== 1 ? 's' : ''}</span>
+                  </div>
                 </td>
               </tr>
+
+              {#each groupHosts as host, i}
+                <tr
+                  class="host-row"
+                  class:collapsed={collapseState[groupName]}
+                  class:selected={selectedHost?.name === host.name}
+                  on:click={() => selectedHost = host}
+                >
+                  <td class="col-num mono">{String(i+1).padStart(2,'0')}</td>
+                  <td class="mono hostname">{host.name}</td>
+                  <td class="col-os">
+                    <span class="badge badge-{host.os.toLowerCase()}">{host.os}</span>
+                  </td>
+                  <td class="col-location" style="color:var(--text-muted);">{host.location || '—'}</td>
+                  <td class="groups">
+                    {#each host.groups.filter(g => !['linux','freebsd','openbsd'].includes(g.toLowerCase())).slice(0, 2) as g}
+                      <span class="tag">{g}</span>
+                    {/each}
+                    {#if host.groups.filter(g => !['linux','freebsd','openbsd'].includes(g.toLowerCase())).length > 2}
+                      <span class="tag-more">+{host.groups.filter(g => !['linux','freebsd','openbsd'].includes(g.toLowerCase())).length - 2}</span>
+                    {/if}
+                  </td>
+                </tr>
+              {/each}
             {/each}
-          {/each}
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Card View -->
+      <div class="cards-view">
+        {#each Object.entries(grouped) as [groupName, groupHosts], groupIdx}
+          <div class="group-section">
+            <div class="group-title" on:click={() => toggleGroup(groupName)}>
+              <span class="group-toggle" class:collapsed={collapseState[groupName]}>›</span>
+              <span>{groupName}</span>
+              <span class="group-count-badge">{groupHosts.length}</span>
+            </div>
+            {#if !collapseState[groupName]}
+              <div class="hosts-cards">
+                {#each groupHosts as host, i (host.name)}
+                  <div class="host-card" class:selected={selectedHost?.name === host.name} on:click={() => selectedHost = host} style="animation-delay: {(groupIdx * 10 + i) * 40}ms;">
+                    <div class="card-header">
+                      <div class="host-name">{host.name}</div>
+                      <span class="badge badge-{host.os.toLowerCase()}">{host.os}</span>
+                    </div>
+                    {#if host.location}
+                      <div class="card-meta">📍 {host.location}</div>
+                    {/if}
+                    {#if host.groups.filter(g => !['linux','freebsd','openbsd'].includes(g.toLowerCase())).length > 0}
+                      <div class="card-tags">
+                        {#each host.groups.filter(g => !['linux','freebsd','openbsd'].includes(g.toLowerCase())).slice(0, 3) as g}
+                          <span class="tag">{g}</span>
+                        {/each}
+                      </div>
+                    {/if}
+                  </div>
+                {/each}
+              </div>
+            {/if}
+          </div>
+        {/each}
+      </div>
 
       {#if selectedHost}
         <div class="inspector">
@@ -230,26 +272,47 @@
 
   .panel-header {
     display: flex;
-    align-items: baseline;
-    gap: 16px;
-    padding: 14px 24px;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 20px;
     border-bottom: 1px solid var(--border);
     background: var(--bg-2);
   }
 
-  .panel-header .mono {
-    font-size: clamp(12px, 1.8vw, 13px);
-    font-weight: 700;
-    color: var(--text);
-    letter-spacing: 0px;
-    font-family: 'Dosis', sans-serif;
-    text-transform: capitalize;
+  .header-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
   }
 
-  .path {
-    font-size: clamp(10px, 1.5vw, 11px);
-    color: var(--text-dim);
-    letter-spacing: -0.1px;
+  .tenant-title {
+    font-family: var(--ui);
+    font-size: clamp(18px, 5vw, 24px);
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+
+  .tenant-path {
+    font-size: clamp(11px, 2vw, 12px);
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+  }
+
+  .table-view {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .cards-view {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    overflow-y: auto;
+    gap: 12px;
+    padding: 14px 12px;
   }
 
   table {
@@ -376,10 +439,11 @@
   .group-selector {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 24px;
+    gap: 12px;
+    padding: 12px 20px;
     border-bottom: 1px solid var(--border);
     background: var(--bg-2);
+    flex-wrap: wrap;
   }
 
   .group-label {
@@ -389,6 +453,12 @@
     color: var(--text-dim);
     letter-spacing: 0.04em;
     line-height: 1.4;
+  }
+
+  .btn-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
   }
 
   .group-btn {
@@ -488,6 +558,137 @@
     color: var(--text-dim);
   }
 
+  .group-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .group-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    user-select: none;
+    font-weight: 600;
+    font-size: clamp(14px, 3vw, 15px);
+    color: var(--text);
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .group-title:hover {
+    background: var(--bg);
+    border-color: var(--text-muted);
+  }
+
+  .group-title .group-toggle {
+    display: inline-block;
+    transform: rotate(90deg);
+    transition: transform 150ms;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .group-title .group-toggle.collapsed {
+    transform: rotate(0deg);
+  }
+
+  .group-count-badge {
+    margin-left: auto;
+    background: var(--accent);
+    color: var(--bg);
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--mono);
+  }
+
+  .hosts-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .host-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    animation: slideIn 300ms ease-out forwards;
+    opacity: 0;
+    min-height: 44px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .host-card:hover {
+    background: var(--bg-3);
+    border-color: rgba(0, 212, 170, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .host-card:active {
+    background: rgba(0, 212, 170, 0.1);
+  }
+
+  .host-card.selected {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: space-between;
+  }
+
+  .host-name {
+    font-family: var(--ui);
+    font-size: clamp(15px, 3.5vw, 16px);
+    font-weight: 700;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .card-meta {
+    font-size: clamp(13px, 2.5vw, 14px);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .card-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .card-tags .tag {
+    font-size: clamp(11px, 2vw, 12px);
+    padding: 4px 8px;
+  }
+
   @media (max-width: 768px) {
     .layout {
       grid-template-columns: 1fr;
@@ -502,6 +703,14 @@
 
     .panel {
       min-height: 0;
+    }
+
+    .table-view {
+      display: none;
+    }
+
+    .cards-view {
+      display: flex;
     }
 
     th {
@@ -525,6 +734,31 @@
     .groups {
       display: none;
     }
+
+    .group-selector {
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 10px 12px;
+    }
+
+    .group-label {
+      font-size: clamp(11px, 2vw, 12px);
+      width: 100%;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      width: 100%;
+    }
+
+    .group-btn {
+      flex: 1;
+      min-width: 70px;
+      padding: 8px 10px;
+      font-size: clamp(11px, 2vw, 12px);
+    }
   }
 
   @media (max-width: 640px) {
@@ -540,6 +774,7 @@
     .tenant-row {
       padding: 8px 12px;
       font-size: 11px;
+      min-height: 40px;
     }
 
     .tenant-name {
@@ -554,15 +789,15 @@
     .panel-header {
       flex-direction: column;
       gap: 6px;
-      padding: 10px 16px;
+      padding: 12px 16px;
     }
 
-    .panel-header .mono {
-      font-size: 12px;
+    .tenant-title {
+      font-size: clamp(16px, 4.5vw, 20px);
     }
 
-    .path {
-      font-size: 10px;
+    .tenant-path {
+      font-size: clamp(10px, 1.8vw, 11px);
     }
 
     table {
@@ -583,18 +818,49 @@
     }
 
     .group-selector {
-      padding: 8px 16px;
+      padding: 8px 12px;
       gap: 4px;
       flex-wrap: wrap;
     }
 
     .group-label {
-      font-size: 10px;
+      font-size: 9px;
+      width: 100%;
     }
 
     .group-btn {
-      padding: 4px 8px;
+      padding: 6px 8px;
       font-size: 10px;
+      flex: 1;
+      min-width: 60px;
+    }
+
+    .host-card {
+      padding: 12px;
+      gap: 8px;
+    }
+
+    .host-name {
+      font-size: clamp(14px, 3.2vw, 15px);
+    }
+
+    .card-meta {
+      font-size: clamp(12px, 2.2vw, 13px);
+    }
+
+    .card-tags .tag {
+      font-size: clamp(10px, 1.8vw, 11px);
+      padding: 3px 6px;
+    }
+
+    .group-title {
+      font-size: clamp(13px, 2.8vw, 14px);
+      padding: 10px 12px;
+    }
+
+    .cards-view {
+      padding: 10px 8px;
+      gap: 8px;
     }
   }
 </style>
