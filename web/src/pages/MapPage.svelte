@@ -1,0 +1,291 @@
+<script>
+  import { onMount } from 'svelte'
+  import { getLocations } from '../lib/api.js'
+  import L from 'leaflet'
+  import 'leaflet/dist/leaflet.css'
+
+  export let tenant = null
+
+  let mapInstance = null
+  let markers = []
+  let locations = []
+  let loading = true
+  let error = null
+  let locationsWithoutCoords = []
+
+  async function loadMap() {
+    if (!tenant) return
+    loading = true
+    error = null
+
+    try {
+      locations = await getLocations(tenant)
+
+      if (!mapInstance) {
+        initMap()
+      }
+
+      markers.forEach(m => mapInstance.removeLayer(m))
+      markers = []
+      locationsWithoutCoords = []
+      let hasCoords = false
+
+      locations.forEach(loc => {
+        if (loc.lat !== null && loc.lon !== null) {
+          hasCoords = true
+
+          let markerColor = '#3b82f6'
+          if (loc.host_count === 0) {
+            markerColor = '#9ca3af'
+          } else if (loc.host_count >= 10) {
+            markerColor = '#10b981'
+          }
+
+          const marker = L.circleMarker([loc.lat, loc.lon], {
+            radius: 12,
+            fillColor: markerColor,
+            color: markerColor === '#9ca3af' ? '#6b7280' : '#1e40af',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.85,
+          })
+
+          let hostListHtml = ''
+          if (loc.hosts && loc.hosts.length > 0) {
+            hostListHtml = `
+              <div style="margin-top: 8px; max-height: 150px; overflow-y: auto; font-size: 11px;">
+                <div style="font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">Hosts:</div>
+                ${loc.hosts.map(h => `
+                  <div style="padding: 3px 0; color: var(--text-dim);">
+                    <code style="background: var(--bg-3); padding: 2px 4px; border-radius: 2px; font-family: var(--mono);">
+                      ${h.name}
+                    </code>
+                    <span style="margin-left: 4px; font-size: 10px; color: var(--text-muted);">${h.os}</span>
+                  </div>
+                `).join('')}
+              </div>
+            `
+          }
+
+          const popupContent = `
+            <div style="font-family: var(--ui); width: 220px;">
+              <div style="font-weight: 700; font-size: 13px; margin-bottom: 4px; color: var(--text);">
+                ${loc.display_name}
+              </div>
+              ${loc.address ? `
+                <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 6px; line-height: 1.4;">
+                  ${loc.address}
+                </div>
+              ` : ''}
+              <div style="font-size: 12px; font-weight: 600; color: var(--accent); padding: 6px 0;">
+                ${loc.host_count} host${loc.host_count !== 1 ? 's' : ''}
+              </div>
+              ${hostListHtml}
+            </div>
+          `
+          marker.bindPopup(popupContent)
+          marker.addTo(mapInstance)
+          markers.push(marker)
+        } else {
+          locationsWithoutCoords.push(loc)
+        }
+      })
+
+      if (hasCoords && markers.length > 0) {
+        setTimeout(() => {
+          const bounds = L.featureGroup(markers).getBounds()
+          mapInstance.fitBounds(bounds, { padding: [50, 50] })
+        }, 100)
+      }
+    } catch (e) {
+      error = e.message
+      console.error('Failed to load map:', e)
+    } finally {
+      loading = false
+    }
+  }
+
+  function initMap() {
+    if (mapInstance) return
+    mapInstance = L.map('leaflet-map').setView([48, 10], 4)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19,
+    }).addTo(mapInstance)
+  }
+
+  $: if (tenant) loadMap()
+</script>
+
+<div class="page">
+  <div class="map-header">
+    <h2>Infrastructure Locations</h2>
+    {#if loading}
+      <div style="color: var(--text-muted);">Loading...</div>
+    {/if}
+  </div>
+
+  {#if error}
+    <div class="error-msg">Error: {error}</div>
+  {/if}
+
+  <div class="map-container">
+    <div id="leaflet-map"></div>
+
+    {#if locationsWithoutCoords.length > 0}
+      <div class="locations-list">
+        <h3>Locations without coordinates</h3>
+        {#each locationsWithoutCoords as loc}
+          <div class="location-item">
+            <div class="location-name">{loc.display_name}</div>
+            {#if loc.address}
+              <div class="location-address">{loc.address}</div>
+            {/if}
+            <div class="location-count">{loc.host_count} host{loc.host_count !== 1 ? 's' : ''}</div>
+            {#if loc.hosts && loc.hosts.length > 0}
+              <div class="location-hosts">
+                {#each loc.hosts as host}
+                  <div class="host-item">{host.name} ({host.os})</div>
+                {/each}
+              </div>
+            {/if}
+          </div>
+        {/each}
+      </div>
+    {/if}
+  </div>
+</div>
+
+<style>
+  .page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: var(--bg);
+  }
+
+  .map-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-2);
+  }
+
+  .map-header h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .error-msg {
+    padding: 16px;
+    background: rgba(248, 81, 73, 0.1);
+    color: var(--error);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .map-container {
+    flex: 1;
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    overflow: hidden;
+  }
+
+  #leaflet-map {
+    flex: 1;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  :global(.leaflet-container) {
+    background: var(--bg-2);
+    border-radius: 4px;
+  }
+
+  :global(.leaflet-popup-content-wrapper) {
+    background: var(--bg-2);
+    color: var(--text);
+    border-color: var(--border);
+  }
+
+  :global(.leaflet-popup-tip) {
+    background: var(--bg-2);
+  }
+
+  :global(.marker-cluster) {
+    background-color: var(--accent);
+    border: 2px solid var(--accent);
+  }
+
+  :global(.marker-cluster span) {
+    color: var(--bg);
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  .locations-list {
+    width: 280px;
+    padding: 12px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .locations-list h3 {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .location-item {
+    padding: 8px;
+    background: var(--bg-3);
+    border: 1px solid var(--border-muted);
+    border-radius: 3px;
+    font-size: 12px;
+  }
+
+  .location-name {
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .location-address {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+
+  .location-count {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  .location-hosts {
+    font-size: 10px;
+    color: var(--text-dim);
+    border-top: 1px solid var(--border-muted);
+    padding-top: 4px;
+    margin-top: 4px;
+  }
+
+  .host-item {
+    padding: 2px 0;
+    font-family: var(--mono);
+  }
+</style>

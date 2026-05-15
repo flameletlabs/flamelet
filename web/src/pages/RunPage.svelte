@@ -2,25 +2,25 @@
   import { onMount, tick } from 'svelte'
   import { getTenants, getTenantHosts, postRun } from '../lib/api.js'
 
-  let tenants = $state([])
-  let hosts = $state([])
-  let tasks = $state([
+  let tenants = []
+  let hosts = []
+  let tasks = [
     'users', 'sudo', 'packages', 'sysctl', 'services', 'wireguard', 'monit',
     'unbound', 'pf', 'docker', 'node_exporter', 'k3s', 'bhyve', 'jails',
     'storage', 'nginx', 'postgresql', 'prometheus', 'registry', 'autossh',
     'opensmtpd', 'all'
-  ])
+  ]
 
-  let selectedTenant = $state('')
-  let selectedTask = $state('sysctl')
-  let selectedHosts = $state(new Set())
-  let dryRun = $state(true)
+  let selectedTenant = ''
+  let selectedTask = 'sysctl'
+  let selectedHosts = new Set()
+  let dryRun = true
 
-  let runId = $state(null)
-  let running = $state(false)
-  let status = $state(null)
-  let logLines = $state([])
-  let logEl = $state(null)
+  let runId = null
+  let running = false
+  let status = null
+  let logLines = []
+  let logEl = null
 
   onMount(async () => {
     tenants = await getTenants()
