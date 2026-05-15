@@ -321,9 +321,12 @@ input[type="text"], input[type="search"], input[type="email"], textarea, select 
   min-height: 42px;
 }
 
-/* Smooth transitions */
-button, a, input, select {
-  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+/* Transitions only on interactive states, not theme changes */
+button:hover, button:focus,
+a:hover, a:focus,
+input:hover, input:focus,
+select:hover, select:focus {
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Active state feedback */
