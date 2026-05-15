@@ -1,8 +1,6 @@
 """Deployment orchestration (framework-level)."""
 
 import argparse
-import logging
-import sys
 
 from pyinfra.api import Config, State
 from pyinfra.api.command import FileUploadCommand, StringCommand
@@ -128,7 +126,7 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
         print(f"[DEBUG] Task(s): {args.task}")
         print(f"[DEBUG] Dry-run: {args.dry}")
         if diff:
-            print(f"[DEBUG] Diff: enabled")
+            print("[DEBUG] Diff: enabled")
 
     # Apply --limit: filter hosts or group (supports comma-separated hostnames)
     target_hosts = None
