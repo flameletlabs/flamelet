@@ -82,7 +82,7 @@
 
   <div class="page-container">
     {#if currentPage === 'tenants'}
-      <Tenants />
+      <Tenants tenant={selectedTenant} onTenantChange={(name) => selectedTenant = name} />
     {:else if currentPage === 'operations'}
       <Operations tenant={selectedTenant} />
     {:else if currentPage === 'services'}
