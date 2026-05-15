@@ -1,6 +1,7 @@
 """Operations catalog endpoint."""
 
 from fastapi import APIRouter
+
 from core.tasks import TASK_REGISTRY
 
 router = APIRouter()

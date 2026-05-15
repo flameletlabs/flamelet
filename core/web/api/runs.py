@@ -2,7 +2,8 @@
 
 from fastapi import APIRouter
 from pydantic import BaseModel
-from core.web.db import get_runs, get_run, get_run_logs
+
+from core.web.db import get_run, get_run_logs, get_runs
 from core.web.executor import queue_run
 
 router = APIRouter()

@@ -1,12 +1,13 @@
 """Flamelet Web API FastAPI application."""
 
 from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
-from core.web.api import tenants, operations, runs, stream, services
+from core.web.api import operations, runs, services, stream, tenants
 from core.web.db import init_db
 
 # Initialize database on module load

@@ -1,16 +1,14 @@
 """Background executor for flamelet deployments."""
 
+import argparse
+import sys
 import threading
 import time
 import uuid
-import sys
-import argparse
-from io import StringIO
-from pathlib import Path
 
-from core.web.db import insert_run, update_run_status, insert_log
-from core.cli import load_tenant_inventory, load_tenant_vars_module, build_add_ops_func
+from core.cli import build_add_ops_func, load_tenant_inventory, load_tenant_vars_module
 from core.runner import run_deployment
+from core.web.db import insert_log, insert_run, update_run_status
 
 
 class LogCapture:
@@ -64,7 +62,11 @@ def run_deployment_background(run_id, tenant_name, task, target_hosts, dry_run=T
                 args = argparse.Namespace(
                     task=task,
                     dry=dry_run,
-                    limit=None if target_hosts == ["all"] else target_hosts[0] if target_hosts else None,
+                    limit=None
+                    if target_hosts == ["all"]
+                    else target_hosts[0]
+                    if target_hosts
+                    else None,
                     verbose=True,
                 )
 

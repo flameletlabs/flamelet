@@ -1,8 +1,8 @@
 """SQLite database for run history."""
 
+import os
 import sqlite3
 from pathlib import Path
-import os
 
 DB_PATH = Path(os.environ.get("FLAMELET_DB", "~/.local/share/flamelet/runs.db")).expanduser()
 
