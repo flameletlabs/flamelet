@@ -100,7 +100,7 @@
     padding: 0;
     background: var(--bg);
     color: var(--text);
-    font-family: var(--mono);
+    font-family: var(--ui);
   }
 
   .app-wrapper {
@@ -129,11 +129,12 @@
 
   .brand {
     margin: 0;
-    font-size: 14px;
+    font-size: clamp(14px, 3vw, 16px);
     font-weight: 700;
     color: var(--text);
     letter-spacing: -0.3px;
     text-transform: uppercase;
+    font-family: var(--ui);
   }
 
   .header-center {
@@ -148,13 +149,14 @@
     color: var(--text);
     border: 1px solid var(--border);
     border-radius: 6px;
-    font-family: var(--mono);
-    font-size: 12px;
+    font-family: var(--ui);
+    font-size: clamp(12px, 2vw, 13px);
     font-weight: 500;
     cursor: pointer;
     transition: border-color 200ms;
     -webkit-appearance: none;
     appearance: none;
+    min-height: 40px;
   }
 
   .tenant-select:focus {
@@ -213,8 +215,8 @@
     background: none;
     border: none;
     color: var(--text-muted);
-    font-size: 12px;
-    font-family: var(--mono);
+    font-size: clamp(11px, 1.8vw, 12px);
+    font-family: var(--ui);
     font-weight: 600;
     cursor: pointer;
     text-transform: uppercase;
@@ -225,6 +227,9 @@
     margin-bottom: -1px;
     white-space: nowrap;
     flex-shrink: 0;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
   }
 
   .tab-nav button:hover {

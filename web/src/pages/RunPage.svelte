@@ -201,7 +201,7 @@
   }
 
   label span {
-    font-size: 10px;
+    font-size: clamp(10px, 1.8vw, 11px);
     font-weight: 600;
     letter-spacing: 0.08em;
     color: var(--text-dim);
@@ -237,7 +237,7 @@
   }
 
   .section-label {
-    font-size: 10px;
+    font-size: clamp(9px, 1.6vw, 10px);
     font-weight: 600;
     letter-spacing: 0.08em;
     color: var(--text-dim);
@@ -277,9 +277,10 @@
   }
 
   .host-name {
-    font-size: 11px;
+    font-size: clamp(11px, 2.5vw, 12px);
     flex: 1;
     color: var(--text-muted);
+    font-family: var(--ui);
   }
 
   .dry-row {
@@ -376,7 +377,7 @@
     overflow-y: auto;
     padding: 16px 20px;
     font-family: var(--mono);
-    font-size: 12px;
+    font-size: clamp(11px, 2.2vw, 12px);
     line-height: 1.7;
     background: var(--bg);
     background-image: repeating-linear-gradient(
