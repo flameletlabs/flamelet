@@ -2,20 +2,24 @@
   import { onMount } from 'svelte'
   import { getOperations } from '../lib/api.js'
 
-  let ops = $state([])
-  let filter = $state('')
+  let ops = []
+  let filter = ''
+  let filtered = []
 
   onMount(async () => {
     ops = await getOperations()
+    updateFiltered()
   })
 
-  const filtered = $derived(
-    filter
+  function updateFiltered() {
+    filtered = filter
       ? ops.filter(o =>
           o.task.includes(filter) || (o.config_attr || '').toLowerCase().includes(filter)
         )
       : ops
-  )
+  }
+
+  $: if (filter !== undefined) updateFiltered()
 
   function hasOS(op, os) {
     return !op.os_families || op.os_families.includes(os)
