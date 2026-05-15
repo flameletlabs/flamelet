@@ -28,12 +28,12 @@
       markers.forEach(m => mapInstance.removeLayer(m))
       markers = []
       locationsWithoutCoords = []
-      let hasCoords = false
+
+      const newMarkers = []
+      const newWithout = []
 
       locations.forEach(loc => {
         if (loc.lat !== null && loc.lon !== null) {
-          hasCoords = true
-
           let markerColor = '#3b82f6'
           if (loc.host_count === 0) {
             markerColor = '#9ca3af'
@@ -85,15 +85,18 @@
           `
           marker.bindPopup(popupContent)
           marker.addTo(mapInstance)
-          markers.push(marker)
+          newMarkers.push(marker)
         } else {
-          locationsWithoutCoords.push(loc)
+          newWithout.push(loc)
         }
       })
 
-      if (hasCoords && markers.length > 0) {
+      markers = newMarkers
+      locationsWithoutCoords = newWithout
+
+      if (newMarkers.length > 0) {
         setTimeout(() => {
-          const bounds = L.featureGroup(markers).getBounds()
+          const bounds = L.featureGroup(newMarkers).getBounds()
           mapInstance.fitBounds(bounds, { padding: [50, 50] })
         }, 100)
       }

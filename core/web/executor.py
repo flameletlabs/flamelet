@@ -1,6 +1,7 @@
 """Background executor for flamelet deployments."""
 
 import argparse
+import logging
 import sys
 import threading
 import time
@@ -28,15 +29,13 @@ class LogCapture:
         self._real_stdout.flush()
 
 
-def run_deployment_background(run_id, tenant_name, task, target_hosts, dry_run=True):
+def run_deployment_background(run_id, tenant_name, task, target_hosts, dry_run=True, diff=False):
     """Run a deployment in a background thread."""
 
     def worker():
         try:
-            # Update status to running
             update_run_status(run_id, "running", started_at=time.time())
 
-            # Find tenant path
             from core.paths import get_tenant_path
 
             tenant_path = get_tenant_path(tenant_name)
@@ -45,19 +44,21 @@ def run_deployment_background(run_id, tenant_name, task, target_hosts, dry_run=T
                 update_run_status(run_id, "failed", finished_at=time.time())
                 return
 
-            # Load inventory and vars
             inventory = load_tenant_inventory(tenant_path)
             tenant_vars = load_tenant_vars_module(tenant_path)
-
-            # Build add_ops function
             add_ops_func = build_add_ops_func(tenant_path, tenant_vars)
 
-            # Redirect stdout to log capture
             old_stdout = sys.stdout
             sys.stdout = LogCapture(run_id)
 
+            # Forward pyinfra's own logger (diffs, status lines) into the log stream
+            pyinfra_logger = logging.getLogger("pyinfra")
+            log_handler = logging.StreamHandler(sys.stdout)
+            log_handler.setLevel(logging.INFO)
+            log_handler.setFormatter(logging.Formatter("%(message)s"))
+            pyinfra_logger.addHandler(log_handler)
+
             try:
-                # Build args object for run_deployment
                 limit = None
                 if target_hosts and target_hosts != ["all"]:
                     limit = ",".join(target_hosts)
@@ -65,11 +66,11 @@ def run_deployment_background(run_id, tenant_name, task, target_hosts, dry_run=T
                 args = argparse.Namespace(
                     task=task,
                     dry=dry_run,
+                    diff=diff,
                     limit=limit,
                     verbose=True,
                 )
 
-                # Run deployment
                 exit_code = run_deployment(
                     inventory,
                     add_ops_func,
@@ -79,6 +80,7 @@ def run_deployment_background(run_id, tenant_name, task, target_hosts, dry_run=T
 
                 status = "success" if exit_code == 0 else "failed"
             finally:
+                pyinfra_logger.removeHandler(log_handler)
                 sys.stdout = old_stdout
 
             update_run_status(run_id, status, finished_at=time.time())
@@ -87,15 +89,14 @@ def run_deployment_background(run_id, tenant_name, task, target_hosts, dry_run=T
             insert_log(run_id, time.time(), f"ERROR: {e}")
             update_run_status(run_id, "failed", finished_at=time.time())
 
-    # Start background thread
     thread = threading.Thread(target=worker, daemon=True)
     thread.start()
 
 
-def queue_run(tenant_name, task, target_hosts=None, dry_run=True):
+def queue_run(tenant_name, task, target_hosts=None, dry_run=True, diff=False):
     """Queue a new run and return the run_id."""
     run_id = str(uuid.uuid4())[:8]
     hosts = target_hosts or ["all"]
     insert_run(run_id, tenant_name, task, hosts, dry_run=dry_run)
-    run_deployment_background(run_id, tenant_name, task, hosts, dry_run=dry_run)
+    run_deployment_background(run_id, tenant_name, task, hosts, dry_run=dry_run, diff=diff)
     return run_id

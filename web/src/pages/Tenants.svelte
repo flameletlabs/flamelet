@@ -55,7 +55,7 @@
   }
 
   function toggleGroup(groupName) {
-    collapseState[groupName] = !collapseState[groupName]
+    collapseState = { ...collapseState, [groupName]: !collapseState[groupName] }
   }
 
   // Calculate health status for hosts (demo: based on host count)

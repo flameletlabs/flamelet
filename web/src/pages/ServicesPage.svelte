@@ -58,7 +58,8 @@
       expandedService = serviceName
       if (!serviceDetails[serviceName]) {
         try {
-          serviceDetails[serviceName] = await getServiceDetail(tenant, serviceName)
+          const detail = await getServiceDetail(tenant, serviceName)
+          serviceDetails = { ...serviceDetails, [serviceName]: detail }
         } catch (e) {
           console.error('Failed to load service detail:', e)
         }
