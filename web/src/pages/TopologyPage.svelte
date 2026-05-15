@@ -283,9 +283,10 @@
 
   .header h1 {
     margin: 0;
-    font-size: 20px;
+    font-size: clamp(18px, 4vw, 20px);
     font-weight: 600;
     letter-spacing: -0.3px;
+    font-family: var(--ui);
   }
 
   .controls {
@@ -350,7 +351,7 @@
 
   .section h3 {
     margin: 0 0 10px 0;
-    font-size: 11px;
+    font-size: clamp(11px, 2vw, 12px);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.8px;
@@ -359,9 +360,10 @@
 
   .section h4 {
     margin: 0 0 8px 0;
-    font-size: 12px;
-    font-weight: 600;
+    font-size: clamp(12px, 2.2vw, 13px);
+    font-weight: 700;
     color: var(--text);
+    font-family: var(--ui);
   }
 
   .location-item {
@@ -369,8 +371,9 @@
     align-items: center;
     gap: 6px;
     margin-bottom: 6px;
-    font-size: 12px;
+    font-size: clamp(12px, 2.2vw, 13px);
     cursor: pointer;
+    font-family: var(--ui);
   }
 
   .location-item input {
@@ -389,7 +392,7 @@
   .location-item .count {
     margin-left: auto;
     color: var(--text-muted);
-    font-size: 11px;
+    font-size: clamp(10px, 1.8vw, 11px);
   }
 
   .legend-item {
@@ -397,7 +400,8 @@
     align-items: center;
     gap: 6px;
     margin-bottom: 8px;
-    font-size: 12px;
+    font-size: clamp(12px, 2.2vw, 13px);
+    font-family: var(--ui);
   }
 
   .selected-info {
@@ -416,8 +420,9 @@
 
   .info-text {
     margin: 0;
-    font-size: 12px;
+    font-size: clamp(12px, 2.2vw, 13px);
     color: var(--text-muted);
+    font-family: var(--ui);
   }
 
   .peer-count {
@@ -484,8 +489,8 @@
 
   .node-label {
     font-family: var(--mono);
-    font-size: 10px;
-    font-weight: 600;
+    font-size: clamp(10px, 1.8vw, 11px);
+    font-weight: 700;
     fill: var(--text);
     text-anchor: middle;
     pointer-events: none;
@@ -530,9 +535,9 @@
 
   .detail-header h3 {
     margin: 0;
-    font-family: var(--mono);
-    font-size: 13px;
-    font-weight: 600;
+    font-family: var(--ui);
+    font-size: clamp(13px, 2.8vw, 15px);
+    font-weight: 700;
     color: var(--accent);
   }
 
@@ -566,19 +571,19 @@
     justify-content: space-between;
     gap: 8px;
     margin-bottom: 6px;
-    font-size: 12px;
+    font-size: clamp(11px, 2vw, 12px);
   }
 
   .iface-name {
     color: var(--text-muted);
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: clamp(10px, 1.8vw, 11px);
   }
 
   .iface-addr {
     color: var(--accent);
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: clamp(10px, 1.8vw, 11px);
     font-weight: 600;
   }
 
@@ -587,7 +592,7 @@
     align-items: center;
     gap: 8px;
     margin-bottom: 6px;
-    font-size: 12px;
+    font-size: clamp(11px, 2vw, 12px);
   }
 
   .peer-name {
