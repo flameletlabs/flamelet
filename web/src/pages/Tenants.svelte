@@ -87,7 +87,7 @@
   <aside>
     <div class="sidebar-header">TENANTS</div>
     {#each tenants as t}
-      <button class="tenant-row" class:active={selected?.name === t.name} onclick={() => selectTenant(t)} style="animation-delay: {tenants.indexOf(t) * 50}ms;">
+      <button class="tenant-row" class:active={selected?.name === t.name} on:click={() => selectTenant(t)} style="animation-delay: {tenants.indexOf(t) * 50}ms;">
         <div class="tenant-info">
           <span class="status-dot" class:healthy={true}></span>
           <span class="tenant-name">{t.name}</span>
@@ -245,7 +245,7 @@
         <div class="inspector">
           <div class="inspector-header">
             <span>CONFIG · <span class="mono accent">{selectedHost.name}</span></span>
-            <button onclick={() => selectedHost = null}>✕</button>
+            <button on:click={() => selectedHost = null}>✕</button>
           </div>
           <div class="inspector-body">
             <p class="text-muted">← Select from the Operations catalog to inspect config</p>
