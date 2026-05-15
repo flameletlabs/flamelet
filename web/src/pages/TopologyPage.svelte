@@ -11,14 +11,14 @@
   let error = $state(null);
 
   const nodePositions = {
-    'core.london': { x: 400, y: 180 },
-    'virt.london': { x: 120, y: 280 },
-    'controller.paris': { x: 220, y: 420 },
-    'virt-01.newyork': { x: 680, y: 80 },
-    'virt-02.newyork': { x: 700, y: 140 },
-    'virt-03.newyork': { x: 680, y: 200 },
-    'nas-01.tokyo': { x: 80, y: 80 },
-    'vpn2.example.com': { x: 680, y: 340 },
+    'fw.example.com': { x: 400, y: 180 },
+    'virt.example.com': { x: 120, y: 280 },
+    'controller.example.com': { x: 220, y: 420 },
+    'virt-01.example.com': { x: 680, y: 80 },
+    'virt-02.example.com': { x: 700, y: 140 },
+    'virt-03.example.com': { x: 680, y: 200 },
+    'nas.example.com': { x: 80, y: 80 },
+    'vpn.example.com': { x: 680, y: 340 },
   };
 
   const osColors = {
@@ -52,8 +52,7 @@
   }
 
   function getOSColor(hostname) {
-    // Infer OS from hostname or config
-    if (hostname.includes('openbsd') || hostname === 'core.london' || hostname === 'controller.paris') {
+    if (hostname.includes('openbsd') || hostname.includes('fw') || hostname.includes('controller')) {
       return osColors.openbsd;
     }
     if (hostname.includes('freebsd') || hostname.includes('virt') || hostname.includes('nas')) {
@@ -272,7 +271,7 @@
   .container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 100%;
     background: var(--bg);
     color: var(--text);
     font-family: var(--ui);

@@ -4,9 +4,11 @@
 
   let tenants = $state([])
   let hosts = $state([])
+  let { tenant = null } = $props()
+
   let tasks = [
     'users', 'sudo', 'packages', 'sysctl', 'services', 'wireguard', 'monit',
-    'unbound', 'pf', 'docker', 'node_exporter', 'k3s', 'bhyve', 'jails',
+    'unbound', 'pf', 'docker', 'node_exporter', 'k3s', 'bhyve', 'bastille',
     'storage', 'nginx', 'postgresql', 'prometheus', 'registry', 'autossh',
     'opensmtpd', 'all'
   ]
@@ -30,9 +32,14 @@
 
   onMount(async () => {
     tenants = await getTenants()
-    if (tenants.length) {
-      selectedTenant = tenants[0].name
-      await loadHosts()
+    selectedTenant = tenant ?? (tenants.length ? tenants[0].name : '')
+    if (selectedTenant) await loadHosts()
+  })
+
+  $effect(() => {
+    if (tenant && tenant !== selectedTenant) {
+      selectedTenant = tenant
+      loadHosts()
     }
   })
 

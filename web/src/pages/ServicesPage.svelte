@@ -398,6 +398,23 @@
     font-family: var(--mono);
   }
 
+  @media (max-width: 768px) {
+    .toolbar {
+      flex-wrap: wrap;
+      padding: 12px 16px;
+      gap: 8px;
+    }
+
+    .search-input {
+      width: 100%;
+      order: 3;
+    }
+
+    .view-select {
+      margin-left: 0;
+    }
+  }
+
   @media (max-width: 900px) {
     .service-item {
       margin: clamp(4px, 0.8vw, 6px);
