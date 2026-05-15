@@ -1,9 +1,7 @@
 """FreeBSD Bastille jail operations."""
 
-from io import StringIO
-
 from pyinfra.api.operation import add_op
-from pyinfra.operations import files, server
+from pyinfra.operations import server
 
 
 def _sysrc(jail, key, value):
@@ -60,7 +58,7 @@ def add_bastille_ops(state, hosts, config, target_hosts=None, task="all"):
         ]
         if zfs_enable:
             rc_cmds += [
-                f"sysrc -f /usr/local/etc/bastille/bastille.conf bastille_zfs_enable=YES",
+                "sysrc -f /usr/local/etc/bastille/bastille.conf bastille_zfs_enable=YES",
                 f"sysrc -f /usr/local/etc/bastille/bastille.conf bastille_zfs_zpool={zfs_zpool}",
             ]
         add_op(
