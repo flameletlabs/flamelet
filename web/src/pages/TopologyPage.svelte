@@ -614,4 +614,139 @@
     border-left: 2px solid var(--running);
     color: var(--running);
   }
+
+  @media (max-width: 900px) {
+    .header {
+      padding: clamp(8px, 1.2vw, 12px) clamp(12px, 1.5vw, 16px);
+    }
+
+    .title {
+      font-size: clamp(10px, 1.4vw, 12px);
+    }
+
+    .tenant-select {
+      font-size: clamp(10px, 1.2vw, 11px);
+    }
+
+    svg {
+      width: 100%;
+      height: clamp(300px, 60vh, 500px);
+    }
+
+    .sidebar {
+      padding: clamp(8px, 1.2vw, 12px);
+    }
+
+    .node-detail-title {
+      font-size: clamp(11px, 1.4vw, 12px);
+    }
+
+    .iface-name, .peer-name {
+      font-size: clamp(9px, 1.2vw, 10px);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .layout {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    .header {
+      padding: clamp(8px, 1.2vw, 10px);
+    }
+
+    .title {
+      font-size: clamp(10px, 1.3vw, 11px);
+    }
+
+    .tenant-select {
+      font-size: clamp(9px, 1vw, 10px);
+      padding: clamp(3px, 0.6vw, 5px) clamp(6px, 1vw, 8px);
+    }
+
+    svg {
+      height: clamp(250px, 50vh, 400px);
+      margin: clamp(8px, 1.2vw, 10px);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+    }
+
+    .sidebar {
+      max-height: 200px;
+      border-top: 1px solid var(--border);
+      border-right: none;
+      padding: clamp(8px, 1.2vw, 10px);
+      overflow-y: auto;
+    }
+
+    .node-detail-title {
+      font-size: clamp(10px, 1.2vw, 11px);
+      margin-bottom: 4px;
+    }
+
+    .iface-section, .edges-section {
+      margin-bottom: clamp(8px, 1vw, 10px);
+    }
+
+    .iface-addr {
+      font-size: clamp(9px, 1.1vw, 10px);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .header {
+      flex-direction: column;
+      gap: clamp(6px, 1vw, 8px);
+      padding: clamp(6px, 1vw, 8px);
+    }
+
+    .tenant-select {
+      width: 100%;
+    }
+
+    svg {
+      height: clamp(200px, 40vh, 300px);
+      margin: clamp(6px, 1vw, 8px);
+    }
+
+    .sidebar {
+      max-height: 150px;
+    }
+
+    .node-detail-title {
+      font-size: clamp(10px, 1.2vw, 11px);
+    }
+
+    .iface-name, .peer-name {
+      font-size: clamp(8px, 1vw, 9px);
+    }
+
+    .edge-type {
+      font-size: 8px;
+      padding: 1px 4px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    svg {
+      height: clamp(150px, 35vh, 250px);
+    }
+
+    .sidebar {
+      max-height: 120px;
+    }
+
+    .node-detail-title {
+      font-size: 10px;
+    }
+
+    .iface-name {
+      font-size: 8px;
+    }
+
+    .peer-name {
+      font-size: 8px;
+    }
+  }
 </style>
