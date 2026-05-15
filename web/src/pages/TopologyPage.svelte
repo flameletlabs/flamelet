@@ -2,13 +2,13 @@
   import { onMount } from 'svelte';
   import { getTopology, getTenants } from '../lib/api.js';
 
-  let tenants = [];
-  let selectedTenant = null;
-  let topology = null;
-  let selectedNode = null;
-  let hoveredEdge = null;
-  let loading = false;
-  let error = null;
+  let tenants = $state([]);
+  let selectedTenant = $state(null);
+  let topology = $state(null);
+  let selectedNode = $state(null);
+  let hoveredEdge = $state(null);
+  let loading = $state(false);
+  let error = $state(null);
 
   const nodePositions = {
     'core.home': { x: 400, y: 180 },
@@ -85,13 +85,13 @@
   <div class="header">
     <h1>Network Topology</h1>
     <div class="controls">
-      <select bind:value={selectedTenant} on:change={loadTopology}>
+      <select bind:value={selectedTenant} onchange={loadTopology}>
         <option value="">— Select Tenant —</option>
         {#each tenants as tenant}
           <option value={tenant.name}>{tenant.name}</option>
         {/each}
       </select>
-      <button on:click={loadTopology} class:loading>
+      <button onclick={loadTopology} class:loading>
         {loading ? '⟳' : '↺'} Refresh
       </button>
     </div>
@@ -172,8 +172,8 @@
                 class="edge-wg"
                 opacity={hoveredEdge === edge.id ? 1 : 0.6}
                 role="presentation"
-                on:mouseenter={() => (hoveredEdge = edge.id)}
-                on:mouseleave={() => (hoveredEdge = null)}
+                onmouseenter={() => (hoveredEdge = edge.id)}
+                onmouseleave={() => (hoveredEdge = null)}
               />
             {:else if edge.type === 'autossh'}
               {@const fromPos = getNodePosition(edge.from)}
@@ -189,8 +189,8 @@
                 marker-end="url(#arrowhead-autossh)"
                 opacity={hoveredEdge === edge.id ? 1 : 0.5}
                 role="presentation"
-                on:mouseenter={() => (hoveredEdge = edge.id)}
-                on:mouseleave={() => (hoveredEdge = null)}
+                onmouseenter={() => (hoveredEdge = edge.id)}
+                onmouseleave={() => (hoveredEdge = null)}
               />
             {/if}
           {/each}
@@ -203,8 +203,8 @@
               class:selected={selectedNode === node.id}
               role="button"
               tabindex="0"
-              on:click={() => (selectedNode = node.id)}
-              on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && (selectedNode = node.id)}
+              onclick={() => (selectedNode = node.id)}
+              onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (selectedNode = node.id)}
               style="animation-delay: {idx * 80}ms;"
             >
               <!-- Accent bar -->
@@ -235,7 +235,7 @@
     <div class="detail-panel">
       <div class="detail-header">
         <h3>{selectedNode}</h3>
-        <button class="close" on:click={() => (selectedNode = null)}>×</button>
+        <button class="close" onclick={() => (selectedNode = null)}>×</button>
       </div>
       <div class="detail-content">
         {#if topology.nodes.find(n => n.id === selectedNode)?.wg_interfaces}

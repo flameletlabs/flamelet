@@ -2,13 +2,13 @@
   import { onMount } from 'svelte'
   import { getTenants, getTenantHosts } from '../lib/api.js'
 
-  let tenants = []
-  let selected = null
-  let hosts = []
-  let selectedHost = null
-  let groupBy = sessionStorage.getItem('groupBy') || 'location'
-  let collapseState = {}
-  let expandedHostDetails = null
+  let tenants = $state([])
+  let selected = $state(null)
+  let hosts = $state([])
+  let selectedHost = $state(null)
+  let groupBy = $state(sessionStorage.getItem('groupBy') || 'location')
+  let collapseState = $state({})
+  let expandedHostDetails = $state(null)
 
   onMount(async () => {
     tenants = await getTenants()
@@ -70,7 +70,7 @@
     return 'healthy'
   }
 
-  let copiedText = null
+  let copiedText = $state(null)
 
   function copyToClipboard(text) {
     navigator.clipboard.writeText(text)
@@ -80,14 +80,14 @@
     }, 2000)
   }
 
-  $: grouped = groupHosts(hosts, groupBy)
+  let grouped = $derived(groupHosts(hosts, groupBy))
 </script>
 
 <div class="layout">
   <aside>
     <div class="sidebar-header">TENANTS</div>
     {#each tenants as t}
-      <button class="tenant-row" class:active={selected?.name === t.name} on:click={() => selectTenant(t)} style="animation-delay: {tenants.indexOf(t) * 50}ms;">
+      <button class="tenant-row" class:active={selected?.name === t.name} onclick={() => selectTenant(t)} style="animation-delay: {tenants.indexOf(t) * 50}ms;">
         <div class="tenant-info">
           <span class="status-dot" class:healthy={true}></span>
           <span class="tenant-name">{t.name}</span>
@@ -109,10 +109,10 @@
       <div class="group-selector">
         <span class="group-label">Group by:</span>
         <div class="btn-group">
-          <button class="group-btn" class:active={groupBy === 'location'} on:click={() => setGroupBy('location')}>Location</button>
-          <button class="group-btn" class:active={groupBy === 'os'} on:click={() => setGroupBy('os')}>OS</button>
-          <button class="group-btn" class:active={groupBy === 'groups'} on:click={() => setGroupBy('groups')}>Groups</button>
-          <button class="group-btn" class:active={groupBy === 'none'} on:click={() => setGroupBy('none')}>None</button>
+          <button class="group-btn" class:active={groupBy === 'location'} onclick={() => setGroupBy('location')}>Location</button>
+          <button class="group-btn" class:active={groupBy === 'os'} onclick={() => setGroupBy('os')}>OS</button>
+          <button class="group-btn" class:active={groupBy === 'groups'} onclick={() => setGroupBy('groups')}>Groups</button>
+          <button class="group-btn" class:active={groupBy === 'none'} onclick={() => setGroupBy('none')}>None</button>
         </div>
       </div>
 
@@ -130,7 +130,7 @@
           </thead>
           <tbody>
             {#each Object.entries(grouped) as [groupName, groupHosts]}
-              <tr class="group-header" on:click={() => toggleGroup(groupName)}>
+              <tr class="group-header" onclick={() => toggleGroup(groupName)}>
                 <td colspan="5">
                   <div class="group-header-inner">
                     <span class="group-toggle" class:collapsed={collapseState[groupName]}>›</span>
@@ -145,7 +145,7 @@
                   class="host-row"
                   class:collapsed={collapseState[groupName]}
                   class:selected={selectedHost?.name === host.name}
-                  on:click={() => selectedHost = host}
+                  onclick={() => selectedHost = host}
                 >
                   <td class="col-num mono">{String(i+1).padStart(2,'0')}</td>
                   <td class="mono hostname">{host.name}</td>
@@ -172,7 +172,7 @@
       <div class="cards-view">
         {#each Object.entries(grouped) as [groupName, groupHosts], groupIdx}
           <div class="group-section">
-            <div class="group-title" role="button" tabindex="0" on:click={() => toggleGroup(groupName)} on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && toggleGroup(groupName)}>
+            <div class="group-title" role="button" tabindex="0" onclick={() => toggleGroup(groupName)} onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && toggleGroup(groupName)}>
               <span class="group-toggle" class:collapsed={collapseState[groupName]}>›</span>
               <span>{groupName}</span>
               <span class="group-count-badge">{groupHosts.length}</span>
@@ -181,7 +181,7 @@
               <div class="hosts-cards">
                 {#each groupHosts as host, i (host.name)}
                   <div class="host-card" class:selected={selectedHost?.name === host.name} class:expanded={expandedHostDetails === host.name} style="animation-delay: {(groupIdx * 10 + i) * 40}ms;">
-                    <div class="card-header" role="button" tabindex="0" on:click={() => expandedHostDetails = expandedHostDetails === host.name ? null : host.name} on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && (expandedHostDetails = expandedHostDetails === host.name ? null : host.name)}>
+                    <div class="card-header" role="button" tabindex="0" onclick={() => expandedHostDetails = expandedHostDetails === host.name ? null : host.name} onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (expandedHostDetails = expandedHostDetails === host.name ? null : host.name)}>
                       <div class="expand-toggle">›</div>
                       <div class="host-name">{host.name}</div>
                       <span class="badge badge-{host.os.toLowerCase()}">{host.os}</span>
@@ -204,7 +204,7 @@
                             <span class="detail-key">Name:</span>
                             <div class="detail-value-with-copy">
                               <span class="detail-value mono">{host.name}</span>
-                              <button class="copy-btn" on:click={() => copyToClipboard(host.name)} title="Copy hostname">
+                              <button class="copy-btn" onclick={() => copyToClipboard(host.name)} title="Copy hostname">
                                 {copiedText === host.name ? '✓' : '⎘'}
                               </button>
                             </div>
@@ -230,7 +230,7 @@
                             </div>
                           </div>
                         {/if}
-                        <button class="detail-btn" on:click={() => selectedHost = host}>View Config</button>
+                        <button class="detail-btn" onclick={() => selectedHost = host}>View Config</button>
                       </div>
                     {/if}
                   </div>
@@ -245,7 +245,7 @@
         <div class="inspector">
           <div class="inspector-header">
             <span>CONFIG · <span class="mono accent">{selectedHost.name}</span></span>
-            <button on:click={() => selectedHost = null}>✕</button>
+            <button onclick={() => selectedHost = null}>✕</button>
           </div>
           <div class="inspector-body">
             <p class="text-muted">← Select from the Operations catalog to inspect config</p>

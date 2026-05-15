@@ -8,10 +8,10 @@
   import ServicesPage from './pages/ServicesPage.svelte'
   import { getTenants } from './lib/api.js'
 
-  let currentPage = 'tenants'
-  let tenants = []
-  let selectedTenant = null
-  let isDarkMode = true
+  let currentPage = $state('tenants')
+  let tenants = $state([])
+  let selectedTenant = $state(null)
+  let isDarkMode = $state(true)
 
   onMount(async () => {
     const saved = localStorage.getItem('flamelet-theme')
@@ -48,29 +48,29 @@
     </div>
 
     <div class="header-right">
-      <button class="theme-toggle" on:click={toggleDarkMode} title="Toggle theme">
+      <button class="theme-toggle" onclick={toggleDarkMode} title="Toggle theme">
         {isDarkMode ? '☀' : '◑'}
       </button>
     </div>
   </header>
 
   <nav class="tab-nav">
-    <button class:active={currentPage === 'tenants'} on:click={() => currentPage = 'tenants'}>
+    <button class:active={currentPage === 'tenants'} onclick={() => currentPage = 'tenants'}>
       Hosts
     </button>
-    <button class:active={currentPage === 'operations'} on:click={() => currentPage = 'operations'}>
+    <button class:active={currentPage === 'operations'} onclick={() => currentPage = 'operations'}>
       Operations
     </button>
-    <button class:active={currentPage === 'services'} on:click={() => currentPage = 'services'}>
+    <button class:active={currentPage === 'services'} onclick={() => currentPage = 'services'}>
       Services
     </button>
-    <button class:active={currentPage === 'topology'} on:click={() => currentPage = 'topology'}>
+    <button class:active={currentPage === 'topology'} onclick={() => currentPage = 'topology'}>
       Topology
     </button>
-    <button class:active={currentPage === 'map'} on:click={() => currentPage = 'map'}>
+    <button class:active={currentPage === 'map'} onclick={() => currentPage = 'map'}>
       Map
     </button>
-    <button class:active={currentPage === 'execute'} on:click={() => currentPage = 'execute'}>
+    <button class:active={currentPage === 'execute'} onclick={() => currentPage = 'execute'}>
       Execute
     </button>
   </nav>

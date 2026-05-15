@@ -2,11 +2,11 @@
   import { onMount } from 'svelte'
   import { getOperations } from '../lib/api.js'
 
-  let ops = []
-  let filter = ''
-  let filtered = []
-  let expandedOp = null
-  let copiedText = null
+  let ops = $state([])
+  let filter = $state('')
+  let filtered = $state([])
+  let expandedOp = $state(null)
+  let copiedText = $state(null)
 
   function copyToClipboard(text) {
     navigator.clipboard.writeText(text)
@@ -29,7 +29,7 @@
       : ops
   }
 
-  $: if (filter !== undefined) updateFiltered()
+  $effect(() => { if (filter !== undefined) updateFiltered() })
 
   function hasOS(op, os) {
     return !op.os_families || op.os_families.includes(os)
@@ -84,7 +84,7 @@
     <div class="cards-view">
       {#each filtered as op, i (op.task)}
         <div class="op-card" class:expanded={expandedOp === op.task} style="animation-delay: {i * 50}ms;">
-          <div class="card-header" role="button" tabindex="0" on:click={() => expandedOp = expandedOp === op.task ? null : op.task} on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && (expandedOp = expandedOp === op.task ? null : op.task)}>
+          <div class="card-header" role="button" tabindex="0" onclick={() => expandedOp = expandedOp === op.task ? null : op.task} onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (expandedOp = expandedOp === op.task ? null : op.task)}>
             <span class="op-toggle">›</span>
             <span class="op-num">{(i + 1).toString().padStart(2, '0')}</span>
             <div class="op-title">{op.task}</div>
@@ -106,7 +106,7 @@
                   <div class="detail-label">Configuration</div>
                   <div class="config-hint">
                     Config attr: <span class="mono">{op.config_attr}</span>
-                    <button class="copy-btn" on:click={() => copyToClipboard(op.config_attr)} title="Copy to clipboard">
+                    <button class="copy-btn" onclick={() => copyToClipboard(op.config_attr)} title="Copy to clipboard">
                       {copiedText === op.config_attr ? '✓' : '⎘'}
                     </button>
                   </div>
