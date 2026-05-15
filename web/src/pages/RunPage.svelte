@@ -85,7 +85,7 @@
     <div class="form-body">
       <label>
         <span>Tenant</span>
-        <select bind:value={selectedTenant} onchange={loadHosts}>
+        <select bind:value={selectedTenant} on:change={loadHosts}>
           {#each tenants as t}
             <option value={t.name}>{t.name}</option>
           {/each}
@@ -115,7 +115,7 @@
             <input
               type="checkbox"
               checked={selectedHosts.has(h.name)}
-              onchange={() => toggleHost(h.name)}
+              on:change={() => toggleHost(h.name)}
             />
             <span class="mono host-name">{h.name}</span>
             <span class="badge badge-{h.os.toLowerCase()}">{h.os}</span>
@@ -128,7 +128,7 @@
         <span>Dry run (no changes)</span>
       </label>
 
-      <button class="run-btn" onclick={startRun} disabled={running || !selectedHosts.size}>
+      <button class="run-btn" on:click={startRun} disabled={running || !selectedHosts.size}>
         {running ? '● RUNNING...' : '▶ RUN'}
       </button>
     </div>
