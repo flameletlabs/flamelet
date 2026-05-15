@@ -175,9 +175,10 @@
 
   .map-header h2 {
     margin: 0;
-    font-size: 16px;
+    font-size: clamp(16px, 4vw, 18px);
     font-weight: 700;
     color: var(--text);
+    font-family: var(--ui);
   }
 
   .error-msg {
@@ -260,43 +261,52 @@
   }
 
   .location-item {
-    padding: 8px;
+    padding: 10px;
     background: var(--bg-3);
     border: 1px solid var(--border-muted);
     border-radius: 3px;
-    font-size: 12px;
+    font-size: clamp(12px, 2.5vw, 13px);
+    min-height: 44px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 
   .location-name {
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text);
     margin-bottom: 4px;
+    font-size: clamp(13px, 2.8vw, 14px);
+    font-family: var(--ui);
   }
 
   .location-address {
-    font-size: 11px;
+    font-size: clamp(11px, 2.2vw, 12px);
     color: var(--text-muted);
     margin-bottom: 4px;
     line-height: 1.3;
+    font-family: var(--ui);
   }
 
   .location-count {
-    font-size: 11px;
+    font-size: clamp(11px, 2.2vw, 12px);
     font-weight: 600;
     color: var(--accent);
     margin-bottom: 4px;
   }
 
   .location-hosts {
-    font-size: 10px;
+    font-size: clamp(10px, 2vw, 11px);
     color: var(--text-dim);
     border-top: 1px solid var(--border-muted);
     padding-top: 4px;
     margin-top: 4px;
+    font-family: var(--ui);
   }
 
   .host-item {
     padding: 2px 0;
     font-family: var(--mono);
+    font-size: clamp(10px, 2vw, 11px);
   }
 </style>

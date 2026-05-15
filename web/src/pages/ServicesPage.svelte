@@ -209,7 +209,7 @@
   }
 
   .title {
-    font-size: 10px;
+    font-size: clamp(10px, 1.6vw, 11px);
     font-weight: 600;
     letter-spacing: 0.1em;
     color: var(--text-dim);
@@ -217,9 +217,10 @@
   }
 
   .count {
-    font-size: 11px;
+    font-size: clamp(11px, 2vw, 12px);
     color: var(--text-muted);
     margin-left: 8px;
+    font-family: var(--ui);
   }
 
   .view-select {
@@ -322,11 +323,12 @@
 
   .service-name,
   .host-name {
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text);
     flex: 1;
-    font-size: 13px;
+    font-size: clamp(13px, 3vw, 15px);
     text-transform: capitalize;
+    font-family: var(--ui);
   }
 
   .service-badge {
@@ -342,7 +344,7 @@
   }
 
   .service-count {
-    font-size: 11px;
+    font-size: clamp(11px, 2vw, 12px);
     color: var(--text-muted);
   }
 
@@ -358,8 +360,8 @@
     color: var(--text-muted);
     padding: 3px 8px;
     border-radius: 3px;
-    font-size: 11px;
-    font-family: var(--mono);
+    font-size: clamp(11px, 2vw, 12px);
+    font-family: var(--ui);
   }
 
   .service-detail {
@@ -382,6 +384,7 @@
     font-weight: 600;
     color: var(--text);
     margin-bottom: 4px;
+    font-size: clamp(12px, 2.2vw, 13px);
   }
 
   .service-keys {
