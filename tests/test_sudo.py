@@ -24,25 +24,25 @@ class TestSudoersOperation:
         """OpenBSD hosts with _doas should not get sudoers entries."""
         inventory = build_inventory()
         openbsd_hosts = list(inventory.get_group("openbsd"))
-        assert len(openbsd_hosts) == 1
-        controller = openbsd_hosts[0]
-        # OpenBSD has _doas: True, not _sudo
-        assert controller.data.get("_doas") is True
-        assert controller.data.get("_sudo") is not True
+        assert len(openbsd_hosts) == 2  # gw.london + gw.newyork
+        for controller in openbsd_hosts:
+            # OpenBSD has _doas: True, not _sudo
+            assert controller.data.get("_doas") is True
+            assert controller.data.get("_sudo") is not True
 
     def test_debian_has_sudo_flag(self):
         """Debian hosts should have _sudo=True."""
         inventory = build_inventory()
         debian_hosts = list(inventory.get_group("debian"))
-        assert len(debian_hosts) == 1
-        docker = debian_hosts[0]
-        assert docker.data.get("_sudo") is True
+        assert len(debian_hosts) == 2  # db.london + docker.newyork
+        for host in debian_hosts:
+            assert host.data.get("_sudo") is True
 
     def test_freebsd_no_sudo_flag_by_default(self):
         """FreeBSD hosts have _sudo=True for operations, but sudoers not needed."""
         inventory = build_inventory()
         freebsd_hosts = list(inventory.get_group("freebsd"))
-        assert len(freebsd_hosts) == 5
+        assert len(freebsd_hosts) == 4  # web-01/02.london + worker-01/02.newyork
         # FreeBSD hosts have _sudo: True for privilege escalation, but wheel group
         # already has NOPASSWD so sudoers entries not redundant
         for host in freebsd_hosts:

@@ -14,13 +14,14 @@ class TestExampleTenant:
     """Test the example home tenant (full end-to-end config loading)."""
 
     def test_example_inventory_loads(self):
-        """Example tenant inventory should load 8 hosts."""
+        """Example tenant inventory should load 8 hosts across London and New York."""
         inventory = load_tenant_inventory(EXAMPLE_TENANT)
         hosts = list(inventory)
         assert len(hosts) == 8
         host_names = {h.name for h in hosts}
-        assert "gw.example.com" in host_names
-        assert "docker.example.com" in host_names
+        assert "gw.london" in host_names
+        assert "gw.newyork" in host_names
+        assert "docker.newyork" in host_names
 
     def test_example_vars_module_loads(self):
         """Example tenant vars module should load with USERS and GROUPS."""
