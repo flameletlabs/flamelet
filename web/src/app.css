@@ -17,6 +17,7 @@
   --text-muted: #8892a8;
   --text-dim: #5a6578;
   --accent: #00d4aa;
+  --accent-dark: #00c99f;
   --accent-bg: rgba(0, 212, 170, 0.08);
   --success: #3fb950;
   --warning: #d29922;
@@ -62,6 +63,31 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Modern app spacing scale */
+.spacing-xs { gap: 4px; }
+.spacing-sm { gap: 8px; }
+.spacing-md { gap: 12px; }
+.spacing-lg { gap: 16px; }
+.spacing-xl { gap: 24px; }
+
+/* Card pattern */
+.card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover {
+  border-color: rgba(0, 212, 170, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.card:active {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 ::-webkit-scrollbar {
