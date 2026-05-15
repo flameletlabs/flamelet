@@ -2,6 +2,8 @@
   import { onMount } from 'svelte'
   import { getTenants, getTenantHosts } from '../lib/api.js'
 
+  let { tenant = null, onTenantChange = null } = $props()
+
   let tenants = $state([])
   let selected = $state(null)
   let hosts = $state([])
@@ -12,14 +14,29 @@
 
   onMount(async () => {
     tenants = await getTenants()
-    if (tenants.length) selectTenant(tenants[0])
+    // Sync with whatever App.svelte already selected; fall back to first tenant
+    const initial = tenants.find(t => t.name === tenant) ?? tenants[0]
+    if (initial) await loadTenant(initial)
   })
 
-  async function selectTenant(t) {
+  // React when the header dropdown changes selectedTenant from outside
+  $effect(() => {
+    if (!tenant || !tenants.length) return
+    const match = tenants.find(t => t.name === tenant)
+    if (match && match.name !== selected?.name) loadTenant(match)
+  })
+
+  async function loadTenant(t) {
     selected = t
     selectedHost = null
     hosts = await getTenantHosts(t.name)
     collapseState = {}
+  }
+
+  async function selectTenant(t) {
+    await loadTenant(t)
+    // Propagate the new selection up so header dropdown and other pages stay in sync
+    onTenantChange?.(t.name)
   }
 
   function setGroupBy(method) {
