@@ -22,7 +22,9 @@ class RunRequest(BaseModel):
 @router.post("/runs")
 async def create_run(req: RunRequest):
     """Queue a new deployment run."""
-    run_id = queue_run(req.tenant, req.task, target_hosts=req.hosts, dry_run=req.dry_run, diff=req.diff)
+    run_id = queue_run(
+        req.tenant, req.task, target_hosts=req.hosts, dry_run=req.dry_run, diff=req.diff
+    )
     return {"run_id": run_id}
 
 

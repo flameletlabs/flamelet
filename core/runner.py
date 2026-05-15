@@ -223,9 +223,7 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
             ok = r.success_ops - changed
             failed = r.error_ops
             status = "✓" if failed == 0 else "✗"
-            print(
-                f"{status} {host.name:<30} {changed} changed   {ok} ok   {failed} failed"
-            )
+            print(f"{status} {host.name:<30} {changed} changed   {ok} ok   {failed} failed")
             if failed > 0:
                 exit_code = 1
         else:
