@@ -178,7 +178,7 @@
   }
 
   .form-header {
-    padding: 16px 24px 12px;
+    padding: 18px 28px 14px;
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.1em;
@@ -189,10 +189,10 @@
   }
 
   .form-body {
-    padding: 24px;
+    padding: 28px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 24px;
   }
 
   label:not(.host-row):not(.dry-row) {
@@ -376,7 +376,7 @@
   .terminal {
     flex: 1;
     overflow-y: auto;
-    padding: 16px 20px;
+    padding: 20px 24px;
     font-family: var(--mono);
     font-size: clamp(11px, 2.2vw, 12px);
     line-height: 1.7;

@@ -280,10 +280,10 @@
 
   .services-list,
   .hosts-list {
-    padding: 16px;
+    padding: 24px 28px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
   }
 
   .service-item,
@@ -299,7 +299,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 16px;
+    padding: 14px 18px;
     cursor: pointer;
     user-select: none;
   }

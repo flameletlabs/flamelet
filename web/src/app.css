@@ -99,15 +99,20 @@ body {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-/* Gradient section headers - visual confidence */
+/* Gradient section headers - visual confidence with bold typography */
 .section-header {
   background: linear-gradient(90deg, var(--bg-2) 0%, rgba(15, 22, 41, 0.5) 100%);
-  padding: 16px;
+  padding: 20px 24px;
   border-bottom: 1px solid var(--border);
   border-radius: 8px 8px 0 0;
+  font-size: clamp(13px, 2vw, 14px);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text);
 }
 
-/* Status indicator badges */
+/* Status indicator badges - neutral by default, color for critical states */
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -118,20 +123,22 @@ body {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  background: var(--bg-3);
+  color: var(--text-muted);
 }
 
 .status-healthy {
-  background: rgba(63, 185, 80, 0.15);
+  background: rgba(63, 185, 80, 0.12);
   color: var(--success);
 }
 
 .status-warning {
-  background: rgba(210, 153, 34, 0.15);
+  background: rgba(210, 153, 34, 0.12);
   color: var(--warning);
 }
 
 .status-error {
-  background: rgba(248, 81, 73, 0.15);
+  background: rgba(248, 81, 73, 0.12);
   color: var(--error);
 }
 
@@ -194,6 +201,57 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--ui);
   font-size: inherit;
 }
+
+/* Typography hierarchy - Wellfound-inspired bold headings */
+.heading-1 {
+  font-size: clamp(20px, 5vw, 28px);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.4px;
+  color: var(--text);
+  margin-bottom: 20px;
+}
+
+.heading-2 {
+  font-size: clamp(16px, 3.5vw, 20px);
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.3px;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+.heading-3 {
+  font-size: clamp(14px, 2.5vw, 16px);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.body-text {
+  font-size: clamp(13px, 2vw, 14px);
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.label-text {
+  font-size: clamp(11px, 1.8vw, 12px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+}
+
+/* Spacing utilities - Wellfound's generous whitespace */
+.spacing-xs { gap: 4px; margin-bottom: 4px; }
+.spacing-sm { gap: 8px; margin-bottom: 8px; }
+.spacing-md { gap: 12px; margin-bottom: 12px; }
+.spacing-lg { gap: 16px; margin-bottom: 16px; }
+.spacing-xl { gap: 24px; margin-bottom: 24px; }
+.spacing-2xl { gap: 32px; margin-bottom: 32px; }
 
 .badge {
   display: inline-block;

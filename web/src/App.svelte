@@ -114,10 +114,10 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 16px;
+    padding: 16px 24px;
     background: var(--bg-2);
     border-bottom: 1px solid var(--border);
-    gap: 12px;
+    gap: 16px;
     position: relative;
     z-index: 100;
     flex-wrap: wrap;
