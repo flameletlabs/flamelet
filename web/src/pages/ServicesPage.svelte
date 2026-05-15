@@ -1,17 +1,16 @@
 <script>
-  import { onMount } from 'svelte'
   import { getServices, getServiceDetail, getTenantHosts, getHostServices } from '../lib/api.js'
 
-  export let tenant = null
+  let { tenant = null } = $props()
 
-  let viewMode = 'services'
-  let services = []
-  let hosts = []
-  let search = ''
-  let loading = true
-  let error = null
-  let expandedService = null
-  let serviceDetails = {}
+  let viewMode = $state('services')
+  let services = $state([])
+  let hosts = $state([])
+  let search = $state('')
+  let loading = $state(true)
+  let error = $state(null)
+  let expandedService = $state(null)
+  let serviceDetails = $state({})
 
   async function loadServices() {
     if (!tenant) return
@@ -67,26 +66,22 @@
     }
   }
 
-  let filteredServices = []
-  let filteredHosts = []
+  let filteredServices = $derived.by(() => {
+    const s = search.toLowerCase()
+    return services.filter(svc => {
+      const name = svc.name.replace(/_/g, ' ').toLowerCase()
+      const attr = (svc.config_attr || '').toLowerCase()
+      return !s || name.includes(s) || attr.includes(s)
+    })
+  })
 
-  $: {
-    const searchLower = search.toLowerCase()
-    if (viewMode === 'services') {
-      filteredServices = services.filter(s => {
-        const name = s.name.replace(/_/g, ' ').toLowerCase()
-        const attr = (s.config_attr || '').toLowerCase()
-        return !searchLower || name.includes(searchLower) || attr.includes(searchLower)
-      })
-    } else {
-      filteredHosts = hosts.filter(h => {
-        return !searchLower || h.name.toLowerCase().includes(searchLower)
-      })
-    }
-  }
+  let filteredHosts = $derived.by(() => {
+    const s = search.toLowerCase()
+    return hosts.filter(h => !s || h.name.toLowerCase().includes(s))
+  })
 
-  $: if (tenant && viewMode === 'services') loadServices()
-  $: if (tenant && viewMode === 'hosts') loadHostsServices()
+  $effect(() => { if (tenant && viewMode === 'services') loadServices() })
+  $effect(() => { if (tenant && viewMode === 'hosts') loadHostsServices() })
 </script>
 
 <div class="page">
@@ -120,7 +115,7 @@
         <div class="services-list">
           {#each filteredServices as service}
             <div class="service-item" class:expanded={expandedService === service.name}>
-              <div class="service-header" role="button" tabindex="0" on:click={() => toggleServiceExpand(service.name)} on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && toggleServiceExpand(service.name)}>
+              <div class="service-header" role="button" tabindex="0" onclick={() => toggleServiceExpand(service.name)} onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && toggleServiceExpand(service.name)}>
                 <span class="chevron">›</span>
                 <div class="service-name">{service.name.replace(/_/g, ' ')}</div>
                 <div class="service-badge">{service.config_attr}</div>

@@ -2,8 +2,8 @@
   import { onMount, tick } from 'svelte'
   import { getTenants, getTenantHosts, postRun } from '../lib/api.js'
 
-  let tenants = []
-  let hosts = []
+  let tenants = $state([])
+  let hosts = $state([])
   let tasks = [
     'users', 'sudo', 'packages', 'sysctl', 'services', 'wireguard', 'monit',
     'unbound', 'pf', 'docker', 'node_exporter', 'k3s', 'bhyve', 'jails',
@@ -11,16 +11,16 @@
     'opensmtpd', 'all'
   ]
 
-  let selectedTenant = ''
-  let selectedTask = 'sysctl'
-  let selectedHosts = new Set()
-  let dryRun = true
+  let selectedTenant = $state('')
+  let selectedTask = $state('sysctl')
+  let selectedHosts = $state(new Set())
+  let dryRun = $state(true)
 
-  let runId = null
-  let running = false
-  let status = null
-  let logLines = []
-  let logEl = null
+  let runId = $state(null)
+  let running = $state(false)
+  let status = $state(null)
+  let logLines = $state([])
+  let logEl = $state(null)
 
   onMount(async () => {
     tenants = await getTenants()
@@ -85,7 +85,7 @@
     <div class="form-body">
       <label>
         <span>Tenant</span>
-        <select bind:value={selectedTenant} on:change={loadHosts}>
+        <select bind:value={selectedTenant} onchange={loadHosts}>
           {#each tenants as t}
             <option value={t.name}>{t.name}</option>
           {/each}
@@ -104,18 +104,18 @@
       <div class="host-section">
         <div class="section-label">
           HOSTS
-          <button class="link-btn" on:click={selectAll}>
+          <button class="link-btn" onclick={selectAll}>
             all
           </button>
           /
-          <button class="link-btn" on:click={selectNone}> none </button>
+          <button class="link-btn" onclick={selectNone}> none </button>
         </div>
         {#each hosts as h}
           <label class="host-row">
             <input
               type="checkbox"
               checked={selectedHosts.has(h.name)}
-              on:change={() => toggleHost(h.name)}
+              onchange={() => toggleHost(h.name)}
             />
             <span class="mono host-name">{h.name}</span>
             <span class="badge badge-{h.os.toLowerCase()}">{h.os}</span>
@@ -128,7 +128,7 @@
         <span>Dry run (no changes)</span>
       </label>
 
-      <button class="run-btn" on:click={startRun} disabled={running || !selectedHosts.size}>
+      <button class="run-btn" onclick={startRun} disabled={running || !selectedHosts.size}>
         {running ? '● RUNNING...' : '▶ RUN'}
       </button>
     </div>

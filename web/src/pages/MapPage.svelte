@@ -4,14 +4,14 @@
   import L from 'leaflet'
   import 'leaflet/dist/leaflet.css'
 
-  export let tenant = null
+  let { tenant = null } = $props()
 
-  let mapInstance = null
-  let markers = []
-  let locations = []
-  let loading = true
-  let error = null
-  let locationsWithoutCoords = []
+  let mapInstance = $state(null)
+  let markers = $state([])
+  let locations = $state([])
+  let loading = $state(true)
+  let error = $state(null)
+  let locationsWithoutCoords = $state([])
 
   async function loadMap() {
     if (!tenant) return
@@ -114,7 +114,7 @@
     }).addTo(mapInstance)
   }
 
-  $: if (tenant) loadMap()
+  $effect(() => { if (tenant) loadMap() })
 </script>
 
 <div class="page">
