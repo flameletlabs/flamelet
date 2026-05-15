@@ -180,14 +180,15 @@
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    padding: 10px 16px;
+    padding: 12px 14px;
     background: none;
     border: none;
     color: var(--text-muted);
     cursor: pointer;
     text-align: left;
     border-bottom: 1px solid var(--border-muted);
-    transition: background 0.1s, color 0.1s;
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 44px;
   }
 
   .tenant-row:hover {
@@ -195,9 +196,15 @@
     color: var(--text);
   }
 
+  .tenant-row:active {
+    background: rgba(0, 212, 170, 0.1);
+  }
+
   .tenant-row.active {
     background: var(--accent-bg);
     color: var(--accent);
+    border-left: 3px solid var(--accent);
+    padding-left: 11px;
   }
 
   .tenant-name {
@@ -276,12 +283,17 @@
   }
 
   tr:hover td {
-    background: var(--bg-2);
+    background: var(--bg-3);
     cursor: pointer;
+  }
+
+  tr:active td {
+    background: rgba(0, 212, 170, 0.05);
   }
 
   tr.selected td {
     background: var(--accent-bg);
+    border-left: 3px solid var(--accent);
   }
 
   .col-num {
@@ -380,31 +392,42 @@
   }
 
   .group-btn {
-    padding: clamp(4px, 0.8vw, 5px) clamp(8px, 1.2vw, 10px);
+    padding: 8px 12px;
     background: var(--bg-3);
     border: 1px solid var(--border);
     color: var(--text-muted);
     cursor: pointer;
-    font-size: clamp(9px, 1.4vw, 10px);
+    font-size: 12px;
     font-family: var(--ui);
     font-weight: 600;
-    border-radius: 3px;
-    transition: all 150ms;
+    border-radius: 6px;
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
     line-height: 1.4;
     text-transform: uppercase;
     letter-spacing: 0.03em;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .group-btn:hover {
     background: var(--bg);
     color: var(--text);
+    border-color: var(--text-muted);
+  }
+
+  .group-btn:active {
+    background: rgba(0, 212, 170, 0.1);
+    color: var(--accent);
   }
 
   .group-btn.active {
     background: var(--accent);
     border-color: var(--accent);
     color: var(--bg);
-    font-weight: 600;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0, 212, 170, 0.2);
   }
 
   .group-header {

@@ -213,18 +213,21 @@
     border: 1px solid var(--border);
     color: var(--text);
     font-family: var(--ui);
-    font-size: clamp(11px, 1.4vw, 12px);
+    font-size: 13px;
     font-weight: 500;
-    padding: clamp(5px, 0.8vw, 8px) clamp(8px, 1.2vw, 10px);
-    border-radius: 3px;
+    padding: 10px 12px;
+    border-radius: 6px;
     cursor: pointer;
     outline: none;
+    min-height: 44px;
+    transition: all 200ms;
     -webkit-appearance: none;
     appearance: none;
   }
 
   select:focus {
     border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.1);
   }
 
   .host-section {
