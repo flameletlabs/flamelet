@@ -234,7 +234,9 @@
     font-size: clamp(12px, 1.8vw, 13px);
     font-weight: 700;
     color: var(--text);
-    letter-spacing: -0.3px;
+    letter-spacing: 0px;
+    font-family: 'Dosis', sans-serif;
+    text-transform: capitalize;
   }
 
   .path {
@@ -383,12 +385,14 @@
     border: 1px solid var(--border);
     color: var(--text-muted);
     cursor: pointer;
-    font-size: clamp(10px, 1.5vw, 11px);
-    font-family: var(--mono);
-    font-weight: 500;
-    border-radius: 2px;
+    font-size: clamp(9px, 1.4vw, 10px);
+    font-family: var(--ui);
+    font-weight: 600;
+    border-radius: 3px;
     transition: all 150ms;
     line-height: 1.4;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
   }
 
   .group-btn:hover {
