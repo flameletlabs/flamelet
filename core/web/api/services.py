@@ -154,40 +154,24 @@ async def get_topology(tenant_name: str):
     except Exception as e:
         return {"error": f"Failed to load configs: {str(e)}"}
 
-    # Build pubkey → hostname map from all WireGuard configs
+    # Build pubkey → hostname map from peer comments (hub topology)
+    # The hub (core.home) has comments like "virt.home spoke" on each peer
     pubkey_to_host = {}
-    for hostname, wg_config in wireguard_config.items():
-        if not isinstance(wg_config, dict) or "interfaces" not in wg_config:
-            continue
-        for interface, iface_config in wg_config.get("interfaces", {}).items():
-            pubkey = iface_config.get("private_key")
-            if pubkey:
-                # Derive public key from private key (in production, this would use actual crypto)
-                # For now, we can't derive it, so we'll match by storing host→pubkey
-                pubkey_to_host[pubkey] = hostname
 
-    # Build WireGuard peer reverse lookup (pubkey → host)
-    # Since we can't easily derive pubkey from privkey, build a map from all known peers
-    known_peers = {}
-    for hostname, wg_config in wireguard_config.items():
-        if not isinstance(wg_config, dict) or "interfaces" not in wg_config:
-            continue
-        for interface, iface_config in wg_config.get("interfaces", {}).items():
-            for peer in iface_config.get("peers", []):
-                peer_pubkey = peer.get("pubkey")
-                if peer_pubkey:
-                    # Try to find which host has this as its private key
-                    # For now, just store it as unknown
-                    if peer_pubkey not in known_peers:
-                        known_peers[peer_pubkey] = None
-
-    # Resolve peer pubkeys to hostnames by scanning all private keys
-    for hostname, wg_config in wireguard_config.items():
-        if not isinstance(wg_config, dict) or "interfaces" not in wg_config:
-            continue
-        privkey = wg_config.get("interfaces", {}).get("wg0", {}).get("private_key")
-        if privkey and privkey in known_peers:
-            known_peers[privkey] = hostname
+    if "core.home" in wireguard_config:
+        core_cfg = wireguard_config["core.home"]
+        if isinstance(core_cfg, dict) and "interfaces" in core_cfg:
+            for iface, iface_cfg in core_cfg.get("interfaces", {}).items():
+                for peer in iface_cfg.get("peers", []):
+                    comment = peer.get("comment", "")
+                    pubkey = peer.get("pubkey")
+                    if pubkey and "spoke" in comment:
+                        # Extract hostname from comment like "virt.home spoke"
+                        hostname = comment.split()[0]
+                        pubkey_to_host[pubkey] = hostname
+                    elif pubkey and "uplink" not in comment:
+                        # Other hub peers map to self
+                        pubkey_to_host[pubkey] = "core.home"
 
     # Build nodes
     nodes = []
@@ -222,25 +206,23 @@ async def get_topology(tenant_name: str):
         for iface_name, iface_config in wg_config.get("interfaces", {}).items():
             for peer in iface_config.get("peers", []):
                 peer_pubkey = peer.get("pubkey")
-                peer_host = None
-
-                # Try to resolve pubkey to a hostname
-                for other_host, other_wg_config in wireguard_config.items():
-                    if not isinstance(other_wg_config, dict):
-                        continue
-                    other_privkey = other_wg_config.get("interfaces", {}).get(iface_name, {}).get("private_key")
-                    if not other_privkey:
-                        # Try wg0 as fallback
-                        other_privkey = other_wg_config.get("interfaces", {}).get("wg0", {}).get("private_key")
-                    if other_privkey == peer_pubkey:
-                        peer_host = other_host
-                        break
-
-                if not peer_host:
-                    # Unknown peer, skip for now
+                if not peer_pubkey:
                     continue
 
-                edge_id = f"wg:{hostname}:{iface_name}->{peer_host}"
+                # Look up which host this pubkey belongs to
+                peer_host = pubkey_to_host.get(peer_pubkey)
+                if not peer_host:
+                    # Unknown peer, assume core.home for spokes pointing to hub
+                    if "core.home" in pubkey_to_host.values():
+                        peer_host = "core.home"
+                    else:
+                        continue
+
+                # Skip self-loops (host can't be peer to itself)
+                if peer_host == hostname:
+                    continue
+
+                edge_id = f"wg:{hostname}->{peer_host}"
                 if edge_id in edge_ids:
                     continue
                 edge_ids.add(edge_id)
@@ -268,13 +250,16 @@ async def get_topology(tenant_name: str):
 
         for from_host in deploy_to:
             # AutoSSH tunnel goes FROM deploy_to host TO remote_host
+            # Map external gateway domain to internal hostname
+            display_host = "core.home" if remote_host == "wg.ivomarino.com" else remote_host
+
             edge_id = f"autossh:{tunnel_name}"
             if edge_id not in edge_ids:
                 edge_ids.add(edge_id)
                 edges.append({
                     "id": edge_id,
                     "from": from_host,
-                    "to": remote_host,
+                    "to": display_host,
                     "type": "autossh",
                     "local_port": local_port,
                     "remote_host": remote_host,
