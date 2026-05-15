@@ -139,7 +139,13 @@
     if (text.startsWith('[CHANGED]')) return 'log-changed'
     if (text.startsWith('[OK]')) return 'log-ok'
     if (text.startsWith('[FAILED]')) return 'log-failed'
+    if (text.startsWith('[ERROR]') || text.startsWith('ERROR:')) return 'log-failed'
     if (text.startsWith('[CHECK]')) return 'log-check'
+    if (text.startsWith('    $ ')) return 'log-cmd'
+    if (text.startsWith('    upload →') || text.startsWith('    upload ->')) return 'log-check'
+    if (text.startsWith('- ') && !text.startsWith('-- ')) return 'log-diff-del'
+    if (text.startsWith('+ ') && !text.startsWith('++ ')) return 'log-diff-add'
+    if (text.startsWith('@@ ')) return 'log-diff-hunk'
     if (text.startsWith('→ ')) return 'log-op'
     if (text.startsWith('=== Summary') || text.startsWith('=== Deployment')) return 'log-summary'
     return ''
@@ -913,6 +919,10 @@
   .text.log-failed { color: var(--error); font-weight: 600; }
   .text.log-check { color: var(--accent); }
   .text.log-op { color: var(--text); font-weight: 600; }
+  .text.log-cmd { color: #a5d6ff; font-family: 'JetBrains Mono', monospace; }
+  .text.log-diff-del { color: #ff7b72; }
+  .text.log-diff-add { color: #3fb950; }
+  .text.log-diff-hunk { color: #6e7681; font-style: italic; }
   .text.log-summary {
     color: var(--text);
     font-weight: 700;
