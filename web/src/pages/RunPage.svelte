@@ -257,14 +257,20 @@
   .host-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 5px 8px;
-    border-radius: 2px;
+    gap: 10px;
+    padding: 10px 10px;
+    border-radius: 6px;
     cursor: pointer;
+    min-height: 44px;
+    transition: background 200ms;
   }
 
   .host-row:hover {
     background: var(--bg-3);
+  }
+
+  .host-row:active {
+    background: rgba(0, 212, 170, 0.1);
   }
 
   .host-name {
@@ -287,26 +293,38 @@
   }
 
   .run-btn {
-    margin-top: 4px;
-    padding: 10px;
-    background: var(--accent-bg);
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    font-family: var(--mono);
-    font-size: 12px;
+    margin-top: 12px;
+    padding: 14px 16px;
+    background: var(--accent);
+    border: none;
+    color: var(--bg);
+    font-family: var(--ui);
+    font-size: 14px;
     font-weight: 700;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.04em;
     cursor: pointer;
-    border-radius: 2px;
-    transition: background 0.15s;
+    border-radius: 8px;
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
   }
 
   .run-btn:hover:not(:disabled) {
-    background: rgba(0, 212, 170, 0.18);
+    background: #00c99f;
+    box-shadow: 0 4px 12px rgba(0, 212, 170, 0.3);
+    transform: translateY(-2px);
+  }
+
+  .run-btn:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(0, 212, 170, 0.2);
   }
 
   .run-btn:disabled {
-    opacity: 0.4;
+    opacity: 0.5;
     cursor: not-allowed;
   }
 

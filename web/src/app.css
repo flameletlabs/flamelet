@@ -156,3 +156,23 @@ input, select, button {
 button, input, select {
   letter-spacing: inherit;
 }
+
+/* Touch-friendly defaults */
+button, input[type="button"], input[type="submit"], input[type="reset"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+input[type="text"], input[type="search"], input[type="email"], textarea, select {
+  min-height: 42px;
+}
+
+/* Smooth transitions */
+button, a, input, select {
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Active state feedback */
+button:active, a:active {
+  transform: scale(0.98);
+}
