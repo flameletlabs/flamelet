@@ -70,6 +70,16 @@
     return 'healthy'
   }
 
+  let copiedText = null
+
+  function copyToClipboard(text) {
+    navigator.clipboard.writeText(text)
+    copiedText = text
+    setTimeout(() => {
+      copiedText = null
+    }, 2000)
+  }
+
   $: grouped = groupHosts(hosts, groupBy)
 </script>
 
@@ -162,7 +172,7 @@
       <div class="cards-view">
         {#each Object.entries(grouped) as [groupName, groupHosts], groupIdx}
           <div class="group-section">
-            <div class="group-title" on:click={() => toggleGroup(groupName)}>
+            <div class="group-title" role="button" tabindex="0" on:click={() => toggleGroup(groupName)} on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && toggleGroup(groupName)}>
               <span class="group-toggle" class:collapsed={collapseState[groupName]}>›</span>
               <span>{groupName}</span>
               <span class="group-count-badge">{groupHosts.length}</span>
@@ -171,7 +181,7 @@
               <div class="hosts-cards">
                 {#each groupHosts as host, i (host.name)}
                   <div class="host-card" class:selected={selectedHost?.name === host.name} class:expanded={expandedHostDetails === host.name} style="animation-delay: {(groupIdx * 10 + i) * 40}ms;">
-                    <div class="card-header" on:click={() => expandedHostDetails = expandedHostDetails === host.name ? null : host.name}>
+                    <div class="card-header" role="button" tabindex="0" on:click={() => expandedHostDetails = expandedHostDetails === host.name ? null : host.name} on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && (expandedHostDetails = expandedHostDetails === host.name ? null : host.name)}>
                       <div class="expand-toggle">›</div>
                       <div class="host-name">{host.name}</div>
                       <span class="badge badge-{host.os.toLowerCase()}">{host.os}</span>
@@ -192,7 +202,12 @@
                           <div class="detail-label">Host Details</div>
                           <div class="detail-row">
                             <span class="detail-key">Name:</span>
-                            <span class="detail-value mono">{host.name}</span>
+                            <div class="detail-value-with-copy">
+                              <span class="detail-value mono">{host.name}</span>
+                              <button class="copy-btn" on:click={() => copyToClipboard(host.name)} title="Copy hostname">
+                                {copiedText === host.name ? '✓' : '⎘'}
+                              </button>
+                            </div>
                           </div>
                           <div class="detail-row">
                             <span class="detail-key">OS:</span>
@@ -839,6 +854,40 @@
     color: var(--text);
     flex: 1;
     text-align: right;
+  }
+
+  .detail-value-with-copy {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    justify-content: flex-end;
+  }
+
+  .copy-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    min-height: 24px;
+  }
+
+  .copy-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0, 212, 170, 0.1);
+  }
+
+  .copy-btn:active {
+    transform: scale(0.95);
   }
 
   .group-list {

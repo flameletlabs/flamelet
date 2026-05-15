@@ -120,7 +120,7 @@
         <div class="services-list">
           {#each filteredServices as service}
             <div class="service-item" class:expanded={expandedService === service.name}>
-              <div class="service-header" on:click={() => toggleServiceExpand(service.name)}>
+              <div class="service-header" role="button" tabindex="0" on:click={() => toggleServiceExpand(service.name)} on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && toggleServiceExpand(service.name)}>
                 <span class="chevron">›</span>
                 <div class="service-name">{service.name.replace(/_/g, ' ')}</div>
                 <div class="service-badge">{service.config_attr}</div>

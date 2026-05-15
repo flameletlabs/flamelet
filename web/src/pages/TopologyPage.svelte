@@ -171,6 +171,7 @@
                 stroke-dasharray="6,3"
                 class="edge-wg"
                 opacity={hoveredEdge === edge.id ? 1 : 0.6}
+                role="presentation"
                 on:mouseenter={() => (hoveredEdge = edge.id)}
                 on:mouseleave={() => (hoveredEdge = null)}
               />
@@ -187,6 +188,7 @@
                 stroke-dasharray="4,4"
                 marker-end="url(#arrowhead-autossh)"
                 opacity={hoveredEdge === edge.id ? 1 : 0.5}
+                role="presentation"
                 on:mouseenter={() => (hoveredEdge = edge.id)}
                 on:mouseleave={() => (hoveredEdge = null)}
               />
@@ -199,7 +201,10 @@
             <g
               class="node"
               class:selected={selectedNode === node.id}
+              role="button"
+              tabindex="0"
               on:click={() => (selectedNode = node.id)}
+              on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && (selectedNode = node.id)}
               style="animation-delay: {idx * 80}ms;"
             >
               <!-- Accent bar -->

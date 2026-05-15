@@ -251,15 +251,6 @@
     overflow: hidden;
   }
 
-  .placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    color: var(--text-muted);
-    font-size: 13px;
-  }
-
   @media (max-width: 768px) {
     .top-header {
       padding: 12px 12px;

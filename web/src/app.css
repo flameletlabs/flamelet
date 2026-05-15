@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&display=swap');
+
 /* Mona Sans - GitHub's modern tech font (free, open source) */
 @font-face {
   font-family: 'Mona Sans';
@@ -6,8 +8,6 @@
   font-stretch: 75% 125%;
   font-display: swap;
 }
-
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&display=swap');
 
 *, *::before, *::after {
   box-sizing: border-box;
