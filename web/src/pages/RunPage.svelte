@@ -32,7 +32,7 @@
 
   async function loadHosts() {
     hosts = await getTenantHosts(selectedTenant)
-    selectedHosts = new Set(hosts.map(h => h.name))
+    selectedHosts = new Set()
   }
 
   function toggleHost(name) {
