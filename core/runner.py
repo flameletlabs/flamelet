@@ -195,19 +195,25 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
 
     # Execute
     print("Running operations...")
+    aborted = False
     try:
         run_ops(state)
     except PyinfraError as e:
-        print(f"Error during deployment: {e}", file=sys.stderr)
-        return 1
+        print(f"[FAILED] {e}")
+        aborted = True
     finally:
         disconnect_all(state)
 
-    # Summary
+    # Summary — always shown, even after a partial abort
     print("\n=== Summary ===")
-    exit_code = 0
-    for host in inventory.get_active_hosts():
+    exit_code = 1 if aborted else 0
+
+    all_hosts = set(inventory.get_active_hosts()) | state.failed_hosts
+    for host in all_hosts:
         r = state.results.get(host)
+        if host in state.failed_hosts and not r:
+            print(f"✗ {host.name:<30} connection failed")
+            continue
         if r:
             changed = callback._changed.get(host.name, 0)
             ok = r.success_ops - changed
@@ -219,6 +225,6 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
             if failed > 0:
                 exit_code = 1
         else:
-            print(f"? {host.name}: no operations run")
+            print(f"? {host.name:<30} no operations run")
 
-    return exit_code if not state.failed_hosts else 1
+    return exit_code
