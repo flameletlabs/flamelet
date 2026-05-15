@@ -100,25 +100,27 @@
     padding: 0;
     background: var(--bg);
     color: var(--text);
-    font-family: var(--sans);
+    font-family: var(--mono);
   }
 
   .app-wrapper {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    overflow: hidden;
   }
 
   .top-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 20px;
+    padding: 14px 16px;
     background: var(--bg-2);
     border-bottom: 1px solid var(--border);
-    gap: 20px;
+    gap: 12px;
     position: relative;
     z-index: 100;
+    flex-wrap: wrap;
   }
 
   .header-left {
@@ -127,36 +129,42 @@
 
   .brand {
     margin: 0;
-    font-size: clamp(14px, 2vw, 16px);
+    font-size: 14px;
     font-weight: 700;
     color: var(--text);
-    font-family: 'Dosis', sans-serif;
     letter-spacing: -0.3px;
     text-transform: uppercase;
-    font-size: clamp(13px, 1.8vw, 15px);
   }
 
   .header-center {
-    flex: 0 0 auto;
+    flex: 1;
+    min-width: 180px;
   }
 
   .tenant-select {
-    padding: clamp(5px, 1.2vw, 8px) clamp(10px, 1.5vw, 14px);
+    width: 100%;
+    padding: 8px 10px;
     background: var(--bg);
     color: var(--text);
     border: 1px solid var(--border);
-    border-radius: 4px;
-    font-family: var(--ui);
-    font-size: clamp(11px, 1.6vw, 12px);
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 12px;
     font-weight: 500;
     cursor: pointer;
-    line-height: 1.5;
+    transition: border-color 200ms;
     -webkit-appearance: none;
     appearance: none;
   }
 
-  .tenant-select:hover {
+  .tenant-select:focus {
+    outline: none;
     border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.1);
+  }
+
+  .tenant-select:hover {
+    border-color: var(--text-muted);
   }
 
   .header-right {
@@ -166,11 +174,17 @@
   .theme-toggle {
     background: none;
     border: none;
-    font-size: 18px;
+    font-size: 16px;
     cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 4px;
-    transition: background 150ms;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: background 150ms, transform 150ms;
+    display: flex;
+    align-items: center;
+  }
+
+  .theme-toggle:active {
+    transform: scale(0.95);
   }
 
   .theme-toggle:hover {
@@ -180,33 +194,46 @@
   .tab-nav {
     display: flex;
     gap: 0;
-    padding: 0 20px;
+    padding: 0 8px;
     background: var(--bg);
     border-bottom: 1px solid var(--border);
-    align-items: center;
+    align-items: stretch;
     position: relative;
     z-index: 99;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab-nav::-webkit-scrollbar {
+    display: none;
   }
 
   .tab-nav button {
-    padding: clamp(10px, 1.5vw, 12px) clamp(12px, 2vw, 16px);
+    padding: 12px 14px;
     background: none;
     border: none;
     color: var(--text-muted);
-    font-size: clamp(10px, 1.5vw, 12px);
-    font-family: var(--ui);
+    font-size: 12px;
+    font-family: var(--mono);
     font-weight: 600;
     cursor: pointer;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.04em;
     line-height: 1.4;
-    transition: color 150ms, border-color 150ms;
-    border-bottom: 3px solid transparent;
+    transition: color 200ms, background 200ms;
+    border-bottom: 2px solid transparent;
     margin-bottom: -1px;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .tab-nav button:hover {
     color: var(--text);
+    background: rgba(0, 212, 170, 0.05);
+  }
+
+  .tab-nav button:active {
+    background: rgba(0, 212, 170, 0.1);
   }
 
   .tab-nav button.active {
@@ -225,97 +252,103 @@
     justify-content: center;
     height: 100%;
     color: var(--text-muted);
-    font-size: 14px;
-  }
-
-  @media (max-width: 900px) {
-    .top-header {
-      padding: clamp(6px, 1vw, 10px) clamp(10px, 1.5vw, 16px);
-      gap: clamp(8px, 1.5vw, 16px);
-    }
-
-    .tab-nav {
-      padding: 0 clamp(8px, 1.5vw, 16px);
-    }
-
-    .tab-nav button {
-      padding: clamp(8px, 1.2vw, 10px) clamp(10px, 1.5vw, 14px);
-    }
+    font-size: 13px;
   }
 
   @media (max-width: 768px) {
     .top-header {
-      padding: clamp(6px, 1.2vw, 8px) clamp(10px, 1.5vw, 12px);
-      gap: clamp(6px, 1.2vw, 10px);
-      flex-wrap: wrap;
+      padding: 12px 12px;
+      gap: 10px;
+    }
+
+    .brand {
+      font-size: 13px;
+    }
+
+    .header-center {
+      flex: 0 0 100%;
+      order: 3;
+      min-width: auto;
     }
 
     .tenant-select {
-      padding: clamp(4px, 0.8vw, 6px) clamp(8px, 1.2vw, 10px);
-      font-size: clamp(11px, 1.6vw, 12px);
+      padding: 7px 10px;
+      font-size: 12px;
     }
 
-    .theme-toggle {
-      font-size: clamp(14px, 2vw, 16px);
-      padding: clamp(2px, 0.5vw, 4px);
+    .tab-nav {
+      padding: 0 4px;
+    }
+
+    .tab-nav button {
+      padding: 10px 12px;
+      font-size: 11px;
     }
   }
 
   @media (max-width: 640px) {
     .top-header {
-      gap: clamp(6px, 1.2vw, 8px);
-      padding: clamp(6px, 1vw, 8px) clamp(8px, 1.2vw, 10px);
-    }
-
-    .header-left {
-      flex: 1;
-    }
-
-    .header-center {
-      order: 3;
-      flex: 1 100%;
+      padding: 10px 10px;
+      gap: 8px;
     }
 
     .brand {
-      font-size: clamp(11px, 1.8vw, 12px);
+      font-size: 12px;
+    }
+
+    .header-center {
+      flex: 1;
+      order: 2;
+      min-width: 0;
+    }
+
+    .header-right {
+      order: 1;
     }
 
     .tenant-select {
-      width: 100%;
-      padding: clamp(4px, 0.8vw, 5px) clamp(6px, 1vw, 8px);
-      font-size: clamp(10px, 1.4vw, 11px);
+      padding: 6px 8px;
+      font-size: 11px;
+    }
+
+    .theme-toggle {
+      padding: 5px 8px;
+      font-size: 14px;
     }
 
     .tab-nav {
-      padding: 0 clamp(6px, 1vw, 8px);
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
+      padding: 0 2px;
     }
 
     .tab-nav button {
-      padding: clamp(8px, 1vw, 10px) clamp(8px, 1.2vw, 12px);
-      font-size: clamp(10px, 1.4vw, 11px);
-      flex-shrink: 0;
+      padding: 10px 10px;
+      font-size: 10px;
     }
   }
 
   @media (max-width: 480px) {
     .top-header {
-      padding: clamp(6px, 0.8vw, 7px) clamp(6px, 1vw, 8px);
+      padding: 8px 8px;
+      gap: 6px;
     }
 
     .brand {
-      font-size: clamp(10px, 1.5vw, 11px);
+      font-size: 11px;
     }
 
     .tenant-select {
-      font-size: clamp(9px, 1.2vw, 10px);
-      padding: clamp(3px, 0.6vw, 4px) clamp(5px, 0.8vw, 6px);
+      padding: 5px 6px;
+      font-size: 10px;
+    }
+
+    .theme-toggle {
+      padding: 4px 6px;
+      font-size: 13px;
     }
 
     .tab-nav button {
-      padding: clamp(6px, 0.8vw, 8px) clamp(6px, 1vw, 10px);
-      font-size: clamp(9px, 1.2vw, 10px);
+      padding: 8px 10px;
+      font-size: 9px;
     }
   }
 </style>
