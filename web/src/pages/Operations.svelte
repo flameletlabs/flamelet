@@ -103,10 +103,10 @@
   .toolbar {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 14px 16px;
+    gap: 16px;
+    padding: 16px 20px;
     border-bottom: 1px solid var(--border);
-    background: var(--bg-2);
+    background: linear-gradient(90deg, var(--bg-2) 0%, rgba(15, 22, 41, 0.5) 100%);
     flex-wrap: wrap;
   }
 
@@ -259,9 +259,10 @@
     background: var(--bg-2);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 14px;
+    padding: 16px;
     animation: slideIn 300ms ease-out forwards;
     opacity: 0;
+    min-height: 44px;
   }
 
   @keyframes slideIn {

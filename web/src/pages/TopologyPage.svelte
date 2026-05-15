@@ -274,11 +274,12 @@
   }
 
   .header {
-    padding: 16px 20px;
+    padding: 20px 28px;
     border-bottom: 1px solid var(--border);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    background: linear-gradient(90deg, var(--bg-2) 0%, rgba(15, 22, 41, 0.5) 100%);
   }
 
   .header h1 {
