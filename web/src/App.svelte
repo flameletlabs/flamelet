@@ -117,6 +117,8 @@
     background: var(--bg-2);
     border-bottom: 1px solid var(--border);
     gap: 20px;
+    position: relative;
+    z-index: 100;
   }
 
   .header-left {
@@ -128,8 +130,10 @@
     font-size: clamp(14px, 2vw, 16px);
     font-weight: 700;
     color: var(--text);
-    font-family: var(--mono);
-    letter-spacing: -0.5px;
+    font-family: 'Dosis', sans-serif;
+    letter-spacing: -0.3px;
+    text-transform: uppercase;
+    font-size: clamp(13px, 1.8vw, 15px);
   }
 
   .header-center {
@@ -142,10 +146,13 @@
     color: var(--text);
     border: 1px solid var(--border);
     border-radius: 4px;
-    font-family: var(--mono);
-    font-size: clamp(12px, 1.8vw, 13px);
+    font-family: var(--ui);
+    font-size: clamp(11px, 1.6vw, 12px);
+    font-weight: 500;
     cursor: pointer;
-    line-height: 1.4;
+    line-height: 1.5;
+    -webkit-appearance: none;
+    appearance: none;
   }
 
   .tenant-select:hover {
@@ -177,6 +184,8 @@
     background: var(--bg);
     border-bottom: 1px solid var(--border);
     align-items: center;
+    position: relative;
+    z-index: 99;
   }
 
   .tab-nav button {
@@ -184,15 +193,15 @@
     background: none;
     border: none;
     color: var(--text-muted);
-    font-size: clamp(11px, 1.6vw, 13px);
-    font-family: var(--mono);
-    font-weight: 500;
+    font-size: clamp(10px, 1.5vw, 12px);
+    font-family: var(--ui);
+    font-weight: 600;
     cursor: pointer;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
     line-height: 1.4;
     transition: color 150ms, border-color 150ms;
-    border-bottom: 2px solid transparent;
+    border-bottom: 3px solid transparent;
     margin-bottom: -1px;
   }
 

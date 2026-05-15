@@ -193,17 +193,28 @@
     gap: 16px;
     padding: 16px;
     overflow: hidden;
+    position: relative;
+    z-index: 1;
   }
 
   #leaflet-map {
     flex: 1;
     border-radius: 4px;
     border: 1px solid var(--border);
+    touch-action: manipulation;
   }
 
   :global(.leaflet-container) {
     background: var(--bg-2);
     border-radius: 4px;
+  }
+
+  :global(.leaflet-pane) {
+    pointer-events: auto;
+  }
+
+  :global(.leaflet-control-container) {
+    pointer-events: auto;
   }
 
   :global(.leaflet-popup-content-wrapper) {
