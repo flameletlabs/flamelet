@@ -203,9 +203,9 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 12px 24px;
+    padding: 16px 28px;
     border-bottom: 1px solid var(--border);
-    background: var(--bg-2);
+    background: linear-gradient(90deg, var(--bg-2) 0%, rgba(15, 22, 41, 0.5) 100%);
   }
 
   .title {

@@ -81,7 +81,7 @@ body {
 .spacing-lg { gap: 16px; }
 .spacing-xl { gap: 24px; }
 
-/* Card pattern */
+/* Card pattern - enhanced spacing */
 .card {
   background: var(--bg-2);
   border: 1px solid var(--border);
@@ -97,6 +97,67 @@ body {
 
 .card:active {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Gradient section headers - visual confidence */
+.section-header {
+  background: linear-gradient(90deg, var(--bg-2) 0%, rgba(15, 22, 41, 0.5) 100%);
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  border-radius: 8px 8px 0 0;
+}
+
+/* Status indicator badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: clamp(10px, 1.5vw, 11px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.status-healthy {
+  background: rgba(63, 185, 80, 0.15);
+  color: var(--success);
+}
+
+.status-warning {
+  background: rgba(210, 153, 34, 0.15);
+  color: var(--warning);
+}
+
+.status-error {
+  background: rgba(248, 81, 73, 0.15);
+  color: var(--error);
+}
+
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.status-dot.healthy {
+  background: var(--success);
+}
+
+.status-dot.warning {
+  background: var(--warning);
+}
+
+.status-dot.error {
+  background: var(--error);
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
 
 ::-webkit-scrollbar {

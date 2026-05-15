@@ -222,7 +222,7 @@
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    padding: 12px 14px;
+    padding: 14px 16px;
     background: none;
     border: none;
     color: var(--text-muted);
@@ -231,6 +231,7 @@
     border-bottom: 1px solid var(--border-muted);
     transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
     min-height: 44px;
+    gap: 12px;
   }
 
   .tenant-row:hover {
@@ -273,10 +274,10 @@
   .panel-header {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 16px 20px;
+    gap: 10px;
+    padding: 20px 24px;
     border-bottom: 1px solid var(--border);
-    background: var(--bg-2);
+    background: linear-gradient(90deg, var(--bg-2) 0%, rgba(15, 22, 41, 0.5) 100%);
   }
 
   .header-content {
@@ -439,8 +440,8 @@
   .group-selector {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 20px;
+    gap: 14px;
+    padding: 16px 24px;
     border-bottom: 1px solid var(--border);
     background: var(--bg-2);
     flex-wrap: wrap;
@@ -618,7 +619,7 @@
     background: var(--bg-2);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 14px;
+    padding: 16px;
     cursor: pointer;
     transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
     animation: slideIn 300ms ease-out forwards;
@@ -626,7 +627,7 @@
     min-height: 44px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
   }
 
   @keyframes slideIn {

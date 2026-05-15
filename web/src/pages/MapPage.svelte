@@ -168,9 +168,9 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 16px 24px;
+    padding: 20px 28px;
     border-bottom: 1px solid var(--border);
-    background: var(--bg-2);
+    background: linear-gradient(90deg, var(--bg-2) 0%, rgba(15, 22, 41, 0.5) 100%);
   }
 
   .map-header h2 {
@@ -261,15 +261,21 @@
   }
 
   .location-item {
-    padding: 10px;
+    padding: 12px 14px;
     background: var(--bg-3);
     border: 1px solid var(--border-muted);
-    border-radius: 3px;
+    border-radius: 4px;
     font-size: clamp(12px, 2.5vw, 13px);
     min-height: 44px;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .location-item:hover {
+    border-color: rgba(0, 212, 170, 0.3);
+    background: var(--bg-2);
   }
 
   .location-name {

@@ -178,20 +178,21 @@
   }
 
   .form-header {
-    padding: 12px 20px 8px;
+    padding: 16px 24px 12px;
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.1em;
     color: var(--text-dim);
     text-transform: uppercase;
     border-bottom: 1px solid var(--border-muted);
+    background: linear-gradient(90deg, var(--bg-2) 0%, rgba(15, 22, 41, 0.5) 100%);
   }
 
   .form-body {
-    padding: 20px;
+    padding: 24px;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 20px;
   }
 
   label:not(.host-row):not(.dry-row) {
@@ -343,9 +344,9 @@
     align-items: center;
     gap: 12px;
     justify-content: space-between;
-    padding: 10px 20px;
+    padding: 14px 20px;
     border-bottom: 1px solid var(--border);
-    background: var(--bg-2);
+    background: linear-gradient(90deg, var(--bg-2) 0%, rgba(15, 22, 41, 0.5) 100%);
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.1em;
