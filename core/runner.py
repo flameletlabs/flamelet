@@ -155,6 +155,12 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
         if state.failed_hosts:
             print(f"[DEBUG] Failed hosts: {[h.name for h in state.failed_hosts]}")
 
+    # Exclude hosts that failed to connect so add_ops_func doesn't try
+    # fact-reads (change detection) against disconnected hosts.
+    if target_hosts:
+        target_hosts = [h for h in target_hosts if h not in state.failed_hosts]
+        state.limit_hosts = target_hosts if target_hosts else None
+
     # Queue operations
     print(f"Adding operations (task={args.task})...")
     add_ops_func(state, inventory, target_hosts=target_hosts, task=args.task)
