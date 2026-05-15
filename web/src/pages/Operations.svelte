@@ -79,6 +79,7 @@
             <span class="op-toggle">›</span>
             <span class="op-num">{(i + 1).toString().padStart(2, '0')}</span>
             <div class="op-title">{op.task}</div>
+            <span class="status-dot healthy"></span>
             <span class="op-badge">{op.op_type}</span>
           </div>
           {#if op.config_attr}
@@ -330,6 +331,31 @@
     font-weight: 700;
     color: var(--text-dim);
     min-width: 28px;
+  }
+
+  .status-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  .status-dot.healthy {
+    background: var(--success);
+  }
+
+  .status-dot.warning {
+    background: var(--warning);
+  }
+
+  .status-dot.error {
+    background: var(--error);
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
   }
 
   .op-title {

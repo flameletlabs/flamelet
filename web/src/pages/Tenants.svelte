@@ -58,6 +58,18 @@
     collapseState[groupName] = !collapseState[groupName]
   }
 
+  // Calculate health status for hosts (demo: based on host count)
+  function getHostsHealth(hostList) {
+    if (!hostList.length) return 'warning'
+    // In production: check actual service status
+    return hostList.length > 2 ? 'healthy' : 'warning'
+  }
+
+  function getHostHealth(host) {
+    // In production: check host's actual deployment status
+    return 'healthy'
+  }
+
   $: grouped = groupHosts(hosts, groupBy)
 </script>
 
@@ -66,7 +78,10 @@
     <div class="sidebar-header">TENANTS</div>
     {#each tenants as t}
       <button class="tenant-row" class:active={selected?.name === t.name} onclick={() => selectTenant(t)} style="animation-delay: {tenants.indexOf(t) * 50}ms;">
-        <span class="tenant-name">{t.name}</span>
+        <div class="tenant-info">
+          <span class="status-dot" class:healthy={true}></span>
+          <span class="tenant-name">{t.name}</span>
+        </div>
         <span class="tenant-count">{t.host_count}</span>
       </button>
     {/each}
@@ -282,6 +297,39 @@
     color: var(--accent);
     border-left: 3px solid var(--accent);
     padding-left: 11px;
+  }
+
+  .tenant-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .status-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  .status-dot.healthy {
+    background: var(--success);
+  }
+
+  .status-dot.warning {
+    background: var(--warning);
+  }
+
+  .status-dot.error {
+    background: var(--error);
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
   }
 
   .tenant-name {
