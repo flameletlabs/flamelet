@@ -242,6 +242,23 @@
     font-size: 13px;
   }
 
+  @media (max-width: 768px) {
+    .map-container {
+      flex-direction: column;
+      padding: 12px 16px;
+      gap: 12px;
+    }
+
+    .locations-list {
+      width: 100%;
+      max-height: 200px;
+    }
+
+    .map-header {
+      padding: 14px 16px;
+    }
+  }
+
   .locations-list {
     width: 280px;
     padding: 12px;
