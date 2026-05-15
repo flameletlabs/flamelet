@@ -6,6 +6,15 @@
   let filter = ''
   let filtered = []
   let expandedOp = null
+  let copiedText = null
+
+  function copyToClipboard(text) {
+    navigator.clipboard.writeText(text)
+    copiedText = text
+    setTimeout(() => {
+      copiedText = null
+    }, 2000)
+  }
 
   onMount(async () => {
     ops = await getOperations()
@@ -75,7 +84,7 @@
     <div class="cards-view">
       {#each filtered as op, i (op.task)}
         <div class="op-card" class:expanded={expandedOp === op.task} style="animation-delay: {i * 50}ms;">
-          <div class="card-header" on:click={() => expandedOp = expandedOp === op.task ? null : op.task}>
+          <div class="card-header" role="button" tabindex="0" on:click={() => expandedOp = expandedOp === op.task ? null : op.task} on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && (expandedOp = expandedOp === op.task ? null : op.task)}>
             <span class="op-toggle">›</span>
             <span class="op-num">{(i + 1).toString().padStart(2, '0')}</span>
             <div class="op-title">{op.task}</div>
@@ -343,14 +352,6 @@
 
   .status-dot.healthy {
     background: var(--success);
-  }
-
-  .status-dot.warning {
-    background: var(--warning);
-  }
-
-  .status-dot.error {
-    background: var(--error);
   }
 
   @keyframes pulse-dot {
