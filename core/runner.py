@@ -5,10 +5,12 @@ import logging
 import sys
 
 from pyinfra.api import Config, State
+from pyinfra.api.command import FileUploadCommand, StringCommand
 from pyinfra.api.connect import connect_all, disconnect_all
 from pyinfra.api.exceptions import PyinfraError
 from pyinfra.api.operations import run_ops
 from pyinfra.api.state import BaseStateCallback
+from pyinfra.context import ctx_host, ctx_state
 
 # Framework standard task choices — available on all tenants
 STANDARD_TASKS = ["groups", "users", "sudo", "all"]
@@ -36,6 +38,45 @@ class DeploymentCallback(BaseStateCallback):
     @staticmethod
     def operation_host_error(state, host, op_hash, **kwargs):
         print(f"  [FAILED] {host.name}")
+
+
+def _preview_ops(state, scope):
+    """Drain operation generators to show diffs/commands without executing.
+
+    Connects, reads remote facts, and logs diffs (via pyinfra logger) but never
+    calls .execute() on any yielded command, so nothing is written to the hosts.
+    """
+    state.is_executing = True
+    try:
+        with ctx_state.use(state):
+            for op_hash in state.get_op_order():
+                names = state.get_op_meta(op_hash).names
+                op_label = ", ".join(names)
+
+                for host in scope:
+                    if op_hash not in state.ops.get(host, {}):
+                        continue
+
+                    op_data = state.get_op_data_for_host(host, op_hash)
+                    print(f"→ {op_label}")
+
+                    try:
+                        with ctx_host.use(host):
+                            yielded = list(op_data.command_generator())
+
+                        if not yielded:
+                            print(f"  [OK] {host.name} — no changes")
+                        else:
+                            print(f"  [CHECK] {host.name} — would apply:")
+                            for cmd in yielded:
+                                if isinstance(cmd, StringCommand):
+                                    print(f"    $ {cmd}")
+                                elif isinstance(cmd, FileUploadCommand):
+                                    print(f"    upload → {cmd.dest}")
+                    except Exception as e:
+                        print(f"  [ERROR] {host.name}: {e}")
+    finally:
+        state.is_executing = False
 
 
 def build_parser(task_choices=None):
@@ -124,23 +165,31 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
     if args.dry:
         active = list(inventory.get_active_hosts())
         scope = target_hosts if target_hosts else active
-        total = 0
-        for host in scope:
-            host_ops = state.ops.get(host, {})
-            count = len(host_ops)
-            total += count
-            if count == 0:
-                print(f"[CHECK] {host.name} — no operations queued")
-            else:
-                noun = "operation" if count == 1 else "operations"
-                print(f"[CHECK] {host.name} — {count} {noun}:")
-                seen = set()
-                for op_hash in state.get_op_order():
-                    if op_hash in host_ops and op_hash not in seen:
-                        seen.add(op_hash)
-                        names = state.get_op_meta(op_hash).names
-                        print(f"  • {', '.join(names)}")
-        print(f"\n[CHECK] Total: {total} operation(s) across {len(scope)} host(s)")
+
+        if diff:
+            # Deep check: drain generators to read remote state and show diffs
+            print("Checking remote state (diff mode)...")
+            _preview_ops(state, scope)
+        else:
+            # Shallow check: list operation names only
+            total = 0
+            for host in scope:
+                host_ops = state.ops.get(host, {})
+                count = len(host_ops)
+                total += count
+                if count == 0:
+                    print(f"[CHECK] {host.name} — no operations queued")
+                else:
+                    noun = "operation" if count == 1 else "operations"
+                    print(f"[CHECK] {host.name} — {count} {noun}:")
+                    seen = set()
+                    for op_hash in state.get_op_order():
+                        if op_hash in host_ops and op_hash not in seen:
+                            seen.add(op_hash)
+                            names = state.get_op_meta(op_hash).names
+                            print(f"  • {', '.join(names)}")
+            print(f"\n[CHECK] Total: {total} operation(s) across {len(scope)} host(s)")
+
         disconnect_all(state)
         return 0
 
