@@ -22,9 +22,9 @@ class TaskEntry:
 def _init_registry() -> dict[str, list[TaskEntry]]:
     """Build TASK_REGISTRY after all imports are available."""
     from core.operations.autossh import add_autossh_gateway_ops, add_autossh_ops
+    from core.operations.bastille import add_bastille_ops
     from core.operations.bhyve import add_bhyve_ops
     from core.operations.docker import add_docker_ops
-    from core.operations.bastille import add_bastille_ops
     from core.operations.k3s import add_k3s_ops
     from core.operations.monit import add_monit_ops
     from core.operations.nginx import add_nginx_ops
