@@ -8,6 +8,7 @@
   let selectedHost = null
   let groupBy = sessionStorage.getItem('groupBy') || 'location'
   let collapseState = {}
+  let expandedHostDetails = null
 
   onMount(async () => {
     tenants = await getTenants()
@@ -154,8 +155,9 @@
             {#if !collapseState[groupName]}
               <div class="hosts-cards">
                 {#each groupHosts as host, i (host.name)}
-                  <div class="host-card" class:selected={selectedHost?.name === host.name} on:click={() => selectedHost = host} style="animation-delay: {(groupIdx * 10 + i) * 40}ms;">
-                    <div class="card-header">
+                  <div class="host-card" class:selected={selectedHost?.name === host.name} class:expanded={expandedHostDetails === host.name} style="animation-delay: {(groupIdx * 10 + i) * 40}ms;">
+                    <div class="card-header" on:click={() => expandedHostDetails = expandedHostDetails === host.name ? null : host.name}>
+                      <div class="expand-toggle">›</div>
                       <div class="host-name">{host.name}</div>
                       <span class="badge badge-{host.os.toLowerCase()}">{host.os}</span>
                     </div>
@@ -167,6 +169,38 @@
                         {#each host.groups.filter(g => !['linux','freebsd','openbsd'].includes(g.toLowerCase())).slice(0, 3) as g}
                           <span class="tag">{g}</span>
                         {/each}
+                      </div>
+                    {/if}
+                    {#if expandedHostDetails === host.name}
+                      <div class="host-details">
+                        <div class="detail-section">
+                          <div class="detail-label">Host Details</div>
+                          <div class="detail-row">
+                            <span class="detail-key">Name:</span>
+                            <span class="detail-value mono">{host.name}</span>
+                          </div>
+                          <div class="detail-row">
+                            <span class="detail-key">OS:</span>
+                            <span class="detail-value">{host.os}</span>
+                          </div>
+                          {#if host.location}
+                            <div class="detail-row">
+                              <span class="detail-key">Location:</span>
+                              <span class="detail-value">{host.location}</span>
+                            </div>
+                          {/if}
+                        </div>
+                        {#if host.groups.length > 0}
+                          <div class="detail-section">
+                            <div class="detail-label">Groups</div>
+                            <div class="group-list">
+                              {#each host.groups as g}
+                                <span class="detail-tag">{g}</span>
+                              {/each}
+                            </div>
+                          </div>
+                        {/if}
+                        <button class="detail-btn" on:click={() => selectedHost = host}>View Config</button>
                       </div>
                     {/if}
                   </div>
@@ -661,6 +695,22 @@
     align-items: center;
     gap: 10px;
     justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .expand-toggle {
+    display: inline-block;
+    font-size: 16px;
+    color: var(--text-muted);
+    transform: rotate(0deg);
+    transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 20px;
+    text-align: center;
+  }
+
+  .host-card.expanded .expand-toggle {
+    transform: rotate(90deg);
   }
 
   .host-name {
@@ -688,6 +738,97 @@
   .card-tags .tag {
     font-size: clamp(11px, 2vw, 12px);
     padding: 4px 8px;
+  }
+
+  .host-details {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: expandIn 200ms ease-out;
+  }
+
+  @keyframes expandIn {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .detail-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .detail-label {
+    font-size: clamp(10px, 1.8vw, 11px);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+  }
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: clamp(12px, 2.2vw, 13px);
+  }
+
+  .detail-key {
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .detail-value {
+    color: var(--text);
+    flex: 1;
+    text-align: right;
+  }
+
+  .group-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .detail-tag {
+    font-size: clamp(10px, 1.8vw, 11px);
+    padding: 3px 8px;
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text-muted);
+  }
+
+  .detail-btn {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: var(--accent);
+    border: none;
+    color: var(--bg);
+    font-family: var(--ui);
+    font-size: clamp(11px, 2vw, 12px);
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .detail-btn:hover {
+    background: var(--accent-dark);
+    box-shadow: 0 2px 8px rgba(0, 212, 170, 0.2);
+  }
+
+  .detail-btn:active {
+    transform: scale(0.98);
   }
 
   @media (max-width: 768px) {
