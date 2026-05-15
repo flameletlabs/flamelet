@@ -24,7 +24,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
     from core.operations.autossh import add_autossh_gateway_ops, add_autossh_ops
     from core.operations.bhyve import add_bhyve_ops
     from core.operations.docker import add_docker_ops
-    from core.operations.jails import add_jail_ops
+    from core.operations.bastille import add_bastille_ops
     from core.operations.k3s import add_k3s_ops
     from core.operations.monit import add_monit_ops
     from core.operations.nginx import add_nginx_ops
@@ -64,7 +64,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
         "node_exporter": [TaskEntry(add_node_exporter_ops, "NODE_EXPORTER", "standard")],
         "k3s": [TaskEntry(add_k3s_ops, "K3S", "standard", ["Linux"])],
         "bhyve": [TaskEntry(add_bhyve_ops, "BHYVE", "standard", ["FreeBSD"])],
-        "jails": [TaskEntry(add_jail_ops, "JAILS", "standard", ["FreeBSD"])],
+        "bastille": [TaskEntry(add_bastille_ops, "BASTILLE", "standard", ["FreeBSD"])],
         "storage": [TaskEntry(add_storage_ops, "STORAGE", "standard", ["FreeBSD", "Linux"])],
         "nginx": [TaskEntry(add_nginx_ops, "NGINX", "standard")],
         "postgresql": [TaskEntry(add_postgresql_ops, "POSTGRESQL", "standard")],

@@ -620,13 +620,13 @@ REGISTRY = {
 }
 ```
 
-#### `virtualization` — VM/Jail Management
+#### `virtualization` — bhyve VM Management
 **Config Attribute:** `VIRTUALIZATION` (hostname-keyed)
 
 ```python
 VIRTUALIZATION = {
-    "virt.home": {
-        "type": "bhyve",  # or "bastille"
+    "virt.example.com": {
+        "type": "bhyve",
         "zvol_pool": "vm-pool",
         "bridges": [
             {"name": "vm-bridge0", "interface": "em0"},
@@ -641,6 +641,39 @@ VIRTUALIZATION = {
                 "autostart": True,
             }
         ]
+    }
+}
+```
+
+#### `bastille` — FreeBSD Bastille Jail Management
+**Config Attribute:** `BASTILLE` (hostname-keyed, FreeBSD-only)
+
+Creates and configures VNET thick jails using Bastille. Handles release
+bootstrapping, jail creation, networking, SSH access, and package installation.
+
+```python
+BASTILLE = {
+    "virt.example.com": {
+        "release": "14.3-RELEASE",   # FreeBSD release to bootstrap
+        "bridge": "bridge10",         # VNET bridge interface
+        "zfs_enable": True,           # Use ZFS for jail storage
+        "zfs_zpool": "zroot",         # ZFS pool name
+        "jails": [
+            {
+                "name": "db",
+                "release": "14.3-RELEASE",
+                "ip": "10.0.0.51/24",    # static IP; use "0.0.0.0" for DHCP
+                "gateway": "10.0.0.1",
+                "thick": True,            # thick jail (full OS copy)
+                "static_mac": True,       # stable MAC across restarts
+                "sysvipc": True,          # needed for PostgreSQL/MariaDB
+                "allow": {"raw_sockets": 1},  # allow.* jail flags
+                "packages": ["mariadb1011-server", "python3"],
+                "ssh": True,              # enable sshd + copy authorized_keys
+                "authorized_keys_src": "/root/.ssh/authorized_keys",
+                "autostart": True,
+            },
+        ],
     }
 }
 ```

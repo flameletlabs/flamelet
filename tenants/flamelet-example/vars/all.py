@@ -129,5 +129,38 @@ BHYVE = {
     }
 }
 
-# JAILS — FreeBSD Bastille jail management (FreeBSD-only)
-JAILS = {}
+# BASTILLE — FreeBSD Bastille jail management (FreeBSD-only)
+BASTILLE = {
+    "virt.example.com": {
+        "release": "14.3-RELEASE",
+        "bridge": "bridge10",
+        "zfs_enable": True,
+        "zfs_zpool": "zroot",
+        "jails": [
+            {
+                "name": "db",
+                "release": "14.3-RELEASE",
+                "ip": "10.0.0.51/24",
+                "gateway": "10.0.0.1",
+                "thick": True,
+                "static_mac": True,
+                "sysvipc": True,
+                "allow": {"raw_sockets": 1},
+                "packages": ["mariadb1011-server", "python3"],
+                "ssh": True,
+                "autostart": True,
+            },
+            {
+                "name": "app",
+                "release": "14.3-RELEASE",
+                "ip": "10.0.0.52/24",
+                "gateway": "10.0.0.1",
+                "thick": True,
+                "static_mac": True,
+                "packages": ["python3"],
+                "ssh": True,
+                "autostart": True,
+            },
+        ],
+    }
+}
