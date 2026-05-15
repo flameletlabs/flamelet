@@ -40,11 +40,14 @@
     </div>
 
     <div class="header-center">
-      <select class="tenant-select" bind:value={selectedTenant}>
-        {#each tenants as tenant}
-          <option value={tenant.name}>{tenant.name}</option>
-        {/each}
-      </select>
+      <div class="tenant-wrap">
+        <select class="tenant-select" bind:value={selectedTenant}>
+          {#each tenants as tenant}
+            <option value={tenant.name}>{tenant.name}</option>
+          {/each}
+        </select>
+        <span class="select-arrow" aria-hidden="true">⌄</span>
+      </div>
     </div>
 
     <div class="header-right">
@@ -54,26 +57,28 @@
     </div>
   </header>
 
-  <nav class="tab-nav">
-    <button class:active={currentPage === 'tenants'} onclick={() => currentPage = 'tenants'}>
-      Hosts
-    </button>
-    <button class:active={currentPage === 'operations'} onclick={() => currentPage = 'operations'}>
-      Operations
-    </button>
-    <button class:active={currentPage === 'services'} onclick={() => currentPage = 'services'}>
-      Services
-    </button>
-    <button class:active={currentPage === 'topology'} onclick={() => currentPage = 'topology'}>
-      Topology
-    </button>
-    <button class:active={currentPage === 'map'} onclick={() => currentPage = 'map'}>
-      Map
-    </button>
-    <button class:active={currentPage === 'execute'} onclick={() => currentPage = 'execute'}>
-      Execute
-    </button>
-  </nav>
+  <div class="tab-nav-wrapper">
+    <nav class="tab-nav">
+      <button class:active={currentPage === 'tenants'} onclick={() => currentPage = 'tenants'}>
+        Hosts
+      </button>
+      <button class:active={currentPage === 'operations'} onclick={() => currentPage = 'operations'}>
+        Operations
+      </button>
+      <button class:active={currentPage === 'services'} onclick={() => currentPage = 'services'}>
+        Services
+      </button>
+      <button class:active={currentPage === 'topology'} onclick={() => currentPage = 'topology'}>
+        Topology
+      </button>
+      <button class:active={currentPage === 'map'} onclick={() => currentPage = 'map'}>
+        Map
+      </button>
+      <button class:active={currentPage === 'execute'} onclick={() => currentPage = 'execute'}>
+        Execute
+      </button>
+    </nav>
+  </div>
 
   <div class="page-container">
     {#if currentPage === 'tenants'}
@@ -101,10 +106,12 @@
     font-family: var(--ui);
   }
 
+  /* dvh gives true mobile viewport (excludes address bar); vh fallback for older browsers */
   .app-wrapper {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    height: 100dvh;
     overflow: hidden;
   }
 
@@ -116,8 +123,9 @@
     height: 56px;
     background: var(--bg-2);
     border-bottom: 1px solid var(--border);
-    gap: 16px;
+    gap: 12px;
     flex-shrink: 0;
+    min-width: 0;
   }
 
   .header-left {
@@ -145,14 +153,22 @@
     white-space: nowrap;
   }
 
+  /* Takes all remaining space, never squeezes below a reasonable minimum */
   .header-center {
     flex: 1;
+    min-width: 0;
     max-width: 280px;
+  }
+
+  /* Wrapper gives us a positioning context for the custom arrow */
+  .tenant-wrap {
+    position: relative;
+    width: 100%;
   }
 
   .tenant-select {
     width: 100%;
-    padding: 7px 12px;
+    padding: 7px 32px 7px 12px;
     background: var(--bg-3);
     color: var(--text);
     border: 1px solid var(--border);
@@ -165,11 +181,28 @@
     appearance: none;
     min-height: 36px;
     outline: none;
+    /* Prevent text overflow on long tenant names */
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
   }
 
   .tenant-select:focus {
     border-color: var(--accent);
     box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.12);
+  }
+
+  /* Custom dropdown arrow replacing the native one removed by appearance:none */
+  .select-arrow {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-52%);
+    color: var(--text-dim);
+    font-size: 16px;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
   }
 
   .header-right {
@@ -201,14 +234,36 @@
   }
 
   /* ── Tab Nav ────────────────────────────────────────────── */
-  .tab-nav {
-    display: flex;
-    padding: 0 24px;
+
+  /* Wrapper enables the scroll-fade indicators via pseudo-elements */
+  .tab-nav-wrapper {
+    position: relative;
     background: var(--bg-2);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
+  }
+
+  /* Right fade: shows when content overflows right */
+  .tab-nav-wrapper::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 32px;
+    background: linear-gradient(to right, transparent, var(--bg-2));
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .tab-nav {
+    display: flex;
+    padding: 0 24px;
     overflow-x: auto;
     scrollbar-width: none;
+    /* Smooth momentum scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
   }
 
   .tab-nav::-webkit-scrollbar { display: none; }
@@ -230,6 +285,7 @@
     margin-bottom: -1px;
     min-height: auto;
     min-width: auto;
+    scroll-snap-align: start;
   }
 
   .tab-nav button:hover {
@@ -246,17 +302,19 @@
   .page-container {
     flex: 1;
     overflow: hidden;
+    min-height: 0;
   }
 
-  /* ── Responsive ─────────────────────────────────────────── */
+  /* ── Responsive: tablet ──────────────────────────────────── */
   @media (max-width: 768px) {
     .top-header {
       padding: 0 16px;
       height: 52px;
+      gap: 10px;
     }
 
     .tab-nav {
-      padding: 0 8px;
+      padding: 0 12px;
     }
 
     .tab-nav button {
@@ -265,27 +323,48 @@
     }
   }
 
+  /* ── Responsive: mobile ──────────────────────────────────── */
   @media (max-width: 480px) {
     .top-header {
       padding: 0 12px;
       height: 48px;
-      flex-wrap: nowrap;
+      gap: 8px;
     }
 
+    /* Hide text, keep only the ▲ glyph to reclaim ~60px for tenant select */
+    .brand {
+      display: none;
+    }
+
+    /* Tenant select can now stretch more since brand text is hidden */
     .header-center {
       max-width: none;
     }
 
-    .brand {
-      font-size: 13px;
+    .tenant-select {
+      font-size: 12px;
     }
 
     .tab-nav {
-      padding: 0 4px;
+      padding: 0 8px;
     }
 
     .tab-nav button {
       padding: 0 10px;
+      font-size: 11px;
+      height: 40px;
+    }
+  }
+
+  /* ── Responsive: very small phones ──────────────────────── */
+  @media (max-width: 360px) {
+    .top-header {
+      padding: 0 8px;
+      gap: 6px;
+    }
+
+    .tab-nav button {
+      padding: 0 8px;
       font-size: 11px;
     }
   }
