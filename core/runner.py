@@ -1,30 +1,56 @@
 """Deployment orchestration (framework-level)."""
 
 import argparse
+import logging
 import sys
 
 from pyinfra.api import Config, State
 from pyinfra.api.connect import connect_all, disconnect_all
 from pyinfra.api.exceptions import PyinfraError
 from pyinfra.api.operations import run_ops
+from pyinfra.api.state import BaseStateCallback
 
 # Framework standard task choices — available on all tenants
 STANDARD_TASKS = ["groups", "users", "sudo", "all"]
 
 
-def build_parser(task_choices=None):
-    """Build the CLI argument parser.
+class DeploymentCallback(BaseStateCallback):
+    """Emits per-operation status lines captured by LogCapture."""
 
-    Args:
-        task_choices: List of available tasks. If None, uses STANDARD_TASKS.
-                      To extend with custom tasks, pass STANDARD_TASKS + ["custom_task"]
-    """
+    def __init__(self):
+        self._changed = {}  # host.name -> last known success_ops count
+
+    @staticmethod
+    def operation_start(state, op_hash):
+        names = state.get_op_meta(op_hash).names
+        print(f"→ {', '.join(names)}")
+
+    def operation_host_success(self, state, host, op_hash, retry_count=0):
+        r = state.results.get(host)
+        prev = self._changed.get(host.name, 0)
+        curr = r.success_ops if r else 0
+        tag = "[CHANGED]" if curr > prev else "[OK]"
+        self._changed[host.name] = curr
+        print(f"  {tag} {host.name}")
+
+    @staticmethod
+    def operation_host_error(state, host, op_hash, **kwargs):
+        print(f"  [FAILED] {host.name}")
+
+
+def build_parser(task_choices=None):
+    """Build the CLI argument parser."""
     if task_choices is None:
         task_choices = STANDARD_TASKS
 
     parser = argparse.ArgumentParser(description="Deploy infrastructure with pyinfra API")
     parser.add_argument("--limit", help="Hostname or group name to deploy to")
-    parser.add_argument("--dry", action="store_true", help="Validate without making changes")
+    parser.add_argument(
+        "--dry", action="store_true", help="Check mode: show what would run without executing"
+    )
+    parser.add_argument(
+        "--diff", action="store_true", help="Show file diffs for operations that write files"
+    )
     parser.add_argument(
         "--verbose", "-v", action="store_true", help="Verbose output with debug info"
     )
@@ -46,13 +72,22 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
     Returns:
         exit code (0 for success, 1 for failure)
     """
-    config = Config(CONNECT_TIMEOUT=15, DRY=args.dry)
+    diff = getattr(args, "diff", False)
+    config = Config(CONNECT_TIMEOUT=15, DIFF=diff)
     state = State(inventory, config)
+
+    callback = DeploymentCallback()
+    state.callback_handlers.append(callback)
+
+    if diff:
+        state.print_output = True
 
     if verbose:
         print(f"[DEBUG] Inventory: {len(list(inventory))} hosts")
         print(f"[DEBUG] Task(s): {args.task}")
         print(f"[DEBUG] Dry-run: {args.dry}")
+        if diff:
+            print(f"[DEBUG] Diff: enabled")
 
     # Apply --limit: filter hosts or group (supports comma-separated hostnames)
     target_hosts = None
@@ -69,7 +104,6 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
             print(f"Error: No hosts matched: {args.limit}")
             return 1
 
-        # Limit to specific hosts
         state.limit_hosts = target_hosts
 
     # Connect to all active hosts
@@ -80,11 +114,35 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
         if state.failed_hosts:
             print(f"[DEBUG] Failed hosts: {[h.name for h in state.failed_hosts]}")
 
-    # Add operations
+    # Queue operations
     print(f"Adding operations (task={args.task})...")
     add_ops_func(state, inventory, target_hosts=target_hosts, task=args.task)
     if verbose:
         print("[DEBUG] Operations queued")
+
+    # Check mode: show what would run without executing
+    if args.dry:
+        active = list(inventory.get_active_hosts())
+        scope = target_hosts if target_hosts else active
+        total = 0
+        for host in scope:
+            host_ops = state.ops.get(host, {})
+            count = len(host_ops)
+            total += count
+            if count == 0:
+                print(f"[CHECK] {host.name} — no operations queued")
+            else:
+                noun = "operation" if count == 1 else "operations"
+                print(f"[CHECK] {host.name} — {count} {noun}:")
+                seen = set()
+                for op_hash in state.get_op_order():
+                    if op_hash in host_ops and op_hash not in seen:
+                        seen.add(op_hash)
+                        names = state.get_op_meta(op_hash).names
+                        print(f"  • {', '.join(names)}")
+        print(f"\n[CHECK] Total: {total} operation(s) across {len(scope)} host(s)")
+        disconnect_all(state)
+        return 0
 
     # Execute
     print("Running operations...")
@@ -96,15 +154,20 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
     finally:
         disconnect_all(state)
 
-    # Print results
-    print("\n=== Deployment Results ===")
+    # Summary
+    print("\n=== Summary ===")
     exit_code = 0
     for host in inventory.get_active_hosts():
         r = state.results.get(host)
         if r:
-            status = "✓" if r.error_ops == 0 else "✗"
-            print(f"{status} {host.name}: {r.success_ops}/{r.ops} ops ok, {r.error_ops} errors")
-            if r.error_ops > 0:
+            changed = callback._changed.get(host.name, 0)
+            ok = r.success_ops - changed
+            failed = r.error_ops
+            status = "✓" if failed == 0 else "✗"
+            print(
+                f"{status} {host.name:<30} {changed} changed   {ok} ok   {failed} failed"
+            )
+            if failed > 0:
                 exit_code = 1
         else:
             print(f"? {host.name}: no operations run")
