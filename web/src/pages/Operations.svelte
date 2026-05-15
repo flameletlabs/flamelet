@@ -104,7 +104,12 @@
               {#if op.config_attr}
                 <div class="detail-section">
                   <div class="detail-label">Configuration</div>
-                  <div class="config-hint">Config attr: <span class="mono">{op.config_attr}</span></div>
+                  <div class="config-hint">
+                    Config attr: <span class="mono">{op.config_attr}</span>
+                    <button class="copy-btn" on:click={() => copyToClipboard(op.config_attr)} title="Copy to clipboard">
+                      {copiedText === op.config_attr ? '✓' : '⎘'}
+                    </button>
+                  </div>
                 </div>
               {/if}
               <div class="detail-section">
@@ -546,6 +551,35 @@
   .config-hint {
     font-size: clamp(11px, 2vw, 12px);
     color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .copy-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 11px;
+    padding: 3px 6px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 150ms;
+    flex-shrink: 0;
+    min-width: 24px;
+    text-align: center;
+  }
+
+  .copy-btn:hover {
+    border-color: var(--accent);
+    background: var(--bg-3);
+    color: var(--accent);
+  }
+
+  .copy-btn:active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
   }
 
   .platform-list {
