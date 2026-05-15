@@ -191,8 +191,8 @@
   .map-container {
     flex: 1;
     display: flex;
-    gap: 16px;
-    padding: 16px;
+    gap: 20px;
+    padding: 24px 28px;
     overflow: hidden;
     position: relative;
     z-index: 1;

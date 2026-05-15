@@ -409,8 +409,8 @@
     flex-direction: column;
     flex: 1;
     overflow-y: auto;
-    gap: 12px;
-    padding: 14px 12px;
+    gap: 16px;
+    padding: 24px 28px;
   }
 
   table {
@@ -665,14 +665,14 @@
   .group-title {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 12px 14px;
+    gap: 12px;
+    padding: 14px 18px;
     background: var(--bg-3);
     border: 1px solid var(--border);
     border-radius: 6px;
     cursor: pointer;
     user-select: none;
-    font-weight: 600;
+    font-weight: 700;
     font-size: clamp(14px, 3vw, 15px);
     color: var(--text);
     transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -716,7 +716,7 @@
     background: var(--bg-2);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 16px;
+    padding: 20px 24px;
     cursor: pointer;
     transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
     animation: slideIn 300ms ease-out forwards;
@@ -724,7 +724,7 @@
     min-height: 44px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
   }
 
   @keyframes slideIn {

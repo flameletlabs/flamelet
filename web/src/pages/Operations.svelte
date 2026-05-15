@@ -144,7 +144,7 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 16px 20px;
+    padding: 18px 28px;
     border-bottom: 1px solid var(--border);
     background: linear-gradient(90deg, var(--bg-2) 0%, rgba(15, 22, 41, 0.5) 100%);
     flex-wrap: wrap;
@@ -202,8 +202,8 @@
   .cards-view {
     display: none;
     flex-direction: column;
-    gap: 12px;
-    padding: 14px 12px;
+    gap: 16px;
+    padding: 24px 28px;
   }
 
   table {
@@ -299,7 +299,7 @@
     background: var(--bg-2);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 16px;
+    padding: 20px 24px;
     animation: slideIn 300ms ease-out forwards;
     opacity: 0;
     min-height: 44px;
