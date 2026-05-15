@@ -5,6 +5,7 @@
   let ops = []
   let filter = ''
   let filtered = []
+  let expandedOp = null
 
   onMount(async () => {
     ops = await getOperations()
@@ -73,8 +74,9 @@
     <!-- Mobile: Cards -->
     <div class="cards-view">
       {#each filtered as op, i (op.task)}
-        <div class="op-card" style="animation-delay: {i * 50}ms;">
-          <div class="card-header">
+        <div class="op-card" class:expanded={expandedOp === op.task} style="animation-delay: {i * 50}ms;">
+          <div class="card-header" on:click={() => expandedOp = expandedOp === op.task ? null : op.task}>
+            <span class="op-toggle">›</span>
             <span class="op-num">{(i + 1).toString().padStart(2, '0')}</span>
             <div class="op-title">{op.task}</div>
             <span class="op-badge">{op.op_type}</span>
@@ -87,6 +89,29 @@
             <span class="os-item" class:active={hasOS(op, 'FreeBSD')}>FreeBSD</span>
             <span class="os-item" class:active={hasOS(op, 'OpenBSD')}>OpenBSD</span>
           </div>
+          {#if expandedOp === op.task}
+            <div class="op-details">
+              {#if op.config_attr}
+                <div class="detail-section">
+                  <div class="detail-label">Configuration</div>
+                  <div class="config-hint">Config attr: <span class="mono">{op.config_attr}</span></div>
+                </div>
+              {/if}
+              <div class="detail-section">
+                <div class="detail-label">Supported Platforms</div>
+                <div class="platform-list">
+                  {#each ['Linux', 'FreeBSD', 'OpenBSD'] as platform}
+                    <span class="platform-item" class:active={hasOS(op, platform)}>
+                      {platform}
+                      {#if hasOS(op, platform)}
+                        <span class="checkmark">✓</span>
+                      {/if}
+                    </span>
+                  {/each}
+                </div>
+              </div>
+            </div>
+          {/if}
         </div>
       {/each}
     </div>
@@ -281,6 +306,22 @@
     align-items: center;
     gap: 10px;
     margin-bottom: 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .op-toggle {
+    display: inline-block;
+    font-size: 16px;
+    color: var(--text-muted);
+    transform: rotate(0deg);
+    transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 20px;
+    text-align: center;
+  }
+
+  .op-card.expanded .op-toggle {
+    transform: rotate(90deg);
   }
 
   .op-num {
@@ -438,6 +479,74 @@
       padding: 6px;
       font-size: 10px;
     }
+  }
+
+  .op-details {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    animation: expandIn 200ms ease-out;
+  }
+
+  @keyframes expandIn {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .detail-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .detail-label {
+    font-size: clamp(10px, 1.8vw, 11px);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+  }
+
+  .config-hint {
+    font-size: clamp(11px, 2vw, 12px);
+    color: var(--text-muted);
+  }
+
+  .platform-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .platform-item {
+    font-size: clamp(11px, 2vw, 12px);
+    padding: 4px 8px;
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .platform-item.active {
+    background: rgba(63, 185, 80, 0.15);
+    border-color: var(--success);
+    color: var(--success);
+  }
+
+  .checkmark {
+    font-weight: 700;
   }
 
   @media (max-width: 480px) {
