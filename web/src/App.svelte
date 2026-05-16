@@ -321,6 +321,11 @@
       padding: 0 12px;
       font-size: 12px;
     }
+
+    /* Allow Execute page to scroll the whole panel vertically on mobile */
+    .page-container {
+      overflow-y: auto;
+    }
   }
 
   /* ── Responsive: mobile ──────────────────────────────────── */

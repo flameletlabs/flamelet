@@ -662,9 +662,13 @@
   }
 
   @media (max-width: 768px) {
+    .container {
+      height: auto;
+    }
+
     .main {
       grid-template-columns: 1fr;
-      grid-template-rows: 1fr auto;
+      grid-template-rows: auto auto;
     }
 
     .header {
@@ -700,8 +704,7 @@
 
     .diagram-container {
       order: -1;
-      min-height: 220px;
-      max-height: 55vh;
+      min-height: 200px;
       align-items: flex-start;
       padding: 8px 4px;
     }
@@ -735,7 +738,7 @@
 
   @media (max-width: 640px) {
     .container {
-      height: 100%;
+      height: auto;
     }
 
     .header {

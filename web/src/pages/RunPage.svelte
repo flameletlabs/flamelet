@@ -959,12 +959,23 @@
   @media (max-width: 768px) {
     .layout {
       grid-template-columns: 1fr;
-      grid-template-rows: auto 1fr;
+      grid-template-rows: auto auto;
+      height: auto;
+      overflow: visible;
     }
     aside {
       border-right: none;
       border-bottom: 1px solid var(--border);
-      max-height: 45vh;
+      overflow: visible;
+    }
+    .form-body {
+      overflow: visible;
+    }
+    .host-panel {
+      max-height: 300px;
+    }
+    .terminal-panel {
+      min-height: 350px;
     }
   }
 </style>
