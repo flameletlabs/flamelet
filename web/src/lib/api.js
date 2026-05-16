@@ -1,13 +1,11 @@
-const BASE = import.meta.env.DEV ? 'http://localhost:7070' : '';
-
 async function get(path) {
-  const r = await fetch(BASE + path);
+  const r = await fetch(path);
   if (!r.ok) throw new Error(`API error: ${r.status} ${path}`);
   return r.json();
 }
 
 async function post(path, body) {
-  const r = await fetch(BASE + path, {
+  const r = await fetch(path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),

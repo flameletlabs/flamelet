@@ -12,19 +12,15 @@
   let loading = $state(true)
   let error = $state(null)
   let locationsWithoutCoords = $state([])
-  let zoomLevel = $state(4)
 
-  // Layer groups
+  // Layer group for location markers
   let locationLayer = null
-  let hostLayer = null
 
   const OS_COLORS = {
     OpenBSD: '#e3b341',
     FreeBSD: '#cd7b6a',
     Linux: '#4493f8',
   }
-
-  const ZOOM_THRESHOLD = 10
 
   async function loadMap() {
     if (!tenant) return
@@ -61,20 +57,14 @@
       attribution: '© OpenStreetMap contributors',
       maxZoom: 19,
     }).addTo(mapInstance)
-
-    // Zoom event listener
-    mapInstance.on('zoomend', applyZoomLayers)
   }
 
   function buildLayers(locs) {
     if (!mapInstance) return
 
-    // Clear old layers
+    // Clear and init location layer
     if (locationLayer) locationLayer.clearLayers()
     else locationLayer = L.layerGroup()
-
-    if (hostLayer) hostLayer.clearLayers()
-    else hostLayer = L.layerGroup()
 
     const mappedLocs = locs.filter(l => l.lat && l.lon)
     locationsWithoutCoords = locs.filter(l => !l.lat || !l.lon)
@@ -82,58 +72,41 @@
     // Create host map for quick lookup
     const hostMap = Object.fromEntries(allHosts.map(h => [h.name, h]))
 
+    // Create location markers with popups
     mappedLocs.forEach(loc => {
-      // --- Location marker (overview, zoom < ZOOM_THRESHOLD) ---
-      const locMarker = L.marker([loc.lat, loc.lon], {
+      const marker = L.marker([loc.lat, loc.lon], {
         icon: createLocationIcon(loc),
         zIndexOffset: 100,
-      }).on('click', () => {
-        mapInstance.flyTo([loc.lat, loc.lon], ZOOM_THRESHOLD + 1, { duration: 0.8 })
       })
-      locationLayer.addLayer(locMarker)
 
-      // --- Host markers (detail, zoom >= ZOOM_THRESHOLD) ---
-      const count = loc.hosts.length
-      loc.hosts.forEach((host, i) => {
-        const [lat, lon] = count > 1 ? spreadPosition(loc.lat, loc.lon, i, count) : [loc.lat, loc.lon]
+      // Bind popup with host list
+      marker.bindPopup(buildLocationPopup(loc), {
+        maxWidth: 280,
+        className: 'flamelet-popup',
+      })
 
-        const hostMarker = L.marker([lat, lon], {
-          icon: createHostIcon(host),
-        }).on('click', () => {
-          // Merge location data with full host details
-          const fullHost = hostMap[host.name] || host
-          selectedHost = { ...fullHost, display_name: loc.display_name }
+      // Wire up host row clicks inside the popup
+      marker.on('popupopen', () => {
+        document.querySelectorAll('.popup-host-row').forEach(el => {
+          el.addEventListener('click', () => {
+            const name = el.dataset.host
+            const os = el.dataset.os || ''
+            const fullHost = hostMap[name] || { name, os }
+            selectedHost = { ...fullHost, display_name: loc.display_name }
+            marker.closePopup()
+          })
         })
-        hostLayer.addLayer(hostMarker)
       })
+
+      locationLayer.addLayer(marker)
     })
 
-    // Render correct layer for current zoom
-    applyZoomLayers()
+    locationLayer.addTo(mapInstance)
 
     // Fit bounds to all mapped locations
     if (mappedLocs.length > 0) {
       const bounds = L.latLngBounds(mappedLocs.map(l => [l.lat, l.lon]))
       setTimeout(() => mapInstance.fitBounds(bounds, { padding: [50, 50] }), 100)
-    }
-  }
-
-  function spreadPosition(lat, lon, index, total) {
-    const radiusDeg = 0.008 // ~800m radius at mid-latitudes
-    const angle = (index / total) * 2 * Math.PI - Math.PI / 2
-    return [lat + radiusDeg * Math.sin(angle), lon + radiusDeg * Math.cos(angle) * 1.4]
-  }
-
-  function applyZoomLayers() {
-    if (!mapInstance || !locationLayer || !hostLayer) return
-    const zoom = mapInstance.getZoom()
-    zoomLevel = zoom
-    if (zoom >= ZOOM_THRESHOLD) {
-      if (!mapInstance.hasLayer(hostLayer)) hostLayer.addTo(mapInstance)
-      if (mapInstance.hasLayer(locationLayer)) locationLayer.remove()
-    } else {
-      if (!mapInstance.hasLayer(locationLayer)) locationLayer.addTo(mapInstance)
-      if (mapInstance.hasLayer(hostLayer)) hostLayer.remove()
     }
   }
 
@@ -154,18 +127,26 @@
     })
   }
 
-  function createHostIcon(host) {
-    const color = OS_COLORS[host.os] || '#555'
-    const label = host.name.split('.')[0]
-    return L.divIcon({
-      className: '',
-      html: `
-        <div class="host-pin" style="--os-color: ${color}">
-          <span class="host-pin-label">${label}</span>
-        </div>`,
-      iconSize: [null, null],
-      iconAnchor: [0, 12],
-    })
+  function buildLocationPopup(loc) {
+    const hostRows = (loc.hosts || [])
+      .map(h => {
+        const color = OS_COLORS[h.os] || '#555'
+        return `
+        <button class="popup-host-row" data-host="${h.name}" data-os="${h.os || ''}">
+          <span class="popup-host-stripe" style="background:${color}"></span>
+          <span class="popup-host-name">${h.name}</span>
+          <span class="popup-host-os">${h.os || '?'}</span>
+        </button>`
+      })
+      .join('')
+
+    return `
+      <div class="popup-inner">
+        <div class="popup-title">${loc.display_name}</div>
+        ${loc.address ? `<div class="popup-address">${loc.address}</div>` : ''}
+        <div class="popup-divider"></div>
+        <div class="popup-hosts">${hostRows}</div>
+      </div>`
   }
 
   $effect(() => {
@@ -176,15 +157,8 @@
 <div class="page">
   <div class="map-header">
     <span class="title">MAP</span>
-    <span class="zoom-hint">
-      {#if zoomLevel >= ZOOM_THRESHOLD}
-        hosts — click to inspect
-      {:else}
-        zoom in to see individual hosts
-      {/if}
-    </span>
     {#if loading}
-      <div style="color: var(--text-muted); margin-left: auto;">Loading...</div>
+      <div style="color: var(--text-muted);">Loading...</div>
     {/if}
   </div>
 
@@ -270,13 +244,6 @@
     text-transform: uppercase;
   }
 
-  .zoom-hint {
-    font-size: 11px;
-    color: var(--text-muted);
-    font-family: var(--mono);
-    letter-spacing: 0.04em;
-  }
-
   .error-msg {
     padding: 16px;
     background: rgba(248, 81, 73, 0.1);
@@ -314,16 +281,6 @@
     pointer-events: auto;
   }
 
-  :global(.leaflet-popup-content-wrapper) {
-    background: var(--bg-2);
-    color: var(--text);
-    border-color: var(--border);
-  }
-
-  :global(.leaflet-popup-tip) {
-    background: var(--bg-2);
-  }
-
   :global(.leaflet-control-zoom a) {
     width: 44px !important;
     height: 44px !important;
@@ -344,7 +301,6 @@
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
     transition: transform 120ms, box-shadow 120ms;
-    font-family: var(--ui);
   }
 
   :global(.loc-pin:hover) {
@@ -371,32 +327,97 @@
     padding: 1px 6px;
   }
 
-  /* Host pin — compact chip */
-  :global(.host-pin) {
-    display: flex;
-    align-items: center;
+  /* Override Leaflet popup styling */
+  :global(.flamelet-popup .leaflet-popup-content-wrapper) {
     background: var(--bg-2);
     border: 1px solid var(--border);
-    border-left: 3px solid var(--os-color);
-    border-radius: 3px;
-    padding: 3px 8px;
-    white-space: nowrap;
+    border-radius: 4px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    padding: 0;
+    overflow: hidden;
+  }
+
+  :global(.flamelet-popup .leaflet-popup-content) {
+    margin: 0;
+    width: 260px !important;
+  }
+
+  :global(.flamelet-popup .leaflet-popup-tip-container) {
+    display: none;
+  }
+
+  /* Popup inner */
+  :global(.popup-inner) {
+    font-family: var(--ui);
+  }
+
+  :global(.popup-title) {
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--text);
+    padding: 12px 14px 4px;
+  }
+
+  :global(.popup-address) {
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 0 14px 8px;
+    line-height: 1.4;
+  }
+
+  :global(.popup-divider) {
+    height: 1px;
+    background: var(--border);
+    margin: 0 0 4px;
+  }
+
+  /* Host rows in popup */
+  :global(.popup-hosts) {
+    max-height: 220px;
+    overflow-y: auto;
+    padding: 4px 0 6px;
+  }
+
+  :global(.popup-host-row) {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 6px 14px;
+    gap: 8px;
     cursor: pointer;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-    transition: transform 100ms, border-color 100ms;
+    text-align: left;
+    transition: background 80ms;
+    min-height: 36px;
+    font-family: inherit;
+    color: inherit;
   }
 
-  :global(.host-pin:hover) {
-    transform: translateY(-2px);
-    border-color: var(--os-color);
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+  :global(.popup-host-row:hover) {
+    background: var(--bg-3);
   }
 
-  :global(.host-pin-label) {
+  :global(.popup-host-stripe) {
+    width: 3px;
+    height: 20px;
+    border-radius: 1px;
+    flex-shrink: 0;
+  }
+
+  :global(.popup-host-name) {
     font-family: var(--mono);
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     color: var(--text);
+    flex: 1;
+  }
+
+  :global(.popup-host-os) {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-family: var(--mono);
+    flex-shrink: 0;
   }
 
   /* Bottom sheet — host detail panel */
@@ -541,10 +562,6 @@
 
     #leaflet-map {
       min-height: 300px;
-    }
-
-    .zoom-hint {
-      display: none;
     }
 
     .host-sheet {
