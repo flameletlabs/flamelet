@@ -886,15 +886,15 @@
     border: 1px solid var(--border);
     color: var(--text-muted);
     font-size: 12px;
-    padding: 6px 8px;
+    padding: 10px 12px;
     border-radius: 3px;
     cursor: pointer;
     transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 32px;
-    min-height: 32px;
+    min-width: 44px;
+    min-height: 44px;
   }
 
   .copy-btn:hover {
@@ -946,7 +946,7 @@
     transform: scale(0.98);
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 640px) {
     .layout {
       grid-template-columns: 1fr;
     }
@@ -1016,9 +1016,6 @@
       padding: 8px 10px;
       font-size: clamp(11px, 2vw, 12px);
     }
-  }
-
-  @media (max-width: 640px) {
     aside {
       max-height: 100px;
     }

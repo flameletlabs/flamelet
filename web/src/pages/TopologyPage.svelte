@@ -82,7 +82,7 @@
 
 <div class="container">
   <div class="header">
-    <h1>Network Topology</h1>
+    <span class="title">TOPOLOGY</span>
     <div class="controls">
       <select bind:value={selectedTenant} onchange={loadTopology}>
         <option value="">— Select Tenant —</option>
@@ -102,12 +102,11 @@
         <h3>Locations</h3>
         {#if topology}
           {#each Object.keys(topology.locations).sort() as location}
-            <label class="location-item">
-              <input type="checkbox" />
+            <div class="location-item">
               <span class="dot" style="background: var(--accent);"></span>
-              {location}
+              <span class="loc-name">{location}</span>
               <span class="count">{topology.locations[location].length}</span>
-            </label>
+            </div>
           {/each}
         {/if}
       </div>
@@ -286,12 +285,12 @@
     background: linear-gradient(90deg, var(--bg-2) 0%, rgba(15, 22, 41, 0.5) 100%);
   }
 
-  .header h1 {
-    margin: 0;
-    font-size: clamp(18px, 4vw, 20px);
+  .title {
+    font-size: clamp(10px, 1.6vw, 11px);
     font-weight: 600;
-    letter-spacing: -0.3px;
-    font-family: var(--ui);
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    text-transform: uppercase;
   }
 
   .controls {
@@ -379,14 +378,7 @@
     gap: 6px;
     margin-bottom: 6px;
     font-size: clamp(12px, 2.2vw, 13px);
-    cursor: pointer;
     font-family: var(--ui);
-  }
-
-  .location-item input {
-    width: 14px;
-    height: 14px;
-    cursor: pointer;
   }
 
   .location-item .dot {
@@ -396,8 +388,11 @@
     border-radius: 50%;
   }
 
+  .location-item .loc-name {
+    flex: 1;
+  }
+
   .location-item .count {
-    margin-left: auto;
     color: var(--text-muted);
     font-size: clamp(10px, 1.8vw, 11px);
   }
@@ -633,10 +628,6 @@
       gap: 8px;
     }
 
-    .header h1 {
-      font-size: clamp(16px, 2vw, 20px);
-    }
-
     .controls select,
     .controls button {
       font-size: clamp(11px, 1.2vw, 13px);
@@ -679,10 +670,6 @@
       gap: 6px;
     }
 
-    .header h1 {
-      font-size: clamp(14px, 1.8vw, 18px);
-      margin: 0;
-    }
 
     .controls {
       width: 100%;
@@ -746,10 +733,6 @@
     .header {
       padding: clamp(6px, 1vw, 8px) clamp(8px, 1.2vw, 10px);
       gap: 4px;
-    }
-
-    .header h1 {
-      font-size: clamp(13px, 1.6vw, 16px);
     }
 
     .controls {
@@ -819,10 +802,6 @@
   @media (max-width: 480px) {
     .header {
       padding: 6px 8px;
-    }
-
-    .header h1 {
-      font-size: 13px;
     }
 
     .controls select,

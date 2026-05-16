@@ -478,9 +478,12 @@
     letter-spacing: 0.04em;
     color: var(--text-dim);
     cursor: pointer;
-    padding: 3px 8px;
+    padding: 10px 8px;
     border-radius: 3px;
     transition: all 100ms;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
   }
 
   .group-tabs button:hover {
@@ -506,8 +509,11 @@
     cursor: pointer;
     font-family: var(--mono);
     font-size: 10px;
-    padding: 2px 4px;
+    padding: 10px 12px;
     transition: color 100ms;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
   }
 
   .txt-btn:hover {
@@ -543,9 +549,10 @@
     color: var(--text);
     font-family: var(--mono);
     font-size: 11px;
-    padding: 7px 10px 7px 28px;
+    padding: 10px 10px 10px 28px;
     outline: none;
     box-sizing: border-box;
+    min-height: 44px;
   }
 
   .host-search::placeholder {
@@ -735,8 +742,9 @@
   .toggle-label {
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: 12px;
     cursor: pointer;
+    min-height: 44px;
   }
 
   .toggle-switch {
@@ -959,7 +967,7 @@
     .field-row { grid-template-columns: 1fr; }
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 640px) {
     .layout {
       grid-template-columns: 1fr;
       grid-template-rows: auto auto;
@@ -974,6 +982,8 @@
     }
     .form-body {
       overflow: visible;
+      max-height: 40vh;
+      overflow-y: auto;
     }
     .host-panel {
       max-height: none;
@@ -988,10 +998,6 @@
     .options-row {
       flex-direction: column;
       gap: 12px;
-    }
-
-    .toggle-label {
-      min-height: 44px;
     }
 
     .run-btn {
