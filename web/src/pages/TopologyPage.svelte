@@ -300,7 +300,7 @@
   }
 
   .controls select {
-    padding: 6px 8px;
+    padding: 10px 8px;
     background: var(--bg-2);
     border: 1px solid var(--border);
     color: var(--text);
@@ -308,10 +308,11 @@
     font-size: 13px;
     font-family: var(--ui);
     cursor: pointer;
+    min-height: 44px;
   }
 
   .controls button {
-    padding: 6px 12px;
+    padding: 10px 12px;
     background: var(--bg-2);
     border: 1px solid var(--border);
     color: var(--text);
@@ -319,6 +320,7 @@
     font-size: 13px;
     cursor: pointer;
     transition: all 150ms;
+    min-height: 44px;
   }
 
   .controls button:hover:not(.loading) {

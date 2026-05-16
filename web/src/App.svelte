@@ -217,14 +217,14 @@
     font-size: 14px;
     cursor: pointer;
     padding: 0;
-    width: 32px;
-    height: 32px;
+    width: 44px;
+    height: 44px;
     border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: auto;
-    min-width: auto;
+    min-height: 44px;
+    min-width: 44px;
   }
 
   .theme-toggle:hover {
@@ -270,7 +270,7 @@
 
   .tab-nav button {
     padding: 0 16px;
-    height: 44px;
+    height: 48px;
     background: none;
     border: none;
     border-bottom: 2px solid transparent;
@@ -283,8 +283,8 @@
     white-space: nowrap;
     flex-shrink: 0;
     margin-bottom: -1px;
-    min-height: auto;
-    min-width: auto;
+    min-height: 48px;
+    min-width: 44px;
     scroll-snap-align: start;
   }
 
@@ -355,9 +355,10 @@
     }
 
     .tab-nav button {
-      padding: 0 10px;
+      padding: 0 12px;
       font-size: 11px;
-      height: 40px;
+      height: 44px;
+      min-height: 44px;
     }
   }
 

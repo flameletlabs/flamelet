@@ -364,13 +364,14 @@
     background: var(--bg-3);
     border: 1px solid var(--border-muted);
     border-radius: 3px;
-    padding: 2px 7px;
+    padding: 6px 10px;
     font-size: 11px;
     color: var(--text-muted);
     cursor: pointer;
     transition: all 100ms;
     text-align: left;
     white-space: nowrap;
+    min-height: 32px;
   }
 
   .attr-chip:hover {
@@ -443,8 +444,8 @@
     .cards-scroll {
       display: flex;
       flex-direction: column;
-      gap: 2px;
-      padding: 8px;
+      gap: 12px;
+      padding: 12px;
       flex: 1;
       overflow-y: auto;
       background: var(--bg);
@@ -587,10 +588,11 @@
 
     .attr-chip {
       font-size: 11px;
-      padding: 3px 8px;
+      padding: 6px 10px;
       background: var(--bg);
       border-color: var(--border);
       color: var(--text-muted);
+      min-height: 32px;
     }
 
     .attr-chip:hover {

@@ -427,7 +427,7 @@
     font-family: var(--ui);
     font-size: 12px;
     font-weight: 500;
-    padding: 7px 8px;
+    padding: 10px 8px;
     border-radius: 4px;
     cursor: pointer;
     outline: none;
@@ -435,6 +435,7 @@
     -webkit-appearance: none;
     appearance: none;
     width: 100%;
+    min-height: 44px;
   }
 
   select:focus {
@@ -669,7 +670,7 @@
     display: flex;
     align-items: center;
     gap: 7px;
-    padding: 4px 8px 4px 6px;
+    padding: 8px 10px;
     border-radius: 3px;
     border: 1px solid transparent;
     background: transparent;
@@ -680,6 +681,7 @@
     font-family: var(--mono);
     font-size: 11px;
     color: var(--text-muted);
+    min-height: 32px;
   }
 
   .host-chip:hover {
@@ -786,7 +788,7 @@
 
   /* Run button */
   .run-btn {
-    padding: 11px 16px;
+    padding: 10px 16px;
     background: var(--accent);
     border: none;
     color: var(--bg);
@@ -797,6 +799,7 @@
     cursor: pointer;
     border-radius: 4px;
     transition: all 150ms;
+    min-height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -967,15 +970,36 @@
       border-right: none;
       border-bottom: 1px solid var(--border);
       overflow: visible;
+      max-height: none;
     }
     .form-body {
       overflow: visible;
     }
     .host-panel {
-      max-height: 300px;
+      max-height: none;
+      min-height: auto;
     }
     .terminal-panel {
       min-height: 350px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .options-row {
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .toggle-label {
+      min-height: 44px;
+    }
+
+    .run-btn {
+      width: 100%;
+    }
+
+    .field-row {
+      grid-template-columns: 1fr;
     }
   }
 </style>

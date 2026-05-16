@@ -37,6 +37,13 @@
   --openbsd: #e3b341;
   --mono: 'Fira Code', monospace;
   --ui: 'Mona Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Content-driven responsive breakpoints */
+  --bp-tiny: 320px;    /* Small phones */
+  --bp-small: 480px;   /* Standard phones */
+  --bp-medium: 640px;  /* Tablets, large phones */
+  --bp-large: 900px;   /* Desktops */
+  --bp-xlarge: 1200px; /* Wide desktops */
 }
 
 [data-theme="light"] {
@@ -333,4 +340,146 @@ select:hover, select:focus {
 /* Active state feedback */
 button:active, a:active {
   transform: scale(0.98);
+}
+
+/* ── Touch Target Utilities ────────────────────────────────────── */
+/* Ensure all interactive elements meet 44×44px minimum hit area */
+
+.touch-44 {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.touch-48 {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* Button padding for text-based buttons */
+.btn-text {
+  padding: 10px 16px;
+}
+
+/* Icon-only button center alignment */
+.btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+/* ── Responsive Visibility Utilities ───────────────────────────── */
+
+/* Hide on tiny/small screens (mobile) */
+.hide-mobile {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .hide-mobile {
+    display: block;
+  }
+}
+
+/* Hide on large screens (desktop) */
+.hide-desktop {
+  /* Hidden by default on 900px+ */
+}
+
+@media (min-width: 900px) {
+  .hide-desktop {
+    display: none;
+  }
+}
+
+/* ── Responsive Grid Utilities ─────────────────────────────────── */
+
+.grid-cols-1 {
+  grid-template-columns: 1fr;
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-auto-fill-280 {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+/* Gap utilities (work with flexbox & grid) */
+.gap-4 { gap: 4px; }
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.gap-16 { gap: 16px; }
+.gap-24 { gap: 24px; }
+
+/* Margin bottom utilities for spacing */
+.mb-8 { margin-bottom: 8px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-24 { margin-bottom: 24px; }
+
+/* ── Responsive Form Sizing ────────────────────────────────────── */
+
+.form-field {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+}
+
+.form-field:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.12);
+}
+
+/* Stack form actions vertically on mobile, horizontal on desktop */
+.form-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+@media (min-width: 640px) {
+  .form-actions {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+}
+
+/* ── Mobile/Tablet/Desktop-Specific Tweaks ─────────────────────── */
+
+/* Tiny phones (320–479px): maximum space savings */
+@media (max-width: 479px) {
+  body {
+    font-size: 12px;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    line-height: 1.2;
+  }
+
+  .spacing-md { gap: 8px; }
+  .spacing-lg { gap: 12px; }
+  .spacing-xl { gap: 16px; }
+}
+
+/* Small phones (480–639px): balanced spacing */
+@media (min-width: 480px) and (max-width: 639px) {
+  body {
+    font-size: 13px;
+  }
+}
+
+/* Medium devices (640–899px): tablet portrait & hybrid */
+@media (min-width: 640px) and (max-width: 899px) {
+  body {
+    font-size: 13px;
+  }
+}
+
+/* Large devices (900px+): desktop & tablet landscape */
+@media (min-width: 900px) {
+  body {
+    font-size: 13px;
+  }
 }
