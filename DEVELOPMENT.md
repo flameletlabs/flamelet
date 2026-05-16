@@ -60,3 +60,71 @@ CI catches issues local development misses:
 - Hidden import/syntax errors
 
 **Broken code on main affects all developers.** Verify CI always.
+
+---
+
+## Visual Debugging with Playwright
+
+Use Playwright to screenshot and interact with the web UI programmatically — useful for verifying responsive layouts, catching rendering bugs, and testing user flows without a browser.
+
+### Installation
+
+```bash
+pip install playwright
+python3 -m playwright install chromium
+```
+
+### Taking a mobile screenshot
+
+```python
+import asyncio
+from playwright.async_api import async_playwright
+
+async def screenshot():
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        ctx = await browser.new_context(
+            viewport={"width": 390, "height": 844},
+            device_scale_factor=2,
+            is_mobile=True,
+            has_touch=True,
+        )
+        page = await ctx.new_page()
+        await page.goto("http://localhost:7070", wait_until="networkidle")
+        await page.wait_for_timeout(800)
+        # Navigate to a specific tab
+        await page.locator(".tab-nav button", has_text="Operations").click()
+        await page.wait_for_timeout(800)
+        await page.screenshot(path="/tmp/debug.png")
+        await browser.close()
+
+asyncio.run(screenshot())
+```
+
+### Checking CSS properties at runtime
+
+```python
+# Inside a Playwright async context, after page.goto():
+display = await page.evaluate("getComputedStyle(document.querySelector('.cards-scroll')).display")
+print(display)  # e.g. "flex" or "none"
+```
+
+### Asserting visible elements
+
+```python
+# Wait for an element to appear
+await page.wait_for_selector(".host-card", state="visible", timeout=5000)
+count = await page.locator(".host-card").count()
+print(f"host cards visible: {count}")
+
+# Read text content
+title = await page.locator(".tenant-title").text_content()
+```
+
+### Tips
+
+- Always use `wait_until="networkidle"` on `goto()` to let the app fully load.
+- Add `wait_for_timeout(800)` after tab/select interactions to let Svelte re-render.
+- Pass `viewport` as a dict — width/height are required nested keys, not top-level kwargs.
+- `device_scale_factor=2` gives crisp screenshots on retina but keeps CSS pixels at the viewport size.
+- Screenshots are saved to absolute paths; use `/tmp/` for quick inspection.

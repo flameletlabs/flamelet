@@ -143,42 +143,38 @@
     {/if}
   </div>
 
-  <!-- Mobile cards -->
+  <!-- Mobile cards: single-row with left accent stripe + inline OS dots -->
   <div class="cards-scroll">
     {#each filtered as op, i (op.task)}
-      <div class="op-card" style="animation-delay:{i * 40}ms">
-        <div class="card-head"
-             role="button" tabindex="0"
-             onclick={() => expandedOp = expandedOp === op.task ? null : op.task}
-             onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (expandedOp = expandedOp === op.task ? null : op.task)}>
-          <span class="card-num dim">{(i + 1).toString().padStart(2, '0')}</span>
+      {@const typeC = TYPE_COLORS[op.op_type] || TYPE_COLORS.standard}
+      <div class="op-card" style="animation-delay:{i * 30}ms; --accent-color:{typeC.text}">
+        <button class="card-row"
+             onclick={() => expandedOp = expandedOp === op.task ? null : op.task}>
+          <span class="card-stripe"></span>
+          <span class="card-num">{(i + 1).toString().padStart(2, '0')}</span>
           <span class="card-task">{op.task}</span>
-          <span class="type-pill" style={typeStyle(op.op_type)}>{op.op_type}</span>
-          <span class="chevron" class:open={expandedOp === op.task}>›</span>
-        </div>
-
-        <div class="card-os-row">
-          {#each OS_LIST as os}
-            <span class="os-pill" class:active={hasOS(op, os)} class:os-linux={os === 'Linux' && hasOS(op, os)} class:os-freebsd={os === 'FreeBSD' && hasOS(op, os)} class:os-openbsd={os === 'OpenBSD' && hasOS(op, os)}>
-              {os}
-            </span>
-          {/each}
-        </div>
+          <span class="card-os-dots">
+            {#each OS_LIST as os}
+              <span class="os-dot os-dot-{os.toLowerCase()}"
+                    class:unsupported={!hasOS(op, os)}
+                    title={os}></span>
+            {/each}
+          </span>
+          <span class="card-chevron" class:open={expandedOp === op.task}>›</span>
+        </button>
 
         {#if expandedOp === op.task}
-          <div class="card-detail">
+          <div class="card-drawer">
+            <span class="drawer-type-pill" style={typeStyle(op.op_type)}>{op.op_type}</span>
             {#if op.config_attrs.length > 0}
-              <div class="detail-label">CONFIG ATTR{op.config_attrs.length > 1 ? 'S' : ''}</div>
-              <div class="attr-list">
-                {#each op.config_attrs as attr}
-                  <button class="attr-chip" onclick={() => copyToClipboard(attr)} title="Copy">
-                    <span class="mono">{attr}</span>
-                    <span class="copy-icon">{copiedText === attr ? '✓' : '⎘'}</span>
-                  </button>
-                {/each}
-              </div>
+              {#each op.config_attrs as attr}
+                <button class="attr-chip" onclick={() => copyToClipboard(attr)} title="Copy">
+                  <span class="mono">{attr}</span>
+                  <span class="copy-icon">{copiedText === attr ? '✓' : '⎘'}</span>
+                </button>
+              {/each}
             {:else}
-              <div class="detail-label">No config attribute (loaded from vars/__init__.py)</div>
+              <span class="drawer-note">loaded from vars/__init__.py</span>
             {/if}
           </div>
         {/if}
@@ -434,51 +430,74 @@
 
   /* ── Mobile cards ────────────────────────────────────── */
   @media (max-width: 768px) {
-    .table-scroll  { display: none; }
-    .cards-scroll  {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding: 12px;
-      flex: 1;
-      overflow-y: auto;
-    }
+    .table-scroll { display: none; }
 
     .toolbar {
       flex-wrap: wrap;
       padding: 10px 12px;
       gap: 8px;
     }
-
     .search-wrap { width: 100%; order: 3; }
     input { width: 100%; box-sizing: border-box; }
 
+    .cards-scroll {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 8px;
+      flex: 1;
+      overflow-y: auto;
+      background: var(--bg);
+    }
+
+    /* ── Card ── */
     .op-card {
-      background: var(--bg-2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
+      border-radius: 4px;
       overflow: hidden;
-      animation: card-in 280ms ease-out both;
+      animation: card-in 220ms ease-out both;
+      background: var(--bg-2);
+      border: 1px solid var(--border-muted);
     }
 
     @keyframes card-in {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: translateX(-6px); }
+      to   { opacity: 1; transform: translateX(0); }
     }
 
-    .card-head {
+    /* Single-row button stretches full width */
+    .card-row {
+      width: 100%;
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 12px 14px;
+      gap: 0;
+      background: none;
+      border: none;
       cursor: pointer;
-      user-select: none;
+      padding: 0;
+      text-align: left;
+      min-height: 44px;
+    }
+
+    .card-row:active {
+      background: var(--bg-3);
+    }
+
+    /* Left accent stripe — gets its color from --accent-color CSS var on .op-card */
+    .card-stripe {
+      width: 3px;
+      align-self: stretch;
+      flex-shrink: 0;
+      background: var(--accent-color, var(--accent));
+      opacity: 0.8;
     }
 
     .card-num {
       font-family: var(--mono);
-      font-size: 11px;
-      min-width: 22px;
+      font-size: 10px;
+      color: var(--text-dim);
+      padding: 0 8px 0 10px;
+      min-width: 34px;
+      flex-shrink: 0;
     }
 
     .card-task {
@@ -487,72 +506,93 @@
       font-weight: 700;
       color: var(--text);
       flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    .chevron {
-      font-size: 14px;
+    /* Three colored OS dots — visible at a glance */
+    .card-os-dots {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+      padding: 0 10px;
+    }
+
+    .os-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .os-dot-linux   { background: var(--linux); }
+    .os-dot-freebsd { background: var(--freebsd); }
+    .os-dot-openbsd { background: var(--openbsd); }
+
+    .os-dot.unsupported { background: var(--border); opacity: 0.5; }
+
+    .card-chevron {
+      font-size: 15px;
       color: var(--text-dim);
-      transition: transform 150ms;
-      transform: rotate(0deg);
+      padding: 0 12px 0 4px;
+      flex-shrink: 0;
+      transition: transform 150ms ease;
       line-height: 1;
     }
 
-    .chevron.open {
+    .card-chevron.open {
       transform: rotate(90deg);
+      color: var(--accent);
     }
 
-    .card-os-row {
-      display: flex;
-      gap: 6px;
-      padding: 0 14px 12px;
-    }
-
-    .os-pill {
-      flex: 1;
-      text-align: center;
-      font-size: 10px;
-      font-weight: 600;
-      padding: 4px 6px;
-      border-radius: 3px;
-      background: var(--bg-3);
-      border: 1px solid var(--border-muted);
-      color: var(--text-dim);
-    }
-
-    .os-pill.os-linux   { background: rgba(68,147,248,0.1); border-color: rgba(68,147,248,0.3); color: var(--linux); }
-    .os-pill.os-freebsd { background: rgba(205,123,106,0.1); border-color: rgba(205,123,106,0.3); color: var(--freebsd); }
-    .os-pill.os-openbsd { background: rgba(227,179,65,0.1); border-color: rgba(227,179,65,0.3); color: var(--openbsd); }
-
-    .card-detail {
-      padding: 10px 14px 12px;
+    /* Expand drawer */
+    .card-drawer {
+      padding: 8px 12px 10px 14px;
       border-top: 1px solid var(--border-muted);
-      background: var(--bg-3);
+      background: rgba(0, 0, 0, 0.25);
       display: flex;
-      flex-direction: column;
+      flex-wrap: wrap;
+      align-items: center;
       gap: 6px;
-      animation: slide-down 150ms ease-out;
+      animation: drawer-in 140ms ease-out;
     }
 
-    @keyframes slide-down {
-      from { opacity: 0; transform: translateY(-4px); }
-      to   { opacity: 1; transform: translateY(0); }
+    @keyframes drawer-in {
+      from { opacity: 0; max-height: 0; }
+      to   { opacity: 1; max-height: 80px; }
     }
 
-    .detail-label {
+    .drawer-type-pill {
+      font-family: var(--mono);
       font-size: 9px;
       font-weight: 700;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--text-dim);
+      padding: 2px 6px;
+      border-radius: 3px;
+      border: 1px solid;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
-    .attr-chip { font-size: 11px; }
+    .drawer-note {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      font-style: italic;
+    }
+
+    .attr-chip {
+      font-size: 11px;
+      padding: 3px 8px;
+    }
   }
 
   @media (max-width: 480px) {
-    .cards-scroll { padding: 8px; gap: 6px; }
-    .card-head { padding: 10px 12px; }
-    .card-os-row { padding: 0 12px 10px; }
+    .cards-scroll { padding: 6px; }
     .card-task { font-size: 12px; }
+    .card-num { padding: 0 6px 0 8px; }
   }
 </style>
