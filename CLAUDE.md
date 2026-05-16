@@ -397,6 +397,20 @@ PACKAGES = {
 }
 ```
 
+#### `package-update` — Upgrade All Installed Packages
+**Config Attribute:** None — no tenant configuration required
+
+Refreshes package indexes and upgrades all installed packages to latest versions.
+
+```bash
+flamelet --task package-update                  # upgrade all hosts
+flamelet --task package-update --limit web      # upgrade one group
+flamelet --task package-update --dry            # show what would run
+flamelet --task package-update --dry --diff     # show exact commands
+```
+
+OS dispatch: apt (Debian/Ubuntu) · apk (Alpine) · pkg (FreeBSD) · pkg_add -u (OpenBSD)
+
 ### Networking
 
 #### `wireguard` — WireGuard VPN

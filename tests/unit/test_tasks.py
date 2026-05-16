@@ -32,6 +32,7 @@ class TestTaskRegistry:
                     "packages",
                     "users",
                     "sudo",
+                    "no-config",
                 ], f"{task_name}: invalid op_type {entry.op_type}"
 
     def test_registry_config_attrs(self):
@@ -74,3 +75,11 @@ class TestTaskRegistry:
             for entry in entries:
                 # If we can call it, it's importable
                 assert callable(entry.op_func), f"{task_name}: {entry.op_func} not callable"
+
+    def test_package_update_registered(self):
+        """package-update task should be registered with no-config op_type."""
+        assert "package-update" in TASK_REGISTRY
+        entry = TASK_REGISTRY["package-update"][0]
+        assert entry.config_attr is None
+        assert entry.op_type == "no-config"
+        assert callable(entry.op_func)

@@ -1,4 +1,4 @@
-"""Tests for all 23 framework operations."""
+"""Tests for all 24 framework operations."""
 
 from pathlib import Path
 
@@ -32,6 +32,12 @@ class TestPhase1Operations:
         from core.operations.packages import add_package_ops
 
         assert callable(add_package_ops)
+
+    def test_package_update_operation_import(self):
+        """Verify package_update operation imports correctly."""
+        from core.operations.package_update import add_package_update_ops
+
+        assert callable(add_package_update_ops)
 
     def test_services_operation_import(self):
         """Verify services operation imports correctly."""
@@ -165,15 +171,16 @@ class TestPhase3bOptionalOperations:
 
 
 class TestAllOperationsExist:
-    """Test that all 23 operations are importable."""
+    """Test that all 24 operations are importable."""
 
     @pytest.mark.parametrize(
         "operation_name",
         [
-            # Phase 1 (5)
+            # Phase 1 (6)
             "users",
             "sudo",
             "packages",
+            "package_update",
             "services",
             # Phase 2 (7)
             "sysctl",

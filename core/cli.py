@@ -168,6 +168,10 @@ def build_add_ops_func(tenant_path: Path, tenant_vars):
                     if config:
                         entry.op_func(state, inventory, config, os_filtered_targets, task_name)
 
+                # Handle no-config ops: no tenant vars needed, run directly
+                elif entry.op_type == "no-config":
+                    entry.op_func(state, inventory, target_hosts=os_filtered_targets)
+
                 # Handle standard service configs
                 else:
                     config = load_service_config(tenant_path, entry.config_attr)

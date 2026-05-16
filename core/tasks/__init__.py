@@ -31,6 +31,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
     from core.operations.node_exporter import add_node_exporter_ops
     from core.operations.opensmtpd import add_opensmtpd_ops
     from core.operations.packages import add_package_ops
+    from core.operations.package_update import add_package_update_ops
     from core.operations.pf import add_pf_ops
     from core.operations.postgresql import add_postgresql_ops
     from core.operations.prometheus import add_prometheus_ops
@@ -47,6 +48,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
         "users": [TaskEntry(add_user_ops, None, "users")],
         "sudo": [TaskEntry(add_sudoers_ops, None, "sudo")],
         "packages": [TaskEntry(add_package_ops, "PACKAGES", "packages")],
+        "package-update": [TaskEntry(add_package_update_ops, None, "no-config")],
         "sysctl": [TaskEntry(add_sysctl_ops, "SYSCTL", "standard")],
         "services": [TaskEntry(add_service_ops, "SERVICES", "standard")],
         "autossh": [
