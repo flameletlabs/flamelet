@@ -198,7 +198,7 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
             print(f"\n→ {host.name}:")
             try:
                 success, output = host.run_shell_command(check_cmd)
-                if output and hasattr(output, 'combined_lines'):
+                if output and hasattr(output, "combined_lines"):
                     for output_line in output.combined_lines:
                         if output_line.line.strip():
                             print(f"  {output_line.line}")
