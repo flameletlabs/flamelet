@@ -577,7 +577,7 @@
   }
 
   .group-btn {
-    padding: 8px 12px;
+    padding: 10px 12px;
     background: var(--bg-3);
     border: 1px solid var(--border);
     color: var(--text-muted);
@@ -590,7 +590,7 @@
     line-height: 1.4;
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    min-height: 40px;
+    min-height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -886,15 +886,15 @@
     border: 1px solid var(--border);
     color: var(--text-muted);
     font-size: 12px;
-    padding: 2px 6px;
+    padding: 6px 8px;
     border-radius: 3px;
     cursor: pointer;
     transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 24px;
-    min-height: 24px;
+    min-width: 32px;
+    min-height: 32px;
   }
 
   .copy-btn:hover {
@@ -924,7 +924,7 @@
 
   .detail-btn {
     margin-top: 8px;
-    padding: 8px 12px;
+    padding: 10px 12px;
     background: var(--accent);
     border: none;
     color: var(--bg);
@@ -934,6 +934,7 @@
     border-radius: 4px;
     cursor: pointer;
     transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 44px;
   }
 
   .detail-btn:hover {
