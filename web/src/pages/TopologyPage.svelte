@@ -700,11 +700,16 @@
 
     .diagram-container {
       order: -1;
-      min-height: 250px;
+      min-height: 220px;
+      max-height: 55vh;
+      align-items: flex-start;
+      padding: 8px 4px;
     }
 
     .diagram {
       max-width: 98vw;
+      width: 98vw;
+      height: auto;
     }
 
     .detail-panel {
@@ -730,7 +735,7 @@
 
   @media (max-width: 640px) {
     .container {
-      height: 100vh;
+      height: 100%;
     }
 
     .header {
