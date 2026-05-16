@@ -171,8 +171,7 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
         scope = target_hosts if target_hosts else list(inventory.get_active_hosts())
 
         # Directly run check commands and capture output for display
-        from pyinfra.facts.server import Kernel
-        from pyinfra.facts.server import LinuxDistribution
+        from pyinfra.facts.server import Kernel, LinuxDistribution
 
         for host in scope:
             if host in state.failed_hosts:
@@ -204,7 +203,7 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
                         if output_line.line.strip():
                             print(f"  {output_line.line}")
                 elif not success:
-                    print(f"  [ERROR] Command failed")
+                    print("  [ERROR] Command failed")
             except Exception as e:
                 print(f"  [ERROR] {e}")
 
