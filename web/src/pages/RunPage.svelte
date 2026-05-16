@@ -52,11 +52,8 @@
 
   // Collapse all groups by default on mobile for space efficiency
   $effect(() => {
-    if (groupedHosts.length > 0) {
-      const isMobile = window.innerWidth < 640
-      if (isMobile) {
-        collapsedGroups = new Set(groupedHosts.map(([k]) => k))
-      }
+    if (groupedHosts.length > 0 && window.innerWidth < 640) {
+      collapsedGroups = new Set(groupedHosts.map(([k]) => k))
     }
   })
 
@@ -216,17 +213,14 @@
       </div>
 
       <!-- Host selector -->
-      <div class="host-panel-wrapper">
+      <div class="host-panel-wrapper" class:expanded={hostPanelExpanded}>
         <button class="host-panel-toggle" onclick={() => hostPanelExpanded = !hostPanelExpanded}>
           <span class="toggle-label-text">SELECT HOSTS</span>
           <span class="toggle-count">{selectedHosts.size}</span>
           <span class="toggle-arrow" class:expanded={hostPanelExpanded}>›</span>
         </button>
-        <div class="host-panel" class:expanded={hostPanelExpanded}>
-        <div class="host-toolbar" class:mobile-header={hostPanelExpanded}>
-          {#if hostPanelExpanded}
-            <button class="mobile-close" onclick={() => hostPanelExpanded = false} title="Close">‹</button>
-          {/if}
+        <div class="host-panel">
+        <div class="host-toolbar">
           <div class="group-tabs">
             <button class:active={groupBy === 'location'} onclick={() => groupBy = 'location'}>Location</button>
             <button class:active={groupBy === 'os'} onclick={() => groupBy = 'os'}>OS</button>
@@ -471,31 +465,32 @@
     gap: 0;
     overflow: hidden;
     min-height: 0;
+    border: 1px solid var(--border);
+    border-radius: 4px;
   }
 
   /* Toggle button for mobile host panel */
   .host-panel-toggle {
     display: none;
-    background: none;
+    background: var(--bg-3);
     border: none;
-    padding: 12px 12px;
+    padding: 12px 14px;
     color: var(--text-muted);
     cursor: pointer;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
     font-family: var(--mono);
     font-size: 11px;
     font-weight: 600;
     transition: background 100ms;
+    border-bottom: 1px solid var(--border-muted);
+    flex-shrink: 0;
   }
 
   .host-panel-toggle:hover {
-    background: var(--bg-3);
+    background: var(--bg-2);
+    color: var(--text);
   }
 
   .toggle-label-text {
@@ -516,13 +511,13 @@
 
   .toggle-arrow {
     font-size: 12px;
-    transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
-    transform: rotate(90deg);
+    transition: transform 150ms ease-out;
+    transform: rotate(0deg);
     flex-shrink: 0;
   }
 
   .toggle-arrow.expanded {
-    transform: rotate(270deg);
+    transform: rotate(-90deg);
   }
 
   /* Host panel — takes remaining space */
@@ -531,8 +526,6 @@
     display: flex;
     flex-direction: column;
     gap: 0;
-    border: 1px solid var(--border);
-    border-radius: 4px;
     overflow: hidden;
     min-height: 0;
   }
@@ -547,31 +540,6 @@
     flex-shrink: 0;
   }
 
-  .host-toolbar.mobile-header {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg-2);
-  }
-
-  .mobile-close {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    font-size: 18px;
-    cursor: pointer;
-    padding: 8px;
-    min-height: 44px;
-    min-width: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: color 100ms;
-    margin-right: 8px;
-  }
-
-  .mobile-close:hover {
-    color: var(--text);
-  }
 
   .group-tabs {
     display: flex;
@@ -1088,8 +1056,6 @@
       border-bottom: 1px solid var(--border);
       overflow: visible;
       max-height: none;
-      position: relative;
-      z-index: 10;
     }
     .form-body {
       overflow: visible;
@@ -1103,54 +1069,60 @@
       display: flex;
     }
 
-    /* Host panel hidden by default on mobile, expanded when toggled */
-    .host-panel {
-      display: none;
-      position: fixed;
-      inset: 0;
-      top: auto;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 100;
-      border: none;
-      border-radius: 0;
-      max-height: 100vh;
-      animation: slideUp 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    /* Host panel wrapper — collapsed state on mobile */
+    .host-panel-wrapper {
+      min-height: auto;
+      max-height: auto;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      flex: 0 1 auto;
     }
 
-    .host-panel.expanded {
+    /* Host panel hidden when not expanded */
+    .host-panel-wrapper .host-panel {
+      display: none;
+    }
+
+    /* When expanded, show panel and take up space */
+    .host-panel-wrapper.expanded {
+      flex: 1;
+      min-height: 0;
+      max-height: none;
+    }
+
+    .host-panel-wrapper.expanded .host-panel {
       display: flex;
     }
 
-    @keyframes slideUp {
-      from {
-        transform: translateY(100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
-    .host-panel-wrapper {
-      min-height: auto;
+    .host-panel-wrapper.expanded .host-panel-toggle {
+      border-bottom: 1px solid var(--border-muted);
     }
 
     .terminal-panel {
       min-height: 350px;
     }
 
-    /* On expanded mobile panel, adjust toolbar */
-    .host-panel.expanded .group-tabs {
+    /* Toolbar adjustments on mobile */
+    .host-toolbar {
+      padding: 8px 8px;
       flex-wrap: wrap;
     }
 
-    .host-panel.expanded .host-actions {
+    .group-tabs {
+      width: 100%;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .host-actions {
       width: 100%;
       justify-content: flex-start;
       padding: 8px 0 0 0;
+    }
+
+    .txt-btn {
+      padding: 8px 10px;
     }
   }
 
