@@ -32,6 +32,8 @@ def add_unbound_ops(state, hosts, config, target_hosts=None, task="all"):
     targets = target_hosts if target_hosts else list(hosts)
 
     for host in targets:
+        if host in state.failed_hosts:
+            continue
         if host.name not in config:
             continue
 
