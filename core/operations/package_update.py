@@ -34,6 +34,10 @@ def add_package_update_ops(state, hosts, config=None, target_hosts=None, task="a
     targets = target_hosts if target_hosts else list(hosts)
 
     for host in targets:
+        # Skip hosts that failed to connect
+        if host in state.failed_hosts:
+            continue
+
         os_key = host.get_fact(Kernel)
 
         if dry:
