@@ -7,7 +7,7 @@
   let { tenant = null } = $props()
 
   let tasks = [
-    'users', 'sudo', 'packages', 'sysctl', 'services', 'wireguard', 'monit',
+    'users', 'sudo', 'packages', 'package-update', 'sysctl', 'services', 'wireguard', 'monit',
     'unbound', 'pf', 'docker', 'node_exporter', 'k3s', 'bhyve', 'bastille',
     'storage', 'nginx', 'postgresql', 'prometheus', 'registry', 'autossh',
     'opensmtpd', 'all'
