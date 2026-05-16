@@ -165,6 +165,52 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
     if verbose:
         print("[DEBUG] Operations queued")
 
+    # package-update in dry mode: execute safe check commands to show available updates
+    if args.dry and args.task == "package-update":
+        print("Checking available updates...")
+        scope = target_hosts if target_hosts else list(inventory.get_active_hosts())
+
+        # Directly run check commands and capture output for display
+        from pyinfra.facts.server import Kernel
+        from pyinfra.facts.server import LinuxDistribution
+
+        for host in scope:
+            if host in state.failed_hosts:
+                continue
+
+            os_key = host.get_fact(Kernel)
+
+            # Determine check command based on OS
+            if os_key == "Linux":
+                distro = host.get_fact(LinuxDistribution) or {}
+                distro_id = distro.get("id", "").lower()
+                if distro_id == "alpine":
+                    check_cmd = "sudo apk update -q && sudo apk upgrade -s"
+                else:
+                    check_cmd = "sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq && sudo apt-get upgrade --dry-run"
+            elif os_key == "FreeBSD":
+                check_cmd = "sudo pkg upgrade -n"
+            elif os_key == "OpenBSD":
+                check_cmd = "sudo pkg_add -u -n"
+            else:
+                continue
+
+            # Run check command on host and display output
+            print(f"\n→ {host.name}:")
+            try:
+                success, output = host.run_shell_command(check_cmd)
+                if output and hasattr(output, 'combined_lines'):
+                    for output_line in output.combined_lines:
+                        if output_line.line.strip():
+                            print(f"  {output_line.line}")
+                elif not success:
+                    print(f"  [ERROR] Command failed")
+            except Exception as e:
+                print(f"  [ERROR] {e}")
+
+        disconnect_all(state)
+        return 0
+
     # Check mode: show what would run without executing
     if args.dry:
         active = list(inventory.get_active_hosts())

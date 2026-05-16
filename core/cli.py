@@ -87,12 +87,13 @@ def load_tenant_hosts(inventory):
     return hosts
 
 
-def build_add_ops_func(tenant_path: Path, tenant_vars):
+def build_add_ops_func(tenant_path: Path, tenant_vars, dry: bool = False):
     """Build the add_ops function that dispatches to all operations.
 
     Args:
         tenant_path: Path to tenant directory
         tenant_vars: Tenant vars module (for USERS, GROUPS, etc.)
+        dry: whether dry mode is enabled (threaded to no-config ops like package-update)
 
     Returns:
         add_ops(state, inventory, target_hosts=None, task="all") function
@@ -170,7 +171,7 @@ def build_add_ops_func(tenant_path: Path, tenant_vars):
 
                 # Handle no-config ops: no tenant vars needed, run directly
                 elif entry.op_type == "no-config":
-                    entry.op_func(state, inventory, target_hosts=os_filtered_targets)
+                    entry.op_func(state, inventory, target_hosts=os_filtered_targets, dry=dry)
 
                 # Handle standard service configs
                 else:
@@ -211,7 +212,7 @@ def main():
     args = parser.parse_args()
 
     # Build the add_ops function
-    add_ops = build_add_ops_func(tenant_path, tenant_vars)
+    add_ops = build_add_ops_func(tenant_path, tenant_vars, dry=args.dry)
 
     # Run deployment
     return run_deployment(inventory, add_ops, args, verbose=args.verbose)
