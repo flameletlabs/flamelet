@@ -54,139 +54,146 @@
     setTimeout(() => copiedText = null, 2000)
   }
 
+  function toggleOp(task) {
+    expandedOp = expandedOp === task ? null : task
+  }
+
   const TYPE_COLORS = {
-    standard:  { bg: 'rgba(68, 147, 248, 0.15)',  border: 'rgba(68, 147, 248, 0.5)',  text: '#4493f8' },
-    autossh:   { bg: 'rgba(240, 136, 62, 0.15)',  border: 'rgba(240, 136, 62, 0.5)',  text: '#f0883e' },
-    packages:  { bg: 'rgba(63, 185, 80, 0.15)',   border: 'rgba(63, 185, 80, 0.5)',   text: '#3fb950' },
-    users:     { bg: 'rgba(0, 212, 170, 0.15)',   border: 'rgba(0, 212, 170, 0.5)',   text: '#00d4aa' },
-    sudo:      { bg: 'rgba(0, 212, 170, 0.15)',   border: 'rgba(0, 212, 170, 0.5)',   text: '#00d4aa' },
+    standard:  { bg: 'rgba(68, 147, 248, 0.12)',   border: '#4493f8',                    text: '#4493f8', stripe: '#4493f8' },
+    autossh:   { bg: 'rgba(240, 136, 62, 0.12)',   border: '#f0883e',                    text: '#f0883e', stripe: '#f0883e' },
+    packages:  { bg: 'rgba(63, 185, 80, 0.12)',    border: '#3fb950',                    text: '#3fb950', stripe: '#3fb950' },
+    users:     { bg: 'rgba(0, 212, 170, 0.12)',    border: '#00d4aa',                    text: '#00d4aa', stripe: '#00d4aa' },
+    sudo:      { bg: 'rgba(0, 212, 170, 0.12)',    border: '#00d4aa',                    text: '#00d4aa', stripe: '#00d4aa' },
   }
 
   function typeStyle(op_type) {
     const c = TYPE_COLORS[op_type] || TYPE_COLORS.standard
-    return `background:${c.bg}; border-color:${c.border}; color:${c.text}`
+    return `--op-bg:${c.bg}; --op-border:${c.border}; --op-text:${c.text}; --op-stripe:${c.stripe}`
   }
 
   const OS_LIST = ['Linux', 'FreeBSD', 'OpenBSD']
 </script>
 
 <div class="page">
+  <!-- Header with search -->
   <div class="toolbar">
     <div class="toolbar-left">
       <span class="title">OPERATIONS</span>
-      <span class="count">{ops.length} tasks</span>
+      <span class="count">{ops.length} available</span>
     </div>
     <div class="search-wrap">
       <span class="search-icon">⌕</span>
-      <input type="search" placeholder="filter tasks…" bind:value={filter} />
+      <input type="search" placeholder="filter…" bind:value={filter} />
     </div>
   </div>
 
-  <!-- Desktop table -->
-  <div class="table-scroll">
-    <table>
-      <thead>
-        <tr>
-          <th class="col-num">#</th>
-          <th class="col-task">TASK</th>
-          <th class="col-attr">CONFIG ATTR</th>
-          <th class="col-type">TYPE</th>
-          {#each OS_LIST as os}
-            <th class="col-os">{os.toUpperCase()}</th>
-          {/each}
-        </tr>
-      </thead>
-      <tbody>
-        {#each filtered as op, i}
-          <tr class:expanded={expandedOp === op.task}
-              onclick={() => expandedOp = expandedOp === op.task ? null : op.task}
-              role="button" tabindex="0"
-              onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (expandedOp = expandedOp === op.task ? null : op.task)}>
-            <td class="col-num dim">{(i + 1).toString().padStart(2, '0')}</td>
-            <td class="col-task">
-              <span class="task-name">{op.task}</span>
-            </td>
-            <td class="col-attr">
-              {#if op.config_attrs.length === 0}
-                <span class="dash">—</span>
-              {:else}
-                <div class="attr-list">
-                  {#each op.config_attrs as attr}
-                    <button class="attr-chip" onclick={(e) => { e.stopPropagation(); copyToClipboard(attr) }} title="Copy">
-                      <span class="mono">{attr}</span>
-                      <span class="copy-icon">{copiedText === attr ? '✓' : '⎘'}</span>
-                    </button>
-                  {/each}
-                </div>
-              {/if}
-            </td>
-            <td class="col-type">
-              <span class="type-pill" style={typeStyle(op.op_type)}>{op.op_type}</span>
-            </td>
-            {#each OS_LIST as os}
-              <td class="col-os">
-                {#if hasOS(op, os)}
-                  <span class="os-check os-{os.toLowerCase()}">✓</span>
-                {:else}
-                  <span class="dash">—</span>
-                {/if}
-              </td>
-            {/each}
-          </tr>
-        {/each}
-      </tbody>
-    </table>
-    {#if filtered.length === 0 && ops.length > 0}
-      <div class="empty">no tasks match "{filter}"</div>
-    {:else if ops.length === 0}
-      <div class="empty loading-msg">loading…</div>
-    {/if}
-  </div>
+  <!-- Unified list (works both desktop and mobile) -->
+  <div class="ops-container">
+    <div class="ops-list">
+      {#each filtered as op, i (op.task)}
+        <button
+          class="op-row"
+          class:expanded={expandedOp === op.task}
+          style={typeStyle(op.op_type)}
+          onclick={() => toggleOp(op.task)}>
 
-  <!-- Mobile cards: single-row with left accent stripe + inline OS dots -->
-  <div class="cards-scroll">
-    {#each filtered as op, i (op.task)}
-      {@const typeC = TYPE_COLORS[op.op_type] || TYPE_COLORS.standard}
-      <div class="op-card" style="animation-delay:{i * 30}ms; --accent-color:{typeC.text}">
-        <button class="card-row"
-             onclick={() => expandedOp = expandedOp === op.task ? null : op.task}>
-          <span class="card-stripe"></span>
-          <span class="card-num">{(i + 1).toString().padStart(2, '0')}</span>
-          <span class="card-task">{op.task}</span>
-          <span class="card-os-dots">
-            {#each OS_LIST as os}
-              <span class="os-dot os-dot-{os.toLowerCase()}"
-                    class:unsupported={!hasOS(op, os)}
-                    title={os}></span>
-            {/each}
-          </span>
-          <span class="card-chevron" class:open={expandedOp === op.task}>›</span>
+          <!-- Left accent stripe (operation type color) -->
+          <span class="op-stripe"></span>
+
+          <!-- Row content -->
+          <div class="op-content">
+            <!-- Top section: number, name, type -->
+            <div class="op-header">
+              <span class="op-num">{(i + 1).toString().padStart(2, '0')}</span>
+              <span class="op-name">{op.task}</span>
+              <span class="op-type-badge">{op.op_type}</span>
+            </div>
+
+            <!-- Bottom section: OS support + expand indicator -->
+            <div class="op-footer">
+              <div class="op-os-support">
+                {#each OS_LIST as os}
+                  <span class="os-indicator os-{os.toLowerCase()}" class:supported={hasOS(op, os)} title={os}>
+                    {hasOS(op, os) ? '●' : '○'}
+                  </span>
+                {/each}
+              </div>
+              <span class="op-expand-icon" class:open={expandedOp === op.task}>›</span>
+            </div>
+          </div>
         </button>
 
+        <!-- Expanded detail panel -->
         {#if expandedOp === op.task}
-          <div class="card-drawer">
-            <span class="drawer-type-pill" style={typeStyle(op.op_type)}>{op.op_type}</span>
-            {#if op.config_attrs.length > 0}
-              {#each op.config_attrs as attr}
-                <button class="attr-chip" onclick={() => copyToClipboard(attr)} title="Copy">
-                  <span class="mono">{attr}</span>
-                  <span class="copy-icon">{copiedText === attr ? '✓' : '⎘'}</span>
-                </button>
-              {/each}
-            {:else}
-              <span class="drawer-note">loaded from vars/__init__.py</span>
-            {/if}
+          <div class="op-detail-panel" style={typeStyle(op.op_type)}>
+            <div class="detail-header">
+              <span class="detail-title">{op.task}</span>
+              <button class="detail-close" onclick={() => toggleOp(op.task)}>✕</button>
+            </div>
+
+            <div class="detail-content">
+              <!-- Operation type -->
+              <div class="detail-section">
+                <div class="detail-label">Type</div>
+                <span class="op-type-badge large">{op.op_type}</span>
+              </div>
+
+              <!-- Config attributes -->
+              {#if op.config_attrs.length > 0}
+                <div class="detail-section">
+                  <div class="detail-label">Config Attributes</div>
+                  <div class="attrs-grid">
+                    {#each op.config_attrs as attr}
+                      <button class="attr-chip" onclick={() => copyToClipboard(attr)} title="Click to copy">
+                        <span class="mono">{attr}</span>
+                        <span class="copy-icon">{copiedText === attr ? '✓' : '⎘'}</span>
+                      </button>
+                    {/each}
+                  </div>
+                </div>
+              {:else}
+                <div class="detail-section">
+                  <div class="detail-label">Config</div>
+                  <div class="detail-note">loaded from vars/__init__.py</div>
+                </div>
+              {/if}
+
+              <!-- OS support detail -->
+              <div class="detail-section">
+                <div class="detail-label">Supported OS</div>
+                <div class="os-support-list">
+                  {#each OS_LIST as os}
+                    <div class="os-support-item">
+                      <span class="os-indicator-large os-{os.toLowerCase()}" class:supported={hasOS(op, os)}>
+                        {hasOS(op, os) ? '●' : '○'}
+                      </span>
+                      <span>{os}</span>
+                    </div>
+                  {/each}
+                </div>
+              </div>
+            </div>
           </div>
         {/if}
-      </div>
-    {/each}
-    {#if filtered.length === 0 && ops.length > 0}
-      <div class="empty">no tasks match "{filter}"</div>
-    {/if}
+      {/each}
+
+      {#if filtered.length === 0}
+        <div class="empty">
+          {ops.length === 0 ? 'Loading…' : `No operations match "${filter}"`}
+        </div>
+      {/if}
+    </div>
   </div>
 </div>
 
 <style>
+  :root {
+    --op-bg: transparent;
+    --op-border: transparent;
+    --op-text: inherit;
+    --op-stripe: var(--accent);
+  }
+
   .page {
     display: flex;
     flex-direction: column;
@@ -194,7 +201,7 @@
     overflow: hidden;
   }
 
-  /* ── Toolbar ─────────────────────────────────────────── */
+  /* ── TOOLBAR ────────────────────────────────────────────────── */
   .toolbar {
     display: flex;
     align-items: center;
@@ -247,124 +254,276 @@
     color: var(--text);
     font-family: var(--mono);
     font-size: 12px;
-    padding: 7px 12px 7px 30px;
+    padding: 10px 12px 10px 30px;
     border-radius: 4px;
     width: 200px;
     outline: none;
-    transition: border-color 150ms;
+    transition: border-color 150ms, box-shadow 150ms;
+    min-height: 44px;
   }
 
   input:focus {
     border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.1);
   }
 
   input::placeholder {
     color: var(--text-dim);
   }
 
-  /* ── Table (desktop) ─────────────────────────────────── */
-  .table-scroll {
+  /* ── OPERATIONS LIST CONTAINER ──────────────────────────────── */
+  .ops-container {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .ops-list {
     flex: 1;
     overflow-y: auto;
-    overflow-x: auto;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
   }
 
-  .cards-scroll {
-    display: none;
-  }
-
-  table {
+  /* ── OPERATION ROW (Command Center Design) ──────────────────── */
+  .op-row {
+    position: relative;
+    display: flex;
+    align-items: stretch;
     width: 100%;
-    border-collapse: collapse;
-  }
-
-  thead th {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    background: var(--bg-2);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-  }
-
-  tbody tr {
-    cursor: pointer;
+    background: none;
+    border: none;
     border-bottom: 1px solid var(--border-muted);
-    transition: background 80ms;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  tbody tr:hover {
-    background: var(--bg-2);
+  .op-row:hover {
+    background: var(--op-bg);
   }
 
-  tbody tr.expanded {
-    background: rgba(0, 212, 170, 0.04);
+  .op-row.expanded {
+    background: var(--op-bg);
+    border-bottom-color: var(--op-border);
   }
 
-  tbody tr:last-child {
+  .op-row:last-of-type {
     border-bottom: none;
   }
 
-  td {
-    padding: 11px 14px;
-    vertical-align: middle;
+  /* Left accent stripe (operation type color) */
+  .op-stripe {
+    width: 4px;
+    flex-shrink: 0;
+    background: var(--op-stripe);
+    opacity: 0.9;
   }
 
-  .col-num {
-    width: 44px;
+  /* Row content wrapper */
+  .op-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 14px 18px;
+    min-height: 0;
+    gap: 10px;
+  }
+
+  /* Top: number, name, type */
+  .op-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 0;
+  }
+
+  .op-num {
     font-family: var(--mono);
     font-size: 11px;
-    text-align: right;
-    padding-right: 8px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+    min-width: 28px;
   }
 
-  .col-task {
-    min-width: 140px;
-  }
-
-  .col-attr {
-    min-width: 180px;
-  }
-
-  .col-type {
-    width: 110px;
-  }
-
-  .col-os {
-    width: 80px;
-    text-align: center;
-  }
-
-  .dim { color: var(--text-dim); }
-
-  .task-name {
+  .op-name {
     font-family: var(--mono);
     font-size: 13px;
     font-weight: 700;
     color: var(--text);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  /* Config attr chips */
-  .attr-list {
+  .op-type-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    background: var(--op-bg);
+    border: 1px solid var(--op-border);
+    color: var(--op-text);
+    border-radius: 3px;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  /* Bottom: OS support + expand icon */
+  .op-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .op-os-support {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .os-indicator {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    transition: color 150ms;
+  }
+
+  .os-indicator.supported.os-linux { color: var(--linux); }
+  .os-indicator.supported.os-freebsd { color: var(--freebsd); }
+  .os-indicator.supported.os-openbsd { color: var(--openbsd); }
+
+  .op-expand-icon {
+    font-size: 16px;
+    color: var(--text-muted);
+    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    transform: rotate(0deg);
+    flex-shrink: 0;
+  }
+
+  .op-expand-icon.open {
+    transform: rotate(90deg);
+    color: var(--op-text);
+  }
+
+  /* ── DETAIL PANEL (Bottom Sheet on Mobile, Side Panel on Desktop) ────── */
+  .op-detail-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto;
+    max-height: 70vh;
+    background: var(--bg-2);
+    border-top: 1px solid var(--border);
+    border-left: 4px solid var(--op-stripe);
+    border-right: none;
+    border-bottom: none;
+    z-index: 50;
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    animation: bottomSheetIn 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @keyframes bottomSheetIn {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .detail-title {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .detail-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 150ms;
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .detail-close:hover {
+    color: var(--text);
+  }
+
+  .detail-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .detail-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .detail-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .detail-note {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* Config attributes in detail panel */
+  .attrs-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
 
   .attr-chip {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: var(--bg-3);
-    border: 1px solid var(--border-muted);
+    background: var(--bg);
+    border: 1px solid var(--border);
     border-radius: 3px;
-    padding: 6px 10px;
+    padding: 8px 10px;
     font-size: 11px;
     color: var(--text-muted);
     cursor: pointer;
@@ -372,238 +531,197 @@
     text-align: left;
     white-space: nowrap;
     min-height: 32px;
+    font-family: var(--mono);
   }
 
   .attr-chip:hover {
-    border-color: var(--accent);
+    border-color: var(--op-border);
     color: var(--text);
+    background: var(--bg-3);
   }
 
   .copy-icon {
     font-size: 10px;
-    color: var(--text-dim);
     flex-shrink: 0;
+    margin-left: auto;
   }
 
-  .attr-chip:hover .copy-icon {
-    color: var(--accent);
+  /* OS Support list in detail panel */
+  .os-support-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
 
-  /* Type badge */
-  .type-pill {
-    display: inline-block;
-    font-family: var(--mono);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    padding: 2px 7px;
-    border-radius: 3px;
-    border: 1px solid;
-    white-space: nowrap;
+  .os-support-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text);
   }
 
-  /* OS checks */
-  .os-check {
+  .os-indicator-large {
     font-size: 13px;
     font-weight: 700;
+    color: var(--text-muted);
   }
 
-  .os-check.os-linux   { color: var(--linux); }
-  .os-check.os-freebsd { color: var(--freebsd); }
-  .os-check.os-openbsd { color: var(--openbsd); }
+  .os-indicator-large.supported.os-linux { color: var(--linux); }
+  .os-indicator-large.supported.os-freebsd { color: var(--freebsd); }
+  .os-indicator-large.supported.os-openbsd { color: var(--openbsd); }
 
-  .dash {
-    color: var(--text-dim);
-    font-size: 12px;
+  .op-type-badge.large {
+    display: inline-block;
   }
 
-  /* ── Empty / Loading ─────────────────────────────────── */
+  /* ── EMPTY STATE ────────────────────────────────────────────── */
   .empty {
-    padding: 40px;
-    text-align: center;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
     font-family: var(--mono);
     font-size: 12px;
-    color: var(--text-dim);
+    padding: 40px;
+    text-align: center;
   }
 
-  .loading-msg { color: var(--text-dim); }
-
-  /* ── Mobile cards ────────────────────────────────────── */
-  @media (max-width: 768px) {
-    .table-scroll { display: none; }
-
+  /* ──────── RESPONSIVE: TABLET ────────────────────────────────── */
+  @media (max-width: 900px) {
     .toolbar {
       flex-wrap: wrap;
-      padding: 10px 12px;
+      padding: 10px 16px;
       gap: 8px;
     }
-    .search-wrap { width: 100%; order: 3; }
-    input { width: 100%; box-sizing: border-box; }
 
-    .cards-scroll {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      padding: 12px;
-      flex: 1;
-      overflow-y: auto;
-      background: var(--bg);
-    }
-
-    /* ── Card ── */
-    .op-card {
-      border-radius: 4px;
-      overflow: hidden;
-      animation: card-in 220ms ease-out both;
-      background: var(--bg-2);
-      border: 1px solid var(--border-muted);
-    }
-
-    @keyframes card-in {
-      from { opacity: 0; transform: translateX(-6px); }
-      to   { opacity: 1; transform: translateX(0); }
-    }
-
-    /* Single-row button stretches full width */
-    .card-row {
+    .search-wrap {
       width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 0;
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 0;
-      text-align: left;
-      min-height: 44px;
+      order: 3;
     }
 
-    .card-row:active {
-      background: var(--bg-3);
+    input {
+      width: 100%;
+      box-sizing: border-box;
     }
 
-    /* Left accent stripe — gets its color from --accent-color CSS var on .op-card */
-    .card-stripe {
-      width: 3px;
-      align-self: stretch;
-      flex-shrink: 0;
-      background: var(--accent-color, var(--accent));
-      opacity: 0.8;
+    .op-content {
+      padding: 12px 14px;
+      gap: 8px;
     }
 
-    .card-num {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--text-dim);
-      padding: 0 8px 0 10px;
-      min-width: 34px;
-      flex-shrink: 0;
+    .op-name {
+      font-size: 12px;
     }
 
-    .card-task {
-      font-family: var(--mono);
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text);
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+    .op-type-badge {
+      font-size: 9px;
     }
+  }
 
-    /* Three colored OS dots — visible at a glance */
-    .card-os-dots {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      flex-shrink: 0;
-      padding: 0 10px;
-    }
-
-    .os-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .os-dot-linux   { background: var(--linux); }
-    .os-dot-freebsd { background: var(--freebsd); }
-    .os-dot-openbsd { background: var(--openbsd); }
-
-    .os-dot.unsupported { background: var(--border); opacity: 0.5; }
-
-    .card-chevron {
-      font-size: 15px;
-      color: var(--text-dim);
-      padding: 0 12px 0 4px;
-      flex-shrink: 0;
-      transition: transform 150ms ease;
-      line-height: 1;
-    }
-
-    .card-chevron.open {
-      transform: rotate(90deg);
-      color: var(--accent);
-    }
-
-    /* Expand drawer */
-    .card-drawer {
-      padding: 10px 12px 10px 13px;
-      border-top: 1px solid var(--border-muted);
-      border-left: 3px solid var(--accent-color, var(--accent));
-      background: var(--bg-3);
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
+  /* ──────── RESPONSIVE: MOBILE ────────────────────────────────── */
+  @media (max-width: 640px) {
+    .toolbar {
+      padding: 8px 12px;
       gap: 6px;
-      animation: drawer-in 160ms ease-out both;
     }
 
-    @keyframes drawer-in {
-      from { opacity: 0; transform: translateY(-3px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .drawer-type-pill {
-      font-family: var(--mono);
+    .title,
+    .count {
       font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      padding: 3px 8px;
-      border-radius: 3px;
-      border: 1px solid;
-      white-space: nowrap;
-      flex-shrink: 0;
     }
 
-    .drawer-note {
-      font-family: var(--mono);
+    input {
+      width: 100%;
+      padding: 8px 10px 8px 28px;
+      font-size: 11px;
+    }
+
+    .op-row {
+      min-height: 48px;
+    }
+
+    .op-content {
+      padding: 10px 12px;
+      gap: 6px;
+    }
+
+    .op-header {
+      gap: 8px;
+    }
+
+    .op-num {
       font-size: 10px;
-      color: var(--text-dim);
-      font-style: italic;
+      min-width: 24px;
+    }
+
+    .op-name {
+      font-size: 12px;
+    }
+
+    .op-type-badge {
+      font-size: 8px;
+      padding: 2px 6px;
+    }
+
+    .op-footer {
+      gap: 8px;
+    }
+
+    .os-indicator {
+      font-size: 10px;
+    }
+
+    .op-expand-icon {
+      font-size: 14px;
+    }
+
+    /* Detail panel full height on mobile */
+    .op-detail-panel {
+      max-height: 80vh;
+    }
+
+    .detail-header {
+      padding: 12px 16px;
+    }
+
+    .detail-content {
+      padding: 12px 16px;
+      gap: 16px;
+    }
+
+    .detail-title {
+      font-size: 13px;
+    }
+
+    .attrs-grid {
+      gap: 4px;
     }
 
     .attr-chip {
-      font-size: 11px;
-      padding: 6px 10px;
-      background: var(--bg);
-      border-color: var(--border);
-      color: var(--text-muted);
-      min-height: 32px;
+      padding: 6px 8px;
+      font-size: 10px;
+      min-height: 28px;
     }
 
-    .attr-chip:hover {
-      border-color: var(--accent);
-      color: var(--text);
+    .os-support-item {
+      font-size: 11px;
     }
   }
 
-  @media (max-width: 480px) {
-    .cards-scroll { padding: 6px; }
-    .card-task { font-size: 12px; }
-    .card-num { padding: 0 6px 0 8px; }
+  /* ──────── VERY SMALL PHONES ────────────────────────────────── */
+  @media (max-width: 360px) {
+    .op-content {
+      padding: 8px 10px;
+    }
+
+    .op-header {
+      gap: 6px;
+    }
+
+    .op-name {
+      font-size: 11px;
+    }
   }
 </style>
