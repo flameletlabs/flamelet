@@ -1,82 +1,127 @@
 <script>
-  import { onMount } from 'svelte';
-  import { getTopology, getTenants } from '../lib/api.js';
+  import { getTopology } from '../lib/api.js'
 
-  let tenants = $state([]);
-  let selectedTenant = $state(null);
-  let topology = $state(null);
-  let selectedNode = $state(null);
-  let hoveredEdge = $state(null);
-  let loading = $state(false);
-  let error = $state(null);
+  let { tenant = null } = $props()
 
-  const nodePositions = {
-    'fw.example.com': { x: 400, y: 180 },
-    'virt.example.com': { x: 120, y: 280 },
-    'controller.example.com': { x: 220, y: 420 },
-    'virt-01.example.com': { x: 680, y: 80 },
-    'virt-02.example.com': { x: 700, y: 140 },
-    'virt-03.example.com': { x: 680, y: 200 },
-    'nas.example.com': { x: 80, y: 80 },
-    'vpn.example.com': { x: 680, y: 340 },
-  };
+  let topology = $state(null)
+  let selectedNode = $state(null)
+  let hoveredEdge = $state(null)
+  let loading = $state(false)
+  let error = $state(null)
 
-  const osColors = {
+  const OS_COLORS = {
     openbsd: '#e3b341',
     freebsd: '#cd7b6a',
     linux: '#4493f8',
-  };
+  }
 
-  onMount(async () => {
-    tenants = await getTenants();
-    if (tenants.length > 0) {
-      selectedTenant = tenants[0].name;
-      loadTopology();
+  $effect(() => {
+    if (!tenant) {
+      topology = null
+      selectedNode = null
+      return
     }
-  });
+    loadTopology()
+  })
 
   async function loadTopology() {
-    loading = true;
-    error = null;
+    loading = true
+    error = null
     try {
-      topology = await getTopology(selectedTenant);
-      selectedNode = null;
+      topology = await getTopology(tenant)
+      selectedNode = null
     } catch (e) {
-      error = e.message;
+      error = e.message
     }
-    loading = false;
-  }
-
-  function getNodePosition(hostname) {
-    return nodePositions[hostname] || { x: Math.random() * 600 + 50, y: Math.random() * 400 + 50 };
-  }
-
-  function getOSColor(hostname) {
-    if (hostname.includes('openbsd') || hostname.includes('fw') || hostname.includes('controller')) {
-      return osColors.openbsd;
-    }
-    if (hostname.includes('freebsd') || hostname.includes('virt') || hostname.includes('nas')) {
-      return osColors.freebsd;
-    }
-    if (hostname.includes('docker') || hostname.includes('k3s') || hostname.includes('dev')) {
-      return osColors.linux;
-    }
-    return '#666';
+    loading = false
   }
 
   function formatIP(addr) {
-    return addr ? addr.split('/')[0] : '?';
+    return addr ? addr.split('/')[0] : '?'
   }
 
   function getSelectedNodePeers() {
-    if (!selectedNode || !topology) return [];
-    const edges = topology.edges.filter(e => e.from === selectedNode || e.to === selectedNode);
-    const peers = new Set();
+    if (!selectedNode || !topology) return []
+    const edges = topology.edges.filter(e => e.from === selectedNode || e.to === selectedNode)
+    const peers = new Set()
     edges.forEach(e => {
-      if (e.from === selectedNode) peers.add(e.to);
-      else peers.add(e.from);
-    });
-    return Array.from(peers).sort();
+      if (e.from === selectedNode) peers.add(e.to)
+      else peers.add(e.from)
+    })
+    return Array.from(peers).sort()
+  }
+
+  // Hub-spoke radial layout: find node with most connections, place it center
+  function computeLayout(nodes, edges) {
+    if (!nodes?.length) return {}
+
+    const SVG_W = 600, SVG_H = 480
+    const CX = SVG_W / 2, CY = SVG_H / 2
+    const NODE_W = 130, NODE_H = 44
+
+    // Find hub: node with most wireguard edges
+    const degree = {}
+    edges.filter(e => e.type === 'wireguard').forEach(e => {
+      degree[e.from] = (degree[e.from] || 0) + 1
+      degree[e.to] = (degree[e.to] || 0) + 1
+    })
+    const sorted = [...nodes].sort((a, b) => (degree[b.id] || 0) - (degree[a.id] || 0))
+    const hub = sorted[0]
+    const spokes = sorted.slice(1)
+
+    const pos = {}
+    pos[hub.id] = { x: CX - NODE_W / 2, y: CY - NODE_H / 2 }
+
+    const radius = Math.min(CX, CY) * 0.72
+    spokes.forEach((n, i) => {
+      const angle = (i / spokes.length) * Math.PI * 2 - Math.PI / 2
+      pos[n.id] = {
+        x: CX + Math.cos(angle) * radius - NODE_W / 2,
+        y: CY + Math.sin(angle) * radius - NODE_H / 2,
+      }
+    })
+
+    return pos
+  }
+
+  let layout = $derived.by(() => {
+    if (!topology) return {}
+    return computeLayout(topology.nodes, topology.edges)
+  })
+
+  function nodeCenter(id) {
+    const p = layout[id]
+    if (!p) return { x: 0, y: 0 }
+    return { x: p.x + 65, y: p.y + 22 }
+  }
+
+  // Offset parallel lines so bidirectional edges sit side-by-side
+  function offsetLine(x1, y1, x2, y2, isReverse, offset = 6) {
+    const dx = x2 - x1
+    const dy = y2 - y1
+    const length = Math.sqrt(dx * dx + dy * dy)
+
+    if (length === 0) return { x1, y1, x2, y2 }
+
+    // Perpendicular vector (rotated 90 degrees)
+    const px = (-dy / length) * offset
+    const py = (dx / length) * offset
+
+    // Apply offset: one direction positive, other negative
+    const sign = isReverse ? -1 : 1
+    return {
+      x1: x1 + px * sign,
+      y1: y1 + py * sign,
+      x2: x2 + px * sign,
+      y2: y2 + py * sign,
+    }
+  }
+
+  // Check if there's a reverse edge
+  function hasReverseEdge(edge) {
+    return topology?.edges.some(
+      e => e.type === edge.type && e.from === edge.to && e.to === edge.from
+    )
   }
 </script>
 
@@ -84,13 +129,7 @@
   <div class="header">
     <span class="title">TOPOLOGY</span>
     <div class="controls">
-      <select bind:value={selectedTenant} onchange={loadTopology}>
-        <option value="">— Select Tenant —</option>
-        {#each tenants as tenant}
-          <option value={tenant.name}>{tenant.name}</option>
-        {/each}
-      </select>
-      <button onclick={loadTopology} class:loading>
+      <button onclick={loadTopology} disabled={loading} class:loading>
         {loading ? '⟳' : '↺'} Refresh
       </button>
     </div>
@@ -101,11 +140,11 @@
       <div class="section">
         <h3>Locations</h3>
         {#if topology}
-          {#each Object.keys(topology.locations).sort() as location}
+          {#each Object.entries(topology.locations || {}).sort() as [location, hosts]}
             <div class="location-item">
               <span class="dot" style="background: var(--accent);"></span>
               <span class="loc-name">{location}</span>
-              <span class="count">{topology.locations[location].length}</span>
+              <span class="count">{hosts.length}</span>
             </div>
           {/each}
         {/if}
@@ -139,7 +178,7 @@
       {:else if error}
         <div class="error">{error}</div>
       {:else if topology}
-        <svg viewBox="0 0 800 500" class="diagram">
+        <svg viewBox="0 0 600 480" class="diagram" preserveAspectRatio="xMidYMid meet">
           <defs>
             <marker id="arrowhead-autossh" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
               <polygon points="0 0, 10 3, 0 6" fill="var(--running)" />
@@ -156,31 +195,32 @@
 
           <!-- Draw edges first (behind nodes) -->
           {#each topology.edges as edge (edge.id)}
+            {@const from = nodeCenter(edge.from)}
+            {@const to = nodeCenter(edge.to)}
+            {@const isReverse = edge.from > edge.to}
+            {@const hasReverse = hasReverseEdge(edge)}
+            {@const offset = offsetLine(from.x, from.y, to.x, to.y, isReverse)}
             {#if edge.type === 'wireguard'}
-              {@const fromPos = getNodePosition(edge.from)}
-              {@const toPos = getNodePosition(edge.to)}
               <line
-                x1={fromPos.x + 60}
-                y1={fromPos.y + 25}
-                x2={toPos.x + 60}
-                y2={toPos.y + 25}
+                x1={hasReverse ? offset.x1 : from.x}
+                y1={hasReverse ? offset.y1 : from.y}
+                x2={hasReverse ? offset.x2 : to.x}
+                y2={hasReverse ? offset.y2 : to.y}
                 stroke="var(--accent)"
                 stroke-width="1.5"
                 stroke-dasharray="6,3"
                 class="edge-wg"
-                opacity={hoveredEdge === edge.id ? 1 : 0.6}
+                opacity={hoveredEdge === edge.id ? 1 : 0.5}
                 role="presentation"
                 onmouseenter={() => (hoveredEdge = edge.id)}
                 onmouseleave={() => (hoveredEdge = null)}
               />
             {:else if edge.type === 'autossh'}
-              {@const fromPos = getNodePosition(edge.from)}
-              {@const toPos = getNodePosition(edge.to)}
               <line
-                x1={fromPos.x + 60}
-                y1={fromPos.y + 25}
-                x2={toPos.x + 60}
-                y2={toPos.y + 25}
+                x1={hasReverse ? offset.x1 : from.x}
+                y1={hasReverse ? offset.y1 : from.y}
+                x2={hasReverse ? offset.x2 : to.x}
+                y2={hasReverse ? offset.y2 : to.y}
                 stroke="var(--running)"
                 stroke-width="1"
                 stroke-dasharray="4,4"
@@ -195,33 +235,45 @@
 
           <!-- Draw nodes -->
           {#each topology.nodes as node, idx (node.id)}
-            {@const pos = getNodePosition(node.id)}
+            {@const pos = layout[node.id] || { x: 0, y: 0 }}
             <g
               class="node"
               class:selected={selectedNode === node.id}
               role="button"
               tabindex="0"
-              onclick={() => (selectedNode = node.id)}
-              onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (selectedNode = node.id)}
+              onclick={() => (selectedNode = selectedNode === node.id ? null : node.id)}
+              onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (selectedNode = selectedNode === node.id ? null : node.id)}
               style="animation-delay: {idx * 80}ms;"
             >
-              <!-- Accent bar -->
-              <rect x={pos.x} y={pos.y} width="3" height="50" fill={getOSColor(node.id)} rx="1" />
+              <!-- OS stripe (left accent) -->
+              <rect
+                x={pos.x}
+                y={pos.y}
+                width="4"
+                height="44"
+                fill={node.os === 'OpenBSD'
+                  ? OS_COLORS.openbsd
+                  : node.os === 'FreeBSD'
+                    ? OS_COLORS.freebsd
+                    : node.os === 'Linux'
+                      ? OS_COLORS.linux
+                      : '#555'}
+                rx="1"
+              />
 
-              <!-- Main rect -->
-              <rect x={pos.x + 3} y={pos.y} width="117" height="50" fill="var(--bg-2)" stroke="var(--border)" stroke-width="1" rx="2" />
+              <!-- Card background -->
+              <rect x={pos.x + 4} y={pos.y} width="126" height="44" fill="var(--bg-2)" stroke="var(--border)" stroke-width="1" rx="2" />
 
               <!-- Hostname -->
-              <text x={pos.x + 63} y={pos.y + 16} class="node-label">{node.id}</text>
+              <text x={pos.x + 69} y={pos.y + 15} class="node-label">
+                {node.id.length > 14 ? node.id.slice(0, 13) + '…' : node.id}
+              </text>
 
-              <!-- IP address -->
-              {#if node.wg_interfaces && Object.keys(node.wg_interfaces).length > 0}
-                {@const firstIp = formatIP(Object.values(node.wg_interfaces)[0])}
-                <text x={pos.x + 63} y={pos.y + 36} class="node-ip">{firstIp}</text>
-              {/if}
+              <!-- Location -->
+              <text x={pos.x + 69} y={pos.y + 32} class="node-loc">{node.location || '?'}</text>
 
               <!-- Status dot -->
-              <circle cx={pos.x + 115} cy={pos.y + 5} r="3" fill={node.wg_interfaces ? 'var(--accent)' : '#555'} />
+              <circle cx={pos.x + 122} cy={pos.y + 7} r="3" fill={node.wg_interfaces ? 'var(--accent)' : '#555'} />
             </g>
           {/each}
         </svg>
@@ -298,18 +350,6 @@
     gap: 8px;
   }
 
-  .controls select {
-    padding: 10px 8px;
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    border-radius: 4px;
-    font-size: 13px;
-    font-family: var(--ui);
-    cursor: pointer;
-    min-height: 44px;
-  }
-
   .controls button {
     padding: 10px 12px;
     background: var(--bg-2);
@@ -322,9 +362,14 @@
     min-height: 44px;
   }
 
-  .controls button:hover:not(.loading) {
+  .controls button:hover:not(.loading):not(:disabled) {
     background: var(--bg-3);
     border-color: var(--accent);
+  }
+
+  .controls button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
   .controls button.loading {
@@ -454,7 +499,7 @@
 
   .diagram {
     width: 100%;
-    max-width: 900px;
+    max-width: 700px;
     height: auto;
     background: var(--bg-2);
     filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
@@ -491,17 +536,17 @@
 
   .node-label {
     font-family: var(--mono);
-    font-size: clamp(10px, 1.8vw, 11px);
+    font-size: 11px;
     font-weight: 700;
     fill: var(--text);
     text-anchor: middle;
     pointer-events: none;
   }
 
-  .node-ip {
+  .node-loc {
     font-family: var(--mono);
-    font-size: 8px;
-    fill: var(--text-muted);
+    font-size: 9px;
+    fill: var(--text-dim);
     text-anchor: middle;
     pointer-events: none;
   }
@@ -551,6 +596,8 @@
     cursor: pointer;
     padding: 0 8px;
     transition: color 150ms;
+    min-height: 44px;
+    min-width: 44px;
   }
 
   .detail-header .close:hover {
@@ -628,7 +675,6 @@
       gap: 8px;
     }
 
-    .controls select,
     .controls button {
       font-size: clamp(11px, 1.2vw, 13px);
       padding: clamp(4px, 0.6vw, 6px) clamp(6px, 1vw, 8px);
@@ -670,13 +716,11 @@
       gap: 6px;
     }
 
-
     .controls {
       width: 100%;
       gap: 6px;
     }
 
-    .controls select,
     .controls button {
       flex: 1;
       font-size: clamp(10px, 1.1vw, 11px);
@@ -740,7 +784,6 @@
       gap: 4px;
     }
 
-    .controls select,
     .controls button {
       flex: 1;
       font-size: clamp(10px, 1vw, 11px);
@@ -804,7 +847,6 @@
       padding: 6px 8px;
     }
 
-    .controls select,
     .controls button {
       font-size: 10px;
       padding: 4px 6px;

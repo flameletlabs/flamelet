@@ -92,7 +92,7 @@
     {:else if currentPage === 'map'}
       <MapPage tenant={selectedTenant} />
     {:else if currentPage === 'topology'}
-      <TopologyPage />
+      <TopologyPage tenant={selectedTenant} />
     {/if}
   </div>
 </div>
