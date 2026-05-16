@@ -21,7 +21,7 @@ def add_package_update_ops(state, hosts, config=None, target_hosts=None, task="a
         target_hosts: list of Host objects to deploy to (default: all)
         task: task name being run
     """
-    from pyinfra.facts.linux import LinuxDistribution
+    from pyinfra.facts.server import LinuxDistribution
     from pyinfra.operations.freebsd import pkg as freebsd_pkg
 
     targets = target_hosts if target_hosts else list(hosts)
