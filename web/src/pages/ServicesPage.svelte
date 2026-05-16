@@ -3,6 +3,18 @@
 
   let { tenant = null } = $props()
 
+  const SERVICE_COLORS = {
+    standard:  '#4493f8',
+    autossh:   '#f0883e',
+    packages:  '#3fb950',
+    users:     '#00d4aa',
+    sudo:      '#00d4aa',
+  }
+
+  function serviceColor(attr) {
+    return SERVICE_COLORS[attr] || '#666'
+  }
+
   let viewMode = $state('services')
   let services = $state([])
   let hosts = $state([])
@@ -115,13 +127,13 @@
       {:else}
         <div class="services-list">
           {#each filteredServices as service}
-            <div class="service-item" class:expanded={expandedService === service.name}>
-              <div class="service-header" role="button" tabindex="0" onclick={() => toggleServiceExpand(service.name)} onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && toggleServiceExpand(service.name)}>
+            <div class="service-item" class:expanded={expandedService === service.name} style="--svc-stripe: {serviceColor(service.config_attr)}">
+              <button class="service-header" onclick={() => toggleServiceExpand(service.name)}>
                 <span class="chevron">›</span>
                 <div class="service-name">{service.name.replace(/_/g, ' ')}</div>
                 <div class="service-badge">{service.config_attr}</div>
                 <div class="service-count">{service.host_count} host{service.host_count !== 1 ? 's' : ''}</div>
-              </div>
+              </button>
 
               {#if expandedService === service.name && serviceDetails[service.name]}
                 <div class="service-detail">
@@ -288,6 +300,7 @@
   .host-item {
     background: var(--bg-2);
     border: 1px solid var(--border);
+    border-left: 4px solid var(--svc-stripe, var(--border));
     border-radius: 4px;
     overflow: hidden;
   }
@@ -300,6 +313,12 @@
     padding: 14px 18px;
     cursor: pointer;
     user-select: none;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    color: inherit;
   }
 
   .service-item:not(.expanded) .service-header:hover,
@@ -316,7 +335,7 @@
   }
 
   .service-item.expanded .chevron {
-    transform: rotate(180deg);
+    transform: rotate(270deg);
   }
 
   .service-name,
@@ -400,6 +419,17 @@
     font-family: var(--mono);
   }
 
+  @media (max-width: 900px) {
+    .service-item {
+      margin: clamp(4px, 0.8vw, 6px);
+      padding: clamp(8px, 1.2vw, 10px);
+    }
+
+    .service-name {
+      font-size: clamp(12px, 1.6vw, 13px);
+    }
+  }
+
   @media (max-width: 768px) {
     .toolbar {
       flex-wrap: wrap;
@@ -415,20 +445,7 @@
     .view-select {
       margin-left: 0;
     }
-  }
 
-  @media (max-width: 900px) {
-    .service-item {
-      margin: clamp(4px, 0.8vw, 6px);
-      padding: clamp(8px, 1.2vw, 10px);
-    }
-
-    .service-name {
-      font-size: clamp(12px, 1.6vw, 13px);
-    }
-  }
-
-  @media (max-width: 768px) {
     .content {
       min-height: 0;
     }

@@ -122,7 +122,7 @@
 
 <div class="page">
   <div class="map-header">
-    <h2>Infrastructure Locations</h2>
+    <span class="title">MAP</span>
     {#if loading}
       <div style="color: var(--text-muted);">Loading...</div>
     {/if}
@@ -176,12 +176,12 @@
     background: linear-gradient(90deg, var(--bg-2) 0%, rgba(15, 22, 41, 0.5) 100%);
   }
 
-  .map-header h2 {
-    margin: 0;
-    font-size: clamp(16px, 4vw, 18px);
-    font-weight: 700;
-    color: var(--text);
-    font-family: var(--ui);
+  .title {
+    font-size: clamp(10px, 1.6vw, 11px);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    text-transform: uppercase;
   }
 
   .error-msg {
@@ -242,6 +242,31 @@
     font-size: 13px;
   }
 
+  :global(.leaflet-control-zoom a) {
+    width: 44px !important;
+    height: 44px !important;
+    line-height: 44px !important;
+    font-size: 18px !important;
+  }
+
+  @media (max-width: 640px) {
+    .map-container {
+      flex-direction: column;
+      padding: 12px 16px;
+      gap: 12px;
+    }
+
+    .locations-list {
+      width: 100%;
+      max-height: 40vh;
+      overflow-y: auto;
+    }
+
+    #leaflet-map {
+      min-height: 300px;
+    }
+  }
+
   @media (max-width: 768px) {
     .map-container {
       flex-direction: column;
@@ -290,13 +315,8 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .location-item:hover {
-    border-color: rgba(0, 212, 170, 0.3);
-    background: var(--bg-2);
-  }
 
   .location-name {
     font-weight: 700;
