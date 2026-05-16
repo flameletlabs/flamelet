@@ -29,6 +29,7 @@
   let groupBy = $state('location')
   let hostSearch = $state('')
   let collapsedGroups = $state(new Set())
+  let hostPanelExpanded = $state(false)
 
   onMount(async () => {
     tenants = await getTenants()
@@ -48,6 +49,16 @@
     selectedHosts = new Set()
     collapsedGroups = new Set()
   }
+
+  // Collapse all groups by default on mobile for space efficiency
+  $effect(() => {
+    if (groupedHosts.length > 0) {
+      const isMobile = window.innerWidth < 640
+      if (isMobile) {
+        collapsedGroups = new Set(groupedHosts.map(([k]) => k))
+      }
+    }
+  })
 
   // OS-family groups to exclude from "group" view (they're redundant with OS grouping)
   const OS_GROUPS = new Set(['openbsd', 'freebsd', 'linux', 'debian', 'alpine'])
@@ -205,8 +216,17 @@
       </div>
 
       <!-- Host selector -->
-      <div class="host-panel">
-        <div class="host-toolbar">
+      <div class="host-panel-wrapper">
+        <button class="host-panel-toggle" onclick={() => hostPanelExpanded = !hostPanelExpanded}>
+          <span class="toggle-label-text">SELECT HOSTS</span>
+          <span class="toggle-count">{selectedHosts.size}</span>
+          <span class="toggle-arrow" class:expanded={hostPanelExpanded}>›</span>
+        </button>
+        <div class="host-panel" class:expanded={hostPanelExpanded}>
+        <div class="host-toolbar" class:mobile-header={hostPanelExpanded}>
+          {#if hostPanelExpanded}
+            <button class="mobile-close" onclick={() => hostPanelExpanded = false} title="Close">‹</button>
+          {/if}
           <div class="group-tabs">
             <button class:active={groupBy === 'location'} onclick={() => groupBy = 'location'}>Location</button>
             <button class:active={groupBy === 'os'} onclick={() => groupBy = 'os'}>OS</button>
@@ -286,6 +306,7 @@
           {#if groupedHosts.length === 0}
             <div class="empty">no hosts match</div>
           {/if}
+        </div>
         </div>
       </div>
 
@@ -442,6 +463,68 @@
     border-color: var(--accent);
   }
 
+  /* Host panel wrapper — toggles expansion on mobile */
+  .host-panel-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* Toggle button for mobile host panel */
+  .host-panel-toggle {
+    display: none;
+    background: none;
+    border: none;
+    padding: 12px 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    transition: background 100ms;
+  }
+
+  .host-panel-toggle:hover {
+    background: var(--bg-3);
+  }
+
+  .toggle-label-text {
+    flex: 1;
+    text-align: left;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .toggle-count {
+    padding: 2px 6px;
+    background: rgba(0, 212, 170, 0.1);
+    border-radius: 2px;
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 10px;
+  }
+
+  .toggle-arrow {
+    font-size: 12px;
+    transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    transform: rotate(90deg);
+    flex-shrink: 0;
+  }
+
+  .toggle-arrow.expanded {
+    transform: rotate(270deg);
+  }
+
   /* Host panel — takes remaining space */
   .host-panel {
     flex: 1;
@@ -462,6 +545,32 @@
     border-bottom: 1px solid var(--border-muted);
     background: var(--bg-3);
     flex-shrink: 0;
+  }
+
+  .host-toolbar.mobile-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-2);
+  }
+
+  .mobile-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 8px;
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 100ms;
+    margin-right: 8px;
+  }
+
+  .mobile-close:hover {
+    color: var(--text);
   }
 
   .group-tabs {
@@ -979,18 +1088,69 @@
       border-bottom: 1px solid var(--border);
       overflow: visible;
       max-height: none;
+      position: relative;
+      z-index: 10;
     }
     .form-body {
       overflow: visible;
-      max-height: 40vh;
-      overflow-y: auto;
-    }
-    .host-panel {
       max-height: none;
+      overflow-y: auto;
+      padding-bottom: 0;
+    }
+
+    /* Show toggle button on mobile */
+    .host-panel-toggle {
+      display: flex;
+    }
+
+    /* Host panel hidden by default on mobile, expanded when toggled */
+    .host-panel {
+      display: none;
+      position: fixed;
+      inset: 0;
+      top: auto;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 100;
+      border: none;
+      border-radius: 0;
+      max-height: 100vh;
+      animation: slideUp 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .host-panel.expanded {
+      display: flex;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .host-panel-wrapper {
       min-height: auto;
     }
+
     .terminal-panel {
       min-height: 350px;
+    }
+
+    /* On expanded mobile panel, adjust toolbar */
+    .host-panel.expanded .group-tabs {
+      flex-wrap: wrap;
+    }
+
+    .host-panel.expanded .host-actions {
+      width: 100%;
+      justify-content: flex-start;
+      padding: 8px 0 0 0;
     }
   }
 
