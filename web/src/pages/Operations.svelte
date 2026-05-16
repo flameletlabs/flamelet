@@ -2,134 +2,191 @@
   import { onMount } from 'svelte'
   import { getOperations } from '../lib/api.js'
 
-  let ops = $state([])
-  let filter = $state('')
-  let filtered = $state([])
-  let expandedOp = $state(null)
-  let copiedText = $state(null)
+  let { tenant = null } = $props()
 
-  function copyToClipboard(text) {
-    navigator.clipboard.writeText(text)
-    copiedText = text
-    setTimeout(() => {
-      copiedText = null
-    }, 2000)
-  }
+  let opsRaw = $state([])
+  let filter = $state('')
+  let copiedText = $state(null)
+  let expandedOp = $state(null)
 
   onMount(async () => {
-    ops = await getOperations()
-    updateFiltered()
+    opsRaw = await getOperations()
   })
 
-  function updateFiltered() {
-    filtered = filter
-      ? ops.filter(o =>
-          o.task.includes(filter) || (o.config_attr || '').toLowerCase().includes(filter)
-        )
-      : ops
-  }
+  // Group multi-entry tasks (autossh has TUNNELS + GATEWAY as two entries)
+  let ops = $derived.by(() => {
+    const map = new Map()
+    for (const op of opsRaw) {
+      if (map.has(op.task)) {
+        const existing = map.get(op.task)
+        if (op.config_attr && !existing.config_attrs.includes(op.config_attr)) {
+          existing.config_attrs.push(op.config_attr)
+        }
+      } else {
+        map.set(op.task, {
+          task: op.task,
+          config_attrs: op.config_attr ? [op.config_attr] : [],
+          op_type: op.op_type,
+          os_families: op.os_families,
+        })
+      }
+    }
+    return [...map.values()]
+  })
 
-  $effect(() => { if (filter !== undefined) updateFiltered() })
+  let filtered = $derived.by(() => {
+    const q = filter.toLowerCase()
+    if (!q) return ops
+    return ops.filter(o =>
+      o.task.includes(q) ||
+      o.config_attrs.some(a => a.toLowerCase().includes(q)) ||
+      (o.op_type || '').includes(q)
+    )
+  })
 
   function hasOS(op, os) {
     return !op.os_families || op.os_families.includes(os)
   }
+
+  function copyToClipboard(text) {
+    navigator.clipboard.writeText(text)
+    copiedText = text
+    setTimeout(() => copiedText = null, 2000)
+  }
+
+  const TYPE_COLORS = {
+    standard:  { bg: 'rgba(68, 147, 248, 0.1)',  border: 'rgba(68, 147, 248, 0.3)',  text: '#4493f8' },
+    autossh:   { bg: 'rgba(240, 136, 62, 0.1)',  border: 'rgba(240, 136, 62, 0.3)',  text: '#f0883e' },
+    packages:  { bg: 'rgba(63, 185, 80, 0.1)',   border: 'rgba(63, 185, 80, 0.3)',   text: '#3fb950' },
+    users:     { bg: 'rgba(0, 212, 170, 0.1)',   border: 'rgba(0, 212, 170, 0.3)',   text: '#00d4aa' },
+    sudo:      { bg: 'rgba(0, 212, 170, 0.1)',   border: 'rgba(0, 212, 170, 0.3)',   text: '#00d4aa' },
+  }
+
+  function typeStyle(op_type) {
+    const c = TYPE_COLORS[op_type] || TYPE_COLORS.standard
+    return `background:${c.bg}; border-color:${c.border}; color:${c.text}`
+  }
+
+  const OS_LIST = ['Linux', 'FreeBSD', 'OpenBSD']
 </script>
 
 <div class="page">
   <div class="toolbar">
-    <span class="title">OPERATIONS</span>
-    <span class="count">{ops.length} tasks</span>
-    <input type="search" placeholder="filter…" bind:value={filter} />
+    <div class="toolbar-left">
+      <span class="title">OPERATIONS</span>
+      <span class="count">{ops.length} tasks</span>
+    </div>
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="search" placeholder="filter tasks…" bind:value={filter} />
+    </div>
   </div>
 
-  <div class="content-wrap">
-    <!-- Desktop: Table -->
-    <div class="table-view">
-      <table>
-        <thead>
-          <tr>
-            <th class="col-num">#</th>
-            <th>TASK</th>
-            <th>CONFIG ATTR</th>
-            <th>TYPE</th>
-            <th class="os-col">LINUX</th>
-            <th class="os-col">FREEBSD</th>
-            <th class="os-col">OPENBSD</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each filtered as op, i}
-            <tr>
-              <td class="col-num mono">{(i + 1).toString().padStart(2, '0')}</td>
-              <td class="mono task-name">{op.task}</td>
-              <td class="mono attr">{op.config_attr || '—'}</td>
-              <td><span class="badge type-badge">{op.op_type}</span></td>
-              <td class="os-col">
-                {#if hasOS(op, 'Linux')}<span class="check linux">✓</span>{:else}<span class="dash">—</span>{/if}
-              </td>
-              <td class="os-col">
-                {#if hasOS(op, 'FreeBSD')}<span class="check freebsd">✓</span>{:else}<span class="dash">—</span>{/if}
-              </td>
-              <td class="os-col">
-                {#if hasOS(op, 'OpenBSD')}<span class="check openbsd">✓</span>{:else}<span class="dash">—</span>{/if}
-              </td>
-            </tr>
+  <!-- Desktop table -->
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th class="col-num">#</th>
+          <th class="col-task">TASK</th>
+          <th class="col-attr">CONFIG ATTR</th>
+          <th class="col-type">TYPE</th>
+          {#each OS_LIST as os}
+            <th class="col-os">{os.toUpperCase()}</th>
           {/each}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Mobile: Cards -->
-    <div class="cards-view">
-      {#each filtered as op, i (op.task)}
-        <div class="op-card" class:expanded={expandedOp === op.task} style="animation-delay: {i * 50}ms;">
-          <div class="card-header" role="button" tabindex="0" onclick={() => expandedOp = expandedOp === op.task ? null : op.task} onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (expandedOp = expandedOp === op.task ? null : op.task)}>
-            <span class="op-toggle">›</span>
-            <span class="op-num">{(i + 1).toString().padStart(2, '0')}</span>
-            <div class="op-title">{op.task}</div>
-            <span class="status-dot healthy"></span>
-            <span class="op-badge">{op.op_type}</span>
-          </div>
-          {#if op.config_attr}
-            <div class="card-meta mono">{op.config_attr}</div>
-          {/if}
-          <div class="os-row">
-            <span class="os-item" class:active={hasOS(op, 'Linux')}>Linux</span>
-            <span class="os-item" class:active={hasOS(op, 'FreeBSD')}>FreeBSD</span>
-            <span class="os-item" class:active={hasOS(op, 'OpenBSD')}>OpenBSD</span>
-          </div>
-          {#if expandedOp === op.task}
-            <div class="op-details">
-              {#if op.config_attr}
-                <div class="detail-section">
-                  <div class="detail-label">Configuration</div>
-                  <div class="config-hint">
-                    Config attr: <span class="mono">{op.config_attr}</span>
-                    <button class="copy-btn" onclick={() => copyToClipboard(op.config_attr)} title="Copy to clipboard">
-                      {copiedText === op.config_attr ? '✓' : '⎘'}
+        </tr>
+      </thead>
+      <tbody>
+        {#each filtered as op, i}
+          <tr class:expanded={expandedOp === op.task}
+              onclick={() => expandedOp = expandedOp === op.task ? null : op.task}
+              role="button" tabindex="0"
+              onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (expandedOp = expandedOp === op.task ? null : op.task)}>
+            <td class="col-num dim">{(i + 1).toString().padStart(2, '0')}</td>
+            <td class="col-task">
+              <span class="task-name">{op.task}</span>
+            </td>
+            <td class="col-attr">
+              {#if op.config_attrs.length === 0}
+                <span class="dash">—</span>
+              {:else}
+                <div class="attr-list">
+                  {#each op.config_attrs as attr}
+                    <button class="attr-chip" onclick={(e) => { e.stopPropagation(); copyToClipboard(attr) }} title="Copy">
+                      <span class="mono">{attr}</span>
+                      <span class="copy-icon">{copiedText === attr ? '✓' : '⎘'}</span>
                     </button>
-                  </div>
-                </div>
-              {/if}
-              <div class="detail-section">
-                <div class="detail-label">Supported Platforms</div>
-                <div class="platform-list">
-                  {#each ['Linux', 'FreeBSD', 'OpenBSD'] as platform}
-                    <span class="platform-item" class:active={hasOS(op, platform)}>
-                      {platform}
-                      {#if hasOS(op, platform)}
-                        <span class="checkmark">✓</span>
-                      {/if}
-                    </span>
                   {/each}
                 </div>
-              </div>
-            </div>
-          {/if}
+              {/if}
+            </td>
+            <td class="col-type">
+              <span class="type-pill" style={typeStyle(op.op_type)}>{op.op_type}</span>
+            </td>
+            {#each OS_LIST as os}
+              <td class="col-os">
+                {#if hasOS(op, os)}
+                  <span class="os-check os-{os.toLowerCase()}">✓</span>
+                {:else}
+                  <span class="dash">—</span>
+                {/if}
+              </td>
+            {/each}
+          </tr>
+        {/each}
+      </tbody>
+    </table>
+    {#if filtered.length === 0 && ops.length > 0}
+      <div class="empty">no tasks match "{filter}"</div>
+    {:else if ops.length === 0}
+      <div class="empty loading-msg">loading…</div>
+    {/if}
+  </div>
+
+  <!-- Mobile cards -->
+  <div class="cards-scroll">
+    {#each filtered as op, i (op.task)}
+      <div class="op-card" style="animation-delay:{i * 40}ms">
+        <div class="card-head"
+             role="button" tabindex="0"
+             onclick={() => expandedOp = expandedOp === op.task ? null : op.task}
+             onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (expandedOp = expandedOp === op.task ? null : op.task)}>
+          <span class="card-num dim">{(i + 1).toString().padStart(2, '0')}</span>
+          <span class="card-task">{op.task}</span>
+          <span class="type-pill" style={typeStyle(op.op_type)}>{op.op_type}</span>
+          <span class="chevron" class:open={expandedOp === op.task}>›</span>
         </div>
-      {/each}
-    </div>
+
+        <div class="card-os-row">
+          {#each OS_LIST as os}
+            <span class="os-pill" class:active={hasOS(op, os)} class:os-linux={os === 'Linux' && hasOS(op, os)} class:os-freebsd={os === 'FreeBSD' && hasOS(op, os)} class:os-openbsd={os === 'OpenBSD' && hasOS(op, os)}>
+              {os}
+            </span>
+          {/each}
+        </div>
+
+        {#if expandedOp === op.task}
+          <div class="card-detail">
+            {#if op.config_attrs.length > 0}
+              <div class="detail-label">CONFIG ATTR{op.config_attrs.length > 1 ? 'S' : ''}</div>
+              <div class="attr-list">
+                {#each op.config_attrs as attr}
+                  <button class="attr-chip" onclick={() => copyToClipboard(attr)} title="Copy">
+                    <span class="mono">{attr}</span>
+                    <span class="copy-icon">{copiedText === attr ? '✓' : '⎘'}</span>
+                  </button>
+                {/each}
+              </div>
+            {:else}
+              <div class="detail-label">No config attribute (loaded from vars/__init__.py)</div>
+            {/if}
+          </div>
+        {/if}
+      </div>
+    {/each}
+    {#if filtered.length === 0 && ops.length > 0}
+      <div class="empty">no tasks match "{filter}"</div>
+    {/if}
   </div>
 </div>
 
@@ -138,72 +195,86 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    overflow: hidden;
   }
 
+  /* ── Toolbar ─────────────────────────────────────────── */
   .toolbar {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 16px;
-    padding: 18px 28px;
+    padding: 14px 24px;
     border-bottom: 1px solid var(--border);
-    background: linear-gradient(90deg, var(--bg-2) 0%, rgba(15, 22, 41, 0.5) 100%);
-    flex-wrap: wrap;
+    background: var(--bg-2);
+    flex-shrink: 0;
+  }
+
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
 
   .title {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     color: var(--text-dim);
     text-transform: uppercase;
   }
 
   .count {
-    font-size: 12px;
-    font-weight: 500;
+    font-family: var(--mono);
+    font-size: 11px;
     color: var(--text-muted);
   }
 
+  .search-wrap {
+    position: relative;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    font-size: 14px;
+    pointer-events: none;
+    line-height: 1;
+  }
+
   input {
-    margin-left: auto;
     background: var(--bg-3);
     border: 1px solid var(--border);
     color: var(--text);
-    font-family: var(--ui);
-    font-size: 13px;
-    font-weight: 400;
-    padding: 10px 12px;
-    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 7px 12px 7px 30px;
+    border-radius: 4px;
     width: 200px;
     outline: none;
-    min-height: 40px;
-    transition: all 200ms;
+    transition: border-color 150ms;
   }
 
   input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.1);
   }
 
-  .content-wrap {
+  input::placeholder {
+    color: var(--text-dim);
+  }
+
+  /* ── Table (desktop) ─────────────────────────────────── */
+  .table-scroll {
     flex: 1;
     overflow-y: auto;
-    display: flex;
-    flex-direction: column;
+    overflow-x: auto;
   }
 
-  .table-view {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    overflow-y: auto;
-  }
-
-  .cards-view {
+  .cards-scroll {
     display: none;
-    flex-direction: column;
-    gap: 16px;
-    padding: 24px 28px;
   }
 
   table {
@@ -211,432 +282,277 @@
     border-collapse: collapse;
   }
 
-  thead tr {
-    border-bottom: 1px solid var(--border);
-  }
-
-  th {
-    text-align: left;
-    padding: 12px 16px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    background: var(--bg-2);
+  thead th {
     position: sticky;
     top: 0;
-    z-index: 1;
-  }
-
-  td {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border-muted);
-    font-size: 13px;
-  }
-
-  tr:hover td {
-    background: var(--bg-3);
-  }
-
-  .col-num {
-    width: 50px;
-    color: var(--text-dim);
-    font-size: 12px;
-  }
-
-  .task-name {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text);
-  }
-
-  .attr {
-    font-size: 12px;
-    color: var(--text-muted);
-  }
-
-  .os-col {
-    text-align: center;
-    width: 90px;
-  }
-
-  .check {
-    font-size: 16px;
-    font-weight: 700;
-  }
-
-  .check.linux {
-    color: var(--linux);
-  }
-
-  .check.freebsd {
-    color: var(--freebsd);
-  }
-
-  .check.openbsd {
-    color: var(--openbsd);
-  }
-
-  .dash {
-    color: var(--text-dim);
-  }
-
-  .type-badge {
-    font-size: 11px;
-    padding: 4px 8px;
-    background: var(--bg-3);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 600;
-  }
-
-  /* Mobile: Card view */
-  .op-card {
+    z-index: 2;
     background: var(--bg-2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 20px 24px;
-    animation: slideIn 300ms ease-out forwards;
-    opacity: 0;
-    min-height: 44px;
-  }
-
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .card-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    user-select: none;
-  }
-
-  .op-toggle {
-    display: inline-block;
-    font-size: 16px;
-    color: var(--text-muted);
-    transform: rotate(0deg);
-    transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
-    min-width: 20px;
-    text-align: center;
-  }
-
-  .op-card.expanded .op-toggle {
-    transform: rotate(90deg);
-  }
-
-  .op-num {
-    font-family: var(--mono);
-    font-size: clamp(11px, 2.5vw, 13px);
-    font-weight: 700;
-    color: var(--text-dim);
-    min-width: 28px;
-  }
-
-  .status-dot {
-    display: inline-block;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    animation: pulse-dot 2s ease-in-out infinite;
-  }
-
-  .status-dot.healthy {
-    background: var(--success);
-  }
-
-  @keyframes pulse-dot {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
-  }
-
-  .op-title {
-    flex: 1;
-    font-size: clamp(14px, 3.5vw, 16px);
-    font-weight: 700;
-    color: var(--text);
-    font-family: var(--ui);
-  }
-
-  .op-badge {
     font-size: 10px;
-    padding: 4px 8px;
-    background: var(--bg-3);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    color: var(--text-muted);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 600;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
     white-space: nowrap;
   }
 
-  .card-meta {
-    font-size: clamp(12px, 2.5vw, 13px);
-    color: var(--text-muted);
-    margin-bottom: 10px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--border);
-    font-family: var(--ui);
+  tbody tr {
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-muted);
+    transition: background 80ms;
   }
 
-  .os-row {
-    display: flex;
-    gap: 8px;
+  tbody tr:hover {
+    background: var(--bg-2);
   }
 
-  .os-item {
-    flex: 1;
-    padding: 8px;
+  tbody tr.expanded {
+    background: rgba(0, 212, 170, 0.04);
+  }
+
+  tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  td {
+    padding: 11px 14px;
+    vertical-align: middle;
+  }
+
+  .col-num {
+    width: 44px;
+    font-family: var(--mono);
+    font-size: 11px;
+    text-align: right;
+    padding-right: 8px;
+  }
+
+  .col-task {
+    min-width: 140px;
+  }
+
+  .col-attr {
+    min-width: 180px;
+  }
+
+  .col-type {
+    width: 110px;
+  }
+
+  .col-os {
+    width: 80px;
     text-align: center;
-    font-size: clamp(11px, 2.2vw, 12px);
-    font-weight: 600;
-    background: var(--bg-3);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    color: var(--text-dim);
-    transition: all 200ms;
-    min-height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
 
-  .os-item.active {
+  .dim { color: var(--text-dim); }
+
+  .task-name {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* Config attr chips */
+  .attr-list {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .attr-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-3);
+    border: 1px solid var(--border-muted);
+    border-radius: 3px;
+    padding: 2px 7px;
+    font-size: 11px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 100ms;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .attr-chip:hover {
     border-color: var(--accent);
-    background: rgba(0, 212, 170, 0.1);
+    color: var(--text);
+  }
+
+  .copy-icon {
+    font-size: 10px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+
+  .attr-chip:hover .copy-icon {
     color: var(--accent);
   }
 
-  @media (max-width: 900px) {
-    .toolbar {
-      padding: 12px 14px;
-      gap: 12px;
-    }
-
-    input {
-      width: 160px;
-      font-size: 12px;
-      padding: 8px 10px;
-    }
+  /* Type badge */
+  .type-pill {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+    border: 1px solid;
+    white-space: nowrap;
   }
 
+  /* OS checks */
+  .os-check {
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .os-check.os-linux   { color: var(--linux); }
+  .os-check.os-freebsd { color: var(--freebsd); }
+  .os-check.os-openbsd { color: var(--openbsd); }
+
+  .dash {
+    color: var(--text-dim);
+    font-size: 12px;
+  }
+
+  /* ── Empty / Loading ─────────────────────────────────── */
+  .empty {
+    padding: 40px;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .loading-msg { color: var(--text-dim); }
+
+  /* ── Mobile cards ────────────────────────────────────── */
   @media (max-width: 768px) {
-    .table-view {
-      display: none;
-    }
-
-    .cards-view {
+    .table-scroll  { display: none; }
+    .cards-scroll  {
       display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px;
+      flex: 1;
+      overflow-y: auto;
     }
 
     .toolbar {
-      padding: 12px 12px;
-      gap: 10px;
-    }
-
-    .title {
-      font-size: 10px;
-    }
-
-    .count {
-      font-size: 11px;
-    }
-
-    input {
-      flex: 1 100%;
-      margin-left: 0;
-      order: 3;
-      width: 100%;
-      font-size: 12px;
-      padding: 8px 10px;
-      min-height: 40px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .toolbar {
-      padding: 10px 10px;
+      flex-wrap: wrap;
+      padding: 10px 12px;
       gap: 8px;
     }
 
-    .cards-view {
-      padding: 10px 10px;
-      gap: 10px;
-    }
+    .search-wrap { width: 100%; order: 3; }
+    input { width: 100%; box-sizing: border-box; }
 
     .op-card {
-      padding: 12px;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      animation: card-in 280ms ease-out both;
     }
 
-    .card-header {
+    @keyframes card-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
       gap: 8px;
-      margin-bottom: 8px;
+      padding: 12px 14px;
+      cursor: pointer;
+      user-select: none;
     }
 
-    .op-title {
-      font-size: 13px;
-    }
-
-    .op-badge {
-      font-size: 9px;
-      padding: 3px 6px;
-    }
-
-    .card-meta {
+    .card-num {
+      font-family: var(--mono);
       font-size: 11px;
-      padding-bottom: 8px;
-      margin-bottom: 8px;
+      min-width: 22px;
     }
 
-    .os-row {
+    .card-task {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      flex: 1;
+    }
+
+    .chevron {
+      font-size: 14px;
+      color: var(--text-dim);
+      transition: transform 150ms;
+      transform: rotate(0deg);
+      line-height: 1;
+    }
+
+    .chevron.open {
+      transform: rotate(90deg);
+    }
+
+    .card-os-row {
+      display: flex;
       gap: 6px;
+      padding: 0 14px 12px;
     }
 
-    .os-item {
-      padding: 6px;
+    .os-pill {
+      flex: 1;
+      text-align: center;
       font-size: 10px;
+      font-weight: 600;
+      padding: 4px 6px;
+      border-radius: 3px;
+      background: var(--bg-3);
+      border: 1px solid var(--border-muted);
+      color: var(--text-dim);
     }
-  }
 
-  .op-details {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    animation: expandIn 200ms ease-out;
-  }
+    .os-pill.os-linux   { background: rgba(68,147,248,0.1); border-color: rgba(68,147,248,0.3); color: var(--linux); }
+    .os-pill.os-freebsd { background: rgba(205,123,106,0.1); border-color: rgba(205,123,106,0.3); color: var(--freebsd); }
+    .os-pill.os-openbsd { background: rgba(227,179,65,0.1); border-color: rgba(227,179,65,0.3); color: var(--openbsd); }
 
-  @keyframes expandIn {
-    from {
-      opacity: 0;
-      transform: translateY(-8px);
+    .card-detail {
+      padding: 10px 14px 12px;
+      border-top: 1px solid var(--border-muted);
+      background: var(--bg-3);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      animation: slide-down 150ms ease-out;
     }
-    to {
-      opacity: 1;
-      transform: translateY(0);
+
+    @keyframes slide-down {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
-  }
 
-  .detail-section {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
+    .detail-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
 
-  .detail-label {
-    font-size: clamp(10px, 1.8vw, 11px);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-dim);
-  }
-
-  .config-hint {
-    font-size: clamp(11px, 2vw, 12px);
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .copy-btn {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-    font-size: 11px;
-    padding: 3px 6px;
-    border-radius: 2px;
-    cursor: pointer;
-    transition: all 150ms;
-    flex-shrink: 0;
-    min-width: 24px;
-    text-align: center;
-  }
-
-  .copy-btn:hover {
-    border-color: var(--accent);
-    background: var(--bg-3);
-    color: var(--accent);
-  }
-
-  .copy-btn:active {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
-  }
-
-  .platform-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  .platform-item {
-    font-size: clamp(11px, 2vw, 12px);
-    padding: 4px 8px;
-    background: var(--bg-3);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .platform-item.active {
-    background: rgba(63, 185, 80, 0.15);
-    border-color: var(--success);
-    color: var(--success);
-  }
-
-  .checkmark {
-    font-weight: 700;
+    .attr-chip { font-size: 11px; }
   }
 
   @media (max-width: 480px) {
-    .toolbar {
-      padding: 8px 8px;
-    }
-
-    .cards-view {
-      padding: 8px 8px;
-    }
-
-    input {
-      font-size: 11px;
-    }
-
-    .op-card {
-      padding: 10px;
-    }
-
-    .card-header {
-      gap: 6px;
-    }
-
-    .op-num {
-      font-size: 11px;
-    }
-
-    .op-title {
-      font-size: 12px;
-    }
+    .cards-scroll { padding: 8px; gap: 6px; }
+    .card-head { padding: 10px 12px; }
+    .card-os-row { padding: 0 12px 10px; }
+    .card-task { font-size: 12px; }
   }
 </style>
