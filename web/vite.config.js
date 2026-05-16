@@ -5,9 +5,11 @@ export default defineConfig({
   plugins: [svelte()],
   server: {
     host: '0.0.0.0',
+    port: 5173,
+    allowedHosts: ['dev.newyork', 'localhost', '127.0.0.1'],
     hmr: {
       protocol: 'ws',
-      host: '10.20.0.249',
+      host: 'dev.newyork',
       port: 5173
     },
     proxy: {
