@@ -34,25 +34,32 @@ def add_package_update_ops(state, hosts, config=None, target_hosts=None, task="a
             distro_id = distro.get("id", "").lower()
 
             if distro_id == "alpine":
-                add_op(state, apk.update,
-                       name=f"Update package index on {host.name}", host=host)
-                add_op(state, apk.upgrade,
-                       name=f"Upgrade all packages on {host.name}", host=host)
+                add_op(state, apk.update, name=f"Update package index on {host.name}", host=host)
+                add_op(state, apk.upgrade, name=f"Upgrade all packages on {host.name}", host=host)
             else:
                 # Debian / Ubuntu and other apt-based distros
-                add_op(state, apt.update,
-                       name=f"Update package index on {host.name}", host=host)
-                add_op(state, apt.upgrade, auto_remove=True,
-                       name=f"Upgrade all packages on {host.name}", host=host)
+                add_op(state, apt.update, name=f"Update package index on {host.name}", host=host)
+                add_op(
+                    state,
+                    apt.upgrade,
+                    auto_remove=True,
+                    name=f"Upgrade all packages on {host.name}",
+                    host=host,
+                )
 
         elif os_key == "FreeBSD":
-            add_op(state, freebsd_pkg.update,
-                   name=f"Update package index on {host.name}", host=host)
-            add_op(state, freebsd_pkg.upgrade,
-                   name=f"Upgrade all packages on {host.name}", host=host)
+            add_op(
+                state, freebsd_pkg.update, name=f"Update package index on {host.name}", host=host
+            )
+            add_op(
+                state, freebsd_pkg.upgrade, name=f"Upgrade all packages on {host.name}", host=host
+            )
 
         elif os_key == "OpenBSD":
-            add_op(state, server.shell,
-                   name=f"Upgrade all packages on {host.name}",
-                   commands=["pkg_add -u"],
-                   host=host)
+            add_op(
+                state,
+                server.shell,
+                name=f"Upgrade all packages on {host.name}",
+                commands=["pkg_add -u"],
+                host=host,
+            )
