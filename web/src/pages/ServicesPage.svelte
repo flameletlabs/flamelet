@@ -220,7 +220,7 @@
   }
 
   .view-select {
-    padding: 5px 10px;
+    padding: 10px 10px;
     background: var(--bg-3);
     border: 1px solid var(--border);
     color: var(--text);
@@ -229,6 +229,7 @@
     border-radius: 2px;
     cursor: pointer;
     margin-left: auto;
+    min-height: 44px;
   }
 
   .view-select:focus {
@@ -237,7 +238,7 @@
   }
 
   .search-input {
-    padding: 5px 10px;
+    padding: 10px 10px;
     background: var(--bg-3);
     border: 1px solid var(--border);
     color: var(--text);
@@ -246,6 +247,7 @@
     border-radius: 2px;
     width: 200px;
     outline: none;
+    min-height: 44px;
   }
 
   .search-input:focus {
