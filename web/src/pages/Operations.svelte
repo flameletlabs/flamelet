@@ -55,11 +55,11 @@
   }
 
   const TYPE_COLORS = {
-    standard:  { bg: 'rgba(68, 147, 248, 0.1)',  border: 'rgba(68, 147, 248, 0.3)',  text: '#4493f8' },
-    autossh:   { bg: 'rgba(240, 136, 62, 0.1)',  border: 'rgba(240, 136, 62, 0.3)',  text: '#f0883e' },
-    packages:  { bg: 'rgba(63, 185, 80, 0.1)',   border: 'rgba(63, 185, 80, 0.3)',   text: '#3fb950' },
-    users:     { bg: 'rgba(0, 212, 170, 0.1)',   border: 'rgba(0, 212, 170, 0.3)',   text: '#00d4aa' },
-    sudo:      { bg: 'rgba(0, 212, 170, 0.1)',   border: 'rgba(0, 212, 170, 0.3)',   text: '#00d4aa' },
+    standard:  { bg: 'rgba(68, 147, 248, 0.15)',  border: 'rgba(68, 147, 248, 0.5)',  text: '#4493f8' },
+    autossh:   { bg: 'rgba(240, 136, 62, 0.15)',  border: 'rgba(240, 136, 62, 0.5)',  text: '#f0883e' },
+    packages:  { bg: 'rgba(63, 185, 80, 0.15)',   border: 'rgba(63, 185, 80, 0.5)',   text: '#3fb950' },
+    users:     { bg: 'rgba(0, 212, 170, 0.15)',   border: 'rgba(0, 212, 170, 0.5)',   text: '#00d4aa' },
+    sudo:      { bg: 'rgba(0, 212, 170, 0.15)',   border: 'rgba(0, 212, 170, 0.5)',   text: '#00d4aa' },
   }
 
   function typeStyle(op_type) {
@@ -549,28 +549,29 @@
 
     /* Expand drawer */
     .card-drawer {
-      padding: 8px 12px 10px 14px;
+      padding: 10px 12px 10px 13px;
       border-top: 1px solid var(--border-muted);
-      background: rgba(0, 0, 0, 0.25);
+      border-left: 3px solid var(--accent-color, var(--accent));
+      background: var(--bg-3);
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       gap: 6px;
-      animation: drawer-in 140ms ease-out;
+      animation: drawer-in 160ms ease-out both;
     }
 
     @keyframes drawer-in {
-      from { opacity: 0; max-height: 0; }
-      to   { opacity: 1; max-height: 80px; }
+      from { opacity: 0; transform: translateY(-3px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
     .drawer-type-pill {
       font-family: var(--mono);
-      font-size: 9px;
+      font-size: 10px;
       font-weight: 700;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      padding: 2px 6px;
+      padding: 3px 8px;
       border-radius: 3px;
       border: 1px solid;
       white-space: nowrap;
@@ -587,6 +588,14 @@
     .attr-chip {
       font-size: 11px;
       padding: 3px 8px;
+      background: var(--bg);
+      border-color: var(--border);
+      color: var(--text-muted);
+    }
+
+    .attr-chip:hover {
+      border-color: var(--accent);
+      color: var(--text);
     }
   }
 
