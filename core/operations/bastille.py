@@ -212,6 +212,20 @@ def add_bastille_ops(state, hosts, config, target_hosts=None, task="all"):
                 host=host,
             )
 
+            # Ensure exec.prestart includes epair creation + bridge membership
+            # (required for VNET jails to properly reconnect on restart)
+            epair_cmds = [
+                f"bastille config {jail_name} set exec.prestart \\"
+                f"'ifconfig bridge{jail_bridge.replace(\"bridge\", \"\")} addm e0a_{jail_name}' 2>/dev/null || true"
+            ]
+            add_op(
+                state,
+                server.shell,
+                name=f"Configure epair bridge for jail {jail_name} on {host.name}",
+                commands=epair_cmds,
+                host=host,
+            )
+
             # Autostart via bastille config boot flag
             if autostart:
                 add_op(
