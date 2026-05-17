@@ -46,7 +46,7 @@ def run_deployment_background(run_id, tenant_name, task, target_hosts, dry_run=T
 
             inventory = load_tenant_inventory(tenant_path)
             tenant_vars = load_tenant_vars_module(tenant_path)
-            add_ops_func = build_add_ops_func(tenant_path, tenant_vars)
+            add_ops_func = build_add_ops_func(tenant_path, tenant_vars, dry=dry_run)
 
             old_stdout = sys.stdout
             sys.stdout = LogCapture(run_id)
