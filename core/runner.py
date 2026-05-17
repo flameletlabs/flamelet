@@ -188,7 +188,7 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
                 else:
                     check_cmd = "sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq && sudo apt-get upgrade --dry-run"
             elif os_key == "FreeBSD":
-                check_cmd = "sudo pkg upgrade -n"
+                check_cmd = "sudo pkg update -q && sudo pkg upgrade -n"
             elif os_key == "OpenBSD":
                 check_cmd = "sudo pkg_add -u -n"
             else:
