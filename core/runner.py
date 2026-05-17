@@ -11,7 +11,7 @@ from pyinfra.api.state import BaseStateCallback
 from pyinfra.context import ctx_host, ctx_state
 
 # Framework standard task choices — available on all tenants
-STANDARD_TASKS = ["groups", "users", "sudo", "all"]
+STANDARD_TASKS = ["groups", "users", "sudo", "all", "hostcheck"]
 
 
 class DeploymentCallback(BaseStateCallback):
@@ -36,6 +36,27 @@ class DeploymentCallback(BaseStateCallback):
     @staticmethod
     def operation_host_error(state, host, op_hash, **kwargs):
         print(f"  [FAILED] {host.name}")
+
+
+def _ping_host(hostname, timeout=2):
+    """Ping host from control node. Returns (success, latency_ms or None)."""
+    import re
+    import subprocess
+
+    try:
+        result = subprocess.run(
+            ["ping", "-c", "1", "-W", str(timeout), hostname],
+            capture_output=True,
+            text=True,
+            timeout=timeout + 1,
+        )
+        if result.returncode == 0:
+            m = re.search(r"time=(\d+\.?\d*)\s*ms", result.stdout)
+            latency = round(float(m.group(1)), 1) if m else None
+            return True, latency
+        return False, None
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return False, None
 
 
 def _preview_ops(state, scope):
@@ -152,6 +173,87 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
         print(f"[DEBUG] Connected to {len(list(inventory.get_active_hosts()))} hosts")
         if state.failed_hosts:
             print(f"[DEBUG] Failed hosts: {[h.name for h in state.failed_hosts]}")
+
+    # hostcheck: ping + SSH + uptime/load/kernel, no ops queued
+    if args.task == "hostcheck":
+        import re
+
+        from pyinfra.facts.server import Kernel
+
+        scope = target_hosts if target_hosts else list(inventory.get_active_hosts())
+        any_failed = False
+
+        for host in scope:
+            ssh_up = host not in state.failed_hosts
+
+            # Get SSH hostname from host data or use hostname
+            ssh_hostname = (host.host_data or {}).get("ssh_hostname", host.name)
+            ping_ok, latency_ms = _ping_host(ssh_hostname)
+
+            print(f"\n→ {host.name}")
+            ping_str = f"✓ ({latency_ms}ms)" if ping_ok else "✗"
+            print(f"  PING:   {ping_str}")
+            print(f"  SSH:    {'✓' if ssh_up else '✗'}")
+
+            if not ssh_up:
+                any_failed = True
+                print("  UPTIME: -   LOAD: -   KERNEL: -   REBOOT: -")
+                continue
+
+            # Helper to get shell command output as a single string
+            def _shell_out(cmd):
+                ok, out = host.run_shell_command(cmd)
+                if not ok:
+                    return ""
+                return "\n".join(
+                    l.line for l in (out.combined_lines if hasattr(out, "combined_lines") else [])
+                ).strip()
+
+            os_key = host.get_fact(Kernel)
+            uptime_line = _shell_out("uptime")
+
+            # Parse "up X days, Y hours" from uptime output
+            up_m = re.search(r"(up\s+(?:\d+\s+\w+,?\s*)+)", uptime_line)
+            uptime_str = up_m.group(1).strip().rstrip(",") if up_m else uptime_line or "-"
+
+            # Load averages (last 3 floats after "load average(s):")
+            load_m = re.search(
+                r"load\s+averages?:\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)", uptime_line
+            )
+            load_str = (
+                f"{load_m.group(1)} / {load_m.group(2)} / {load_m.group(3)}" if load_m else "-"
+            )
+
+            print(f"  UPTIME: {uptime_str}")
+            print(f"  LOAD:   {load_str}")
+            print(f"  KERNEL: {_shell_out('uname -sr') or '-'}")
+
+            # Reboot required (OS-specific)
+            if os_key == "Linux":
+                reboot_check = _shell_out("[ -f /run/reboot-required ] && echo yes || echo no")
+                reboot_str = "yes" if reboot_check == "yes" else "no"
+            elif os_key == "FreeBSD":
+                lines = [
+                    l for l in _shell_out(
+                        "uname -r; freebsd-version -u 2>/dev/null || echo unavailable"
+                    ).splitlines()
+                    if l
+                ]
+                if (
+                    len(lines) >= 2
+                    and lines[0] != lines[1]
+                    and lines[1] != "unavailable"
+                ):
+                    reboot_str = f"yes (running {lines[0]}, installed {lines[1]})"
+                else:
+                    reboot_str = "no"
+            else:
+                reboot_str = "-"
+
+            print(f"  REBOOT: {reboot_str}")
+
+        disconnect_all(state)
+        return 1 if any_failed else 0
 
     # Exclude hosts that failed to connect so add_ops_func doesn't try
     # fact-reads (change detection) against disconnected hosts.
