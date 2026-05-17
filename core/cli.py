@@ -110,6 +110,10 @@ def build_add_ops_func(tenant_path: Path, tenant_vars, dry: bool = False):
             tasks_to_run = [task]
 
         for task_name in tasks_to_run:
+            # Skip hostcheck — it's handled specially in runner.py, not via TASK_REGISTRY
+            if task_name == "hostcheck":
+                continue
+
             if task_name not in TASK_REGISTRY:
                 print(f"Warning: Unknown task {task_name}, skipping")
                 continue
