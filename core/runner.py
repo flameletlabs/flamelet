@@ -34,7 +34,7 @@ class DeploymentCallback(BaseStateCallback):
         print(f"  {tag} {host.name}")
 
     @staticmethod
-    def operation_host_error(state, host, op_hash, **kwargs):
+    def operation_host_error(state, host, op_hash, *args, **kwargs):
         print(f"  [FAILED] {host.name}")
 
 
