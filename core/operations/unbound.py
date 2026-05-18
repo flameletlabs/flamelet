@@ -71,28 +71,19 @@ def add_unbound_ops(state, hosts, config, target_hosts=None, task="all"):
         content = _generate_unbound_conf(unbound_config, os_defaults)
         conf_path = os_defaults["conf_path"]
 
-        # Write config file using printf to avoid truncation issues
-        # Split content into 1000-byte chunks to avoid command line length limits
-        chunk_size = 1000
-        chunks = [content[i:i+chunk_size] for i in range(0, len(content), chunk_size)]
-
-        # First chunk: overwrite file
-        commands = []
-        for i, chunk in enumerate(chunks):
-            # Escape single quotes and newlines for shell
-            safe_chunk = chunk.replace("\\", "\\\\").replace("'", "'\\''")
-            if i == 0:
-                # First chunk: create new file
-                commands.append(f"printf '%b' '{safe_chunk}' > {conf_path}")
-            else:
-                # Subsequent chunks: append to file
-                commands.append(f"printf '%b' '{safe_chunk}' >> {conf_path}")
+        # Write config file using /bin/sh with here-document
+        # This is the most portable and reliable method across BSD and Linux
+        heredoc_cmd = (
+            f"cat > {conf_path} << 'UNBOUND_EOF'\n"
+            f"{content}\n"
+            f"UNBOUND_EOF"
+        )
 
         add_op(
             state,
             server.shell,
             name=f"Deploy Unbound config on {host.name}",
-            commands=commands,
+            commands=[heredoc_cmd],
             host=host,
         )
 
