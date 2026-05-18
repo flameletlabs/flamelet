@@ -1,10 +1,8 @@
 """WireGuard VPN configuration and management."""
 
-from io import StringIO
-
 from pyinfra.api.operation import add_op
 from pyinfra.facts.server import Kernel
-from pyinfra.operations import files, server
+from pyinfra.operations import server
 
 
 def add_wireguard_ops(state, hosts, config, target_hosts=None, task="all"):
@@ -60,16 +58,27 @@ def _add_wireguard_freebsd(state, host, iface_name, config):
     """Configure WireGuard on FreeBSD via /usr/local/etc/wireguard/<iface>.conf"""
     content = _generate_wireguard_ini(config)
 
-    # Write wg config file
+    # Write wg config file using heredoc (reliable for large configs)
+    heredoc_cmd = (
+        f"cat > /usr/local/etc/wireguard/{iface_name}.conf << 'WG_EOF'\n"
+        f"{content}\n"
+        f"WG_EOF"
+    )
+
     add_op(
         state,
-        files.put,
+        server.shell,
         name=f"Deploy WireGuard config {iface_name} on {host.name}",
-        src=StringIO(content),
-        dest=f"/usr/local/etc/wireguard/{iface_name}.conf",
-        mode="0640",
-        user="root",
-        group="wheel",
+        commands=[heredoc_cmd],
+        host=host,
+    )
+
+    # Set permissions
+    add_op(
+        state,
+        server.shell,
+        name=f"Set WireGuard config permissions {iface_name} on {host.name}",
+        commands=[f"chmod 0640 /usr/local/etc/wireguard/{iface_name}.conf"],
         host=host,
     )
 
@@ -107,16 +116,27 @@ def _add_wireguard_openbsd(state, host, iface_name, config):
     """Configure WireGuard on OpenBSD via /etc/hostname.<iface>"""
     content = _generate_wireguard_openbsd(config, iface_name)
 
-    # Write OpenBSD hostname.<iface> file
+    # Write OpenBSD hostname.<iface> file using heredoc
+    heredoc_cmd = (
+        f"cat > /etc/hostname.{iface_name} << 'WG_EOF'\n"
+        f"{content}\n"
+        f"WG_EOF"
+    )
+
     add_op(
         state,
-        files.put,
+        server.shell,
         name=f"Deploy WireGuard config {iface_name} on {host.name}",
-        src=StringIO(content),
-        dest=f"/etc/hostname.{iface_name}",
-        mode="0640",
-        user="root",
-        group="wheel",
+        commands=[heredoc_cmd],
+        host=host,
+    )
+
+    # Set permissions
+    add_op(
+        state,
+        server.shell,
+        name=f"Set WireGuard config permissions {iface_name} on {host.name}",
+        commands=[f"chmod 0640 /etc/hostname.{iface_name}"],
         host=host,
     )
 
@@ -152,15 +172,27 @@ def _add_wireguard_linux(state, host, iface_name, config):
     """Configure WireGuard on Linux via /etc/wireguard/<iface>.conf + wg-quick."""
     content = _generate_wireguard_ini(config)
 
+    # Write config file using heredoc
+    heredoc_cmd = (
+        f"cat > /etc/wireguard/{iface_name}.conf << 'WG_EOF'\n"
+        f"{content}\n"
+        f"WG_EOF"
+    )
+
     add_op(
         state,
-        files.put,
+        server.shell,
         name=f"Deploy WireGuard config {iface_name} on {host.name}",
-        src=StringIO(content),
-        dest=f"/etc/wireguard/{iface_name}.conf",
-        mode="0640",
-        user="root",
-        group="root",
+        commands=[heredoc_cmd],
+        host=host,
+    )
+
+    # Set permissions
+    add_op(
+        state,
+        server.shell,
+        name=f"Set WireGuard config permissions {iface_name} on {host.name}",
+        commands=[f"chmod 0640 /etc/wireguard/{iface_name}.conf"],
         host=host,
     )
 
