@@ -4,9 +4,7 @@ from io import StringIO
 
 from pyinfra.api.operation import add_op
 from pyinfra.facts.server import Kernel
-from pyinfra.operations import files
-from pyinfra.operations import server
-
+from pyinfra.operations import files, server
 
 # OS-specific configuration defaults for unbound
 _OS_DEFAULTS = {
