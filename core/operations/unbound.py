@@ -1,6 +1,7 @@
 """Unbound DNS resolver configuration."""
 
-from io import StringIO
+import tempfile
+from pathlib import Path
 
 from pyinfra.api.operation import add_op
 from pyinfra.facts.server import Kernel
@@ -71,14 +72,16 @@ def add_unbound_ops(state, hosts, config, target_hosts=None, task="all"):
         content = _generate_unbound_conf(unbound_config, os_defaults)
         conf_path = os_defaults["conf_path"]
 
-        # Write config file
-        config_file = StringIO(content)
-        config_file.seek(0)
+        # Write config file using temporary file to avoid truncation
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.conf', delete=False) as tmp:
+            tmp.write(content)
+            tmp_path = tmp.name
+
         add_op(
             state,
             files.put,
             name=f"Deploy Unbound config on {host.name}",
-            src=config_file,
+            src=tmp_path,
             dest=conf_path,
             mode="0644",
             user="root",
