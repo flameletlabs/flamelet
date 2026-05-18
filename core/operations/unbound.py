@@ -1,5 +1,7 @@
 """Unbound DNS resolver configuration."""
 
+import base64
+
 from pyinfra.api.operation import add_op
 from pyinfra.facts.server import Kernel
 from pyinfra.operations import server
@@ -69,10 +71,9 @@ def add_unbound_ops(state, hosts, config, target_hosts=None, task="all"):
         content = _generate_unbound_conf(unbound_config, os_defaults)
         conf_path = os_defaults["conf_path"]
 
-        # Write config file using shell heredoc to avoid pyinfra file truncation
-        # Escape special characters in content for safe shell passing
-        safe_content = content.replace("'", "'\\''")
-        write_cmd = f"cat > {conf_path} << 'EOF'\n{content}\nEOF"
+        # Write config file using base64 encoding to avoid truncation/encoding issues
+        content_b64 = base64.b64encode(content.encode('utf-8')).decode('ascii')
+        write_cmd = f"echo '{content_b64}' | base64 -d > {conf_path}"
 
         add_op(
             state,
