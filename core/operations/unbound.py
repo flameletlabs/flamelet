@@ -73,9 +73,12 @@ def add_unbound_ops(state, hosts, config, target_hosts=None, task="all"):
         conf_path = os_defaults["conf_path"]
 
         # Write config file using temporary file to avoid truncation
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.conf', delete=False) as tmp:
-            tmp.write(content)
-            tmp_path = tmp.name
+        # Create temp file that persists after close
+        tmp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.conf', delete=False)
+        tmp_file.write(content)
+        tmp_file.flush()
+        tmp_file.close()
+        tmp_path = tmp_file.name
 
         add_op(
             state,
