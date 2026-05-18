@@ -205,9 +205,10 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
                 ok, out = host.run_shell_command(cmd)
                 if not ok:
                     return ""
-                return "\n".join(
-                    line_obj.line for line_obj in (out.combined_lines if hasattr(out, "combined_lines") else [])
-                ).strip()
+                combined_lines = (
+                    out.combined_lines if hasattr(out, "combined_lines") else []
+                )
+                return "\n".join(line_obj.line for line_obj in combined_lines).strip()
 
             os_key = host.get_fact(Kernel)
             uptime_line = _shell_out("uptime")
