@@ -7,6 +7,35 @@ from pyinfra.facts.server import Kernel
 from pyinfra.operations import files, server
 
 
+# OS-specific configuration defaults for unbound
+_OS_DEFAULTS = {
+    "FreeBSD": {
+        "conf_path": "/usr/local/etc/unbound/unbound.conf",
+        "chroot": "/usr/local/etc/unbound",
+        "directory": "/usr/local/etc/unbound",
+        "pidfile": "/usr/local/etc/unbound/unbound.pid",
+        "username": "unbound",
+        "group": "wheel",
+    },
+    "OpenBSD": {
+        "conf_path": "/var/unbound/etc/unbound.conf",
+        "chroot": "/var/unbound",
+        "directory": "/var/unbound/etc",
+        "pidfile": "/var/unbound/run/unbound.pid",
+        "username": "_unbound",
+        "group": "wheel",
+    },
+    "Linux": {
+        "conf_path": "/etc/unbound/unbound.conf",
+        "chroot": "",
+        "directory": "/etc/unbound",
+        "pidfile": "/run/unbound.pid",
+        "username": "unbound",
+        "group": "root",
+    },
+}
+
+
 def add_unbound_ops(state, hosts, config, target_hosts=None, task="all"):
     """Configure Unbound DNS resolver on hosts.
 
@@ -39,15 +68,9 @@ def add_unbound_ops(state, hosts, config, target_hosts=None, task="all"):
 
         os_key = host.get_fact(Kernel)
         unbound_config = config[host.name]
-        content = _generate_unbound_conf(unbound_config)
-
-        # Determine config path based on OS
-        if os_key == "FreeBSD":
-            conf_path = "/usr/local/etc/unbound/unbound.conf"
-        elif os_key == "OpenBSD":
-            conf_path = "/etc/unbound/unbound.conf"
-        else:  # Linux
-            conf_path = "/etc/unbound/unbound.conf"
+        os_defaults = _OS_DEFAULTS.get(os_key, _OS_DEFAULTS["Linux"])
+        content = _generate_unbound_conf(unbound_config, os_defaults)
+        conf_path = os_defaults["conf_path"]
 
         # Write config file
         add_op(
@@ -58,7 +81,7 @@ def add_unbound_ops(state, hosts, config, target_hosts=None, task="all"):
             dest=conf_path,
             mode="0644",
             user="root",
-            group="wheel" if os_key in ("OpenBSD", "FreeBSD") else "root",
+            group=os_defaults["group"],
             host=host,
         )
 
@@ -100,15 +123,16 @@ def add_unbound_ops(state, hosts, config, target_hosts=None, task="all"):
 
 def _generate_unbound_config(config):
     """Generate unbound.conf content."""
-    return _generate_unbound_conf(config)
+    return _generate_unbound_conf(config, _OS_DEFAULTS["Linux"])
 
 
-def _generate_unbound_conf(config):
+def _generate_unbound_conf(config, os_defaults):
     """Generate unbound.conf content."""
     lines = ["server:"]
-    lines.append('    chroot: ""')
-    lines.append("    pidfile: /var/run/unbound.pid")
-    lines.append("    directory: /var/unbound")
+    lines.append(f'    chroot: "{os_defaults["chroot"]}"')
+    lines.append(f'    directory: "{os_defaults["directory"]}"')
+    lines.append(f'    pidfile: "{os_defaults["pidfile"]}"')
+    lines.append(f'    username: "{os_defaults["username"]}"')
     lines.append("    do-not-query-localhost: yes")
     lines.append("    do-ip4: yes")
     lines.append("    do-ip6: no")
