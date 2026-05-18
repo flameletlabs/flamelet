@@ -205,9 +205,7 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
                 ok, out = host.run_shell_command(cmd)
                 if not ok:
                     return ""
-                combined_lines = (
-                    out.combined_lines if hasattr(out, "combined_lines") else []
-                )
+                combined_lines = out.combined_lines if hasattr(out, "combined_lines") else []
                 return "\n".join(line_obj.line for line_obj in combined_lines).strip()
 
             os_key = host.get_fact(Kernel)
@@ -235,16 +233,13 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
                 reboot_str = "yes" if reboot_check == "yes" else "no"
             elif os_key == "FreeBSD":
                 lines = [
-                    line for line in _shell_out(
+                    line
+                    for line in _shell_out(
                         "uname -r; freebsd-version -u 2>/dev/null || echo unavailable"
                     ).splitlines()
                     if line
                 ]
-                if (
-                    len(lines) >= 2
-                    and lines[0] != lines[1]
-                    and lines[1] != "unavailable"
-                ):
+                if len(lines) >= 2 and lines[0] != lines[1] and lines[1] != "unavailable":
                     reboot_str = f"yes (running {lines[0]}, installed {lines[1]})"
                 else:
                     reboot_str = "no"
