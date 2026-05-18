@@ -206,7 +206,7 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
                 if not ok:
                     return ""
                 return "\n".join(
-                    l.line for l in (out.combined_lines if hasattr(out, "combined_lines") else [])
+                    line_obj.line for line_obj in (out.combined_lines if hasattr(out, "combined_lines") else [])
                 ).strip()
 
             os_key = host.get_fact(Kernel)
@@ -234,10 +234,10 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
                 reboot_str = "yes" if reboot_check == "yes" else "no"
             elif os_key == "FreeBSD":
                 lines = [
-                    l for l in _shell_out(
+                    line for line in _shell_out(
                         "uname -r; freebsd-version -u 2>/dev/null || echo unavailable"
                     ).splitlines()
-                    if l
+                    if line
                 ]
                 if (
                     len(lines) >= 2
