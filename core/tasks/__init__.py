@@ -24,8 +24,6 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
     from core.operations.autossh import add_autossh_gateway_ops, add_autossh_ops
     from core.operations.bastille import add_bastille_ops
     from core.operations.bhyve import add_bhyve_ops
-    from core.operations.debug_unbound import add_debug_unbound_ops
-    from core.operations.debug_unbound_full import add_debug_unbound_full_ops
     from core.operations.docker import add_docker_ops
     from core.operations.k3s import add_k3s_ops
     from core.operations.monit import add_monit_ops
@@ -42,8 +40,6 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
     from core.operations.storage import add_storage_ops
     from core.operations.sudo import add_sudoers_ops
     from core.operations.sysctl import add_sysctl_ops
-    from core.operations.test_dns import add_test_dns_ops
-    from core.operations.test_unbound_simple import add_test_unbound_simple_ops
     from core.operations.unbound import add_unbound_ops
     from core.operations.users import add_user_ops
     from core.operations.wireguard import add_wireguard_ops
@@ -76,10 +72,6 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
         "postgresql": [TaskEntry(add_postgresql_ops, "POSTGRESQL", "standard")],
         "prometheus": [TaskEntry(add_prometheus_ops, "PROMETHEUS", "standard")],
         "registry": [TaskEntry(add_registry_ops, "REGISTRY", "standard", ["Linux"])],
-        "test-dns": [TaskEntry(add_test_dns_ops, None, "no-config")],
-        "debug-unbound": [TaskEntry(add_debug_unbound_ops, None, "no-config")],
-        "debug-unbound-full": [TaskEntry(add_debug_unbound_full_ops, None, "no-config")],
-        "test-unbound-simple": [TaskEntry(add_test_unbound_simple_ops, None, "no-config")],
     }
 
 
