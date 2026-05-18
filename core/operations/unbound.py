@@ -1,11 +1,8 @@
 """Unbound DNS resolver configuration."""
 
-import tempfile
-from pathlib import Path
-
 from pyinfra.api.operation import add_op
 from pyinfra.facts.server import Kernel
-from pyinfra.operations import files, server
+from pyinfra.operations import server
 
 # OS-specific configuration defaults for unbound
 _OS_DEFAULTS = {
@@ -72,23 +69,25 @@ def add_unbound_ops(state, hosts, config, target_hosts=None, task="all"):
         content = _generate_unbound_conf(unbound_config, os_defaults)
         conf_path = os_defaults["conf_path"]
 
-        # Write config file using temporary file to avoid truncation
-        # Create temp file that persists after close
-        tmp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.conf', delete=False)
-        tmp_file.write(content)
-        tmp_file.flush()
-        tmp_file.close()
-        tmp_path = tmp_file.name
+        # Write config file using shell heredoc to avoid pyinfra file truncation
+        # Escape special characters in content for safe shell passing
+        safe_content = content.replace("'", "'\\''")
+        write_cmd = f"cat > {conf_path} << 'EOF'\n{content}\nEOF"
 
         add_op(
             state,
-            files.put,
+            server.shell,
             name=f"Deploy Unbound config on {host.name}",
-            src=tmp_path,
-            dest=conf_path,
-            mode="0644",
-            user="root",
-            group=os_defaults["group"],
+            commands=[write_cmd],
+            host=host,
+        )
+
+        # Fix file permissions
+        add_op(
+            state,
+            server.shell,
+            name=f"Set Unbound config permissions on {host.name}",
+            commands=[f"chmod 0644 {conf_path}", f"chown root:{os_defaults['group']} {conf_path}"],
             host=host,
         )
 
