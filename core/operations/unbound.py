@@ -141,9 +141,11 @@ def _generate_unbound_conf(config, os_defaults):
     lines.append("    access-control: 0.0.0.0/0 refuse")
     lines.append("    access-control: 127.0.0.0/8 allow")
 
-    # Access control rules
+    # Access control rules (deduplicate with base rules)
+    base_rules = {"0.0.0.0/0 refuse", "127.0.0.0/8 allow"}
     for rule in config.get("access_control", []):
-        lines.append(f"    access-control: {rule}")
+        if rule not in base_rules:
+            lines.append(f"    access-control: {rule}")
 
     # Listen addresses
     listen_on = config.get("listen_on", ["127.0.0.1"])
