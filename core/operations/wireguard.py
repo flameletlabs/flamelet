@@ -263,9 +263,15 @@ def _generate_wireguard_openbsd(config, iface_name="wg0"):
         for ip in allowed_ips:
             lines.append(f"  wgaip {ip} \\")
 
-        # Endpoint
+        # Endpoint (OpenBSD format: host and port space-separated, not colon)
         if "endpoint" in peer:
-            lines.append(f"  wgendpoint {peer['endpoint']} \\")
+            endpoint = peer['endpoint']
+            # Parse endpoint: "host:port" → "host port"
+            if ':' in endpoint:
+                host, port = endpoint.rsplit(':', 1)
+                lines.append(f"  wgendpoint {host} {port} \\")
+            else:
+                lines.append(f"  wgendpoint {endpoint} \\")
 
         # Keepalive
         if "keepalive" in peer:
