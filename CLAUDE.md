@@ -69,7 +69,7 @@ Load hostname-keyed service config via 3-tier inheritance:
 2. `vars/location/{location}.py` — location overrides (extracted from hostname)
 3. `vars/hosts/{host}.py` — host-specific overrides
 
-Returns dict like: `{"virt.london": {...}, "core": {...}}`
+Returns dict like: `{"virt.example.com": {...}, "core": {...}}`
 
 #### `load_packages_config(tenant_path, host_name, os_key) → dict`
 Load OS-keyed package list for a specific host:
@@ -239,24 +239,24 @@ vars/location/{location}.py    # Location-specific overrides (extracted from hos
 vars/hosts/{hostname}.py       # Host-specific overrides
 ```
 
-### Example: vars/hosts/virt_home.py
+### Example: vars/hosts/virt_prod.py
 
 ```python
 MONIT = {
-    "virt.london": {
+    "virt.example.com": {
         "daemon": 120,
         "checks": {
-            "system": "check system virt.london\n  if memory usage > 75% then alert",
+            "system": "check system virt.example.com\n  if memory usage > 75% then alert",
             ...
         }
     }
 }
 
 WIREGUARD = {
-    "virt.london": {
+    "virt.example.com": {
         "interfaces": {
             "wg0": {
-                "address": "10.50.0.2/24",
+                "address": "10.100.0.2/24",
                 ...
             }
         }
@@ -287,11 +287,11 @@ LUMACA_PASSWORD = "$6$..."
 
 ## Configuration Inheritance Example
 
-For host `virt.london` in location `home`:
+For host `virt.example.com` in location name (e.g., "prod")`:
 
 1. `vars/all.py` → `MONIT` (if exists)
-2. `vars/location/home.py` → `MONIT["virt.london"]` (if exists)
-3. `vars/hosts/virt_home.py` → `MONIT["virt.london"]` (if exists)
+2. `vars/location name (e.g., "prod").py` → `MONIT["virt.example.com"]` (if exists)
+3. `vars/hosts/virt_prod.py` → `MONIT["virt.example.com"]` (if exists)
 
 Final config = merge of all three in order (host-specific wins).
 
@@ -307,10 +307,10 @@ flamelet
 flamelet --dry
 
 # Single host
-flamelet --limit virt.london
+flamelet --limit virt.example.com
 
 # Single task
-flamelet --task monit --limit virt.london
+flamelet --task monit --limit virt.example.com
 
 # Verbose
 flamelet -v --task users
@@ -419,7 +419,7 @@ OS dispatch: apt (Debian/Ubuntu) · apk (Alpine) · pkg (FreeBSD) · pkg_add -u 
 ```python
 # vars/all.py or vars/hosts/vpn_home.py
 WIREGUARD = {
-    "vpn.london": {
+    "vpn.example.com": {
         "interfaces": {
             "wg0": {
                 "address": "10.0.0.1/24",
@@ -445,15 +445,15 @@ WIREGUARD = {
 
 ```python
 UNBOUND = {
-    "dns.london": {
-        "listen_on": ["127.0.0.1", "192.168.1.1"],
+    "dns.example.com": {
+        "listen_on": ["127.0.0.1", "10.0.0.1"],
         "access_control": [
             "127.0.0.0/8 allow",
-            "192.168.1.0/24 allow",
+            "10.0.0.0/24 allow",
             "0.0.0.0/0 refuse",
         ],
         "local_data": [
-            {"name": "host.local.", "type": "A", "value": "192.168.1.10"},
+            {"name": "host.local.", "type": "A", "value": "10.0.0.10"},
             {"name": "alias.local.", "type": "CNAME", "value": "host.local."},
         ],
         "forward_zones": [
@@ -469,7 +469,7 @@ UNBOUND = {
 ```python
 # vars/hosts/app_home.py — tunnel from remote to gateway
 AUTOSSH_TUNNELS = {
-    "app.london": {
+    "app.example.com": {
         "remote_host": "gateway.example.com",
         "remote_user": "autossh",
         "local_port": 2220,
@@ -485,7 +485,7 @@ AUTOSSH_GATEWAY = {
             "user": "autossh",
             "keys": [
                 {
-                    "comment": "app.london",
+                    "comment": "app.example.com",
                     "public_key": "ssh-rsa AAAA...",
                     "options": "no-pty,no-agent-forwarding",
                 }
@@ -515,7 +515,7 @@ SYSCTL = {
 
 ```python
 SERVICES = {
-    "app.london": {
+    "app.example.com": {
         "enabled": ["ssh", "ntp"],
         "started": ["ssh", "ntp"],
         "restart": ["app-service"],  # Services to restart
@@ -528,7 +528,7 @@ SERVICES = {
 
 ```python
 PF = {
-    "gateway.london": {
+    "gateway.example.com": {
         "rules": """
 block in all
 pass in on em0 proto tcp from any to any port 22
@@ -545,14 +545,14 @@ pass in on wg0 proto tcp from any to any port 443
 
 ```python
 MONIT = {
-    "app.london": {
+    "app.example.com": {
         "daemon": 120,  # Check interval in seconds
         "mmonit_url": "https://monit:password@monit.example.com/collector",
         "mmonit_hostgroup": "london",
         "httpd_port": 2812,
         "httpd_password": "monitoring-ui-password",
         "checks": {
-            "system": "check system app.london\n  if memory usage > 75% then alert",
+            "system": "check system app.example.com\n  if memory usage > 75% then alert",
             "filesystem_root": "check filesystem rootfs with path /\n  if space usage > 90% then alert",
             "process_sshd": "check process sshd with pidfile /var/run/sshd.pid\n  if failed port 22 then restart",
         }
@@ -565,7 +565,7 @@ MONIT = {
 
 ```python
 NODE_EXPORTER = {
-    "app.london": {
+    "app.example.com": {
         "port": 9100,
         "collectors": ["filesystem", "meminfo", "netdev"],
         "options": "--collector.disable-defaults",
@@ -578,11 +578,11 @@ NODE_EXPORTER = {
 
 ```python
 PROMETHEUS = {
-    "metrics.london": {
+    "metrics.example.com": {
         "port": 9090,
         "scrape_interval": "15s",
         "targets": [
-            {"job": "node", "targets": ["localhost:9100", "app.london:9100"]},
+            {"job": "node", "targets": ["localhost:9100", "app.example.com:9100"]},
             {"job": "blackbox", "targets": ["localhost:9115"]},
         ],
     }
@@ -596,8 +596,8 @@ PROMETHEUS = {
 
 ```python
 OPENSMTPD = {
-    "mail.london": {
-        "listen": ["127.0.0.1:25", "192.168.1.1:25"],
+    "mail.example.com": {
+        "listen": ["127.0.0.1:25", "10.0.0.1:25"],
         "relay": "smtp.example.com:587",
         "relay_auth": {"user": "alerts@example.com", "password": "..."},
     }
@@ -611,7 +611,7 @@ OPENSMTPD = {
 
 ```python
 DOCKER = {
-    "docker.london": {
+    "docker.example.com": {
         "registry": "registry.example.com",
         "registry_auth": {"username": "user", "password": "..."},
         "storage_driver": "overlay2",
@@ -697,10 +697,10 @@ BASTILLE = {
 
 ```python
 K3S = {
-    "k3s.london": {
+    "k3s.example.com": {
         "role": "server",  # or "agent"
         "cluster_token": "...",
-        "server": "https://k3s.london:6443",
+        "server": "https://k3s.example.com:6443",
         "datastore": "sqlite3",  # or "etcd"
     }
 }
@@ -713,7 +713,7 @@ K3S = {
 
 ```python
 STORAGE = {
-    "nas.london": {
+    "nas.example.com": {
         "pools": [
             {
                 "name": "tank",
@@ -736,7 +736,7 @@ STORAGE = {
             "exports": [
                 {
                     "dataset": "tank/data",
-                    "clients": ["192.168.1.0/24"],
+                    "clients": ["10.0.0.0/24"],
                     "options": "rw,no_root_squash",
                 }
             ]
@@ -762,7 +762,7 @@ STORAGE = {
 
 ```python
 NGINX = {
-    "nginx.london": {
+    "nginx.example.com": {
         "user": "www-data",
         "worker_processes": 4,
         "upstream": [
@@ -792,9 +792,9 @@ NGINX = {
 
 ```python
 POSTGRESQL = {
-    "db.london": {
+    "db.example.com": {
         "version": "15",
-        "listen_addresses": ["127.0.0.1", "192.168.1.5"],
+        "listen_addresses": ["127.0.0.1", "10.0.0.5"],
         "port": 5432,
         "max_connections": 100,
         "shared_buffers": "256MB",
@@ -820,11 +820,11 @@ POSTGRESQL = {
 
 ## 3-Tier Configuration Inheritance
 
-For hostname `app.prod.london`:
+For hostname `app-prod.example.com`:
 
 1. **Global Defaults** (`vars/all.py`) — required minimum config
-2. **Location Override** (`vars/location/home.py`) — environment-specific changes
-   - Location extracted from last dot segment: `app.prod.london` → `home`
+2. **Location Override** (`vars/location name (e.g., "prod").py`) — environment-specific changes
+   - Location extracted from last dot segment: `app-prod.example.com` → `home`
 3. **Host Override** (`vars/hosts/app_prod_home.py`) — host-specific changes
    - Filename format: `<hostname>` with `.` and `-` replaced by `_`
 
@@ -845,8 +845,8 @@ def build_inventory():
     return Inventory(
         (
             [
-                ("app.example.com", {"ssh_hostname": "192.168.1.10"}),
-                ("db.example.com", {"ssh_hostname": "192.168.1.20"}),
+                ("app.example.com", {"ssh_hostname": "10.0.0.10"}),
+                ("db.example.com", {"ssh_hostname": "10.0.0.20"}),
             ],
             {"ssh_user": "syseng", "ssh_key": "~/.ssh/id_rsa"},
         ),
@@ -981,7 +981,7 @@ Add to "Complete Operation Reference" section:
 
 \`\`\`python
 MYSERVICE = {
-    "app.london": {
+    "app.example.com": {
         "setting1": "value1",
         "setting2": "value2",
     }
@@ -1006,7 +1006,7 @@ In tenant `vars/hosts/app_home.py`:
 
 ```python
 MYSERVICE = {
-    "app.london": {
+    "app.example.com": {
         "setting1": "value1",
         "setting2": "value2",
     }
@@ -1016,8 +1016,8 @@ MYSERVICE = {
 Then deploy:
 
 ```bash
-flamelet --task myservice --limit app.london --dry
-flamelet --task myservice --limit app.london
+flamelet --task myservice --limit app.example.com --dry
+flamelet --task myservice --limit app.example.com
 ```
 
 ---

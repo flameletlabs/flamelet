@@ -340,31 +340,42 @@ See `tests/` for test structure and examples.
 
 ## Documentation
 
+### Getting Started
+- **[README.md](README.md)** — This file: quick start, architecture, usage examples
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** — Development setup, testing, adding new operations
+- **[TESTING.md](TESTING.md)** — Complete testing guide with 146+ tests
+
+### Reference
 - **[CLAUDE.md](CLAUDE.md)** — Framework reference for AI assistants & detailed implementation guide
-- **[README.md](README.md)** — This file: quick start, architecture overview, usage
-- **`core/tasks/__init__.py`** — TASK_REGISTRY source code (all available tasks)
-- **`core/operations/`** — Each operation module has detailed docstrings
+- **[docs/PROVISIONING_VERIFICATION.md](docs/PROVISIONING_VERIFICATION.md)** — How to verify provisioning operations succeeded
+- **[docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md)** — v2 Framework implementation roadmap
+- **[docs/TAGS_ANALYSIS.md](docs/TAGS_ANALYSIS.md)** — Complete service tags & components reference
+
+### Code Reference
+- **`core/tasks/__init__.py`** — TASK_REGISTRY source (all available tasks)
+- **`core/operations/`** — Operation modules (each has detailed docstrings)
+- **`tenants/flamelet-example/`** — Complete example tenant configuration
 
 ### For AI Assistants
 
 The framework is fully documented for AI-driven infrastructure generation:
 
-```python
-# AI can read CLAUDE.md to understand:
-# - Operation signatures and config requirements
-# - 3-tier configuration inheritance
-# - How to add new operations
-# - Best practices for tenant configs
+**[CLAUDE.md](CLAUDE.md)** provides:
+- Operation signatures and config requirements
+- 3-tier configuration inheritance system
+- How to add new operations to the framework
+- Best practices for tenant config structure
 
-# Then generate complete tenant configs including:
-# - inventory.py with realistic hosts
-# - vars/__init__.py with users and groups
-# - vars/all.py with global package lists
-# - vars/location/{location}.py with environment-specific configs
-# - vars/hosts/{host}.py with host-specific services
+Using CLAUDE.md, AI can generate complete tenant configs:
+```
+inventory.py                  # Host definitions + groups
+vars/__init__.py             # Users, groups, shared constants
+vars/all.py                  # Global service defaults
+vars/location/{name}.py      # Location-specific overrides
+vars/hosts/{name}.py         # Host-specific configurations
 ```
 
-See **CLAUDE.md** for the full AI-friendly reference.
+See **[CLAUDE.md](CLAUDE.md)** for the full reference.
 
 ---
 
