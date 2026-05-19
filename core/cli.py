@@ -195,11 +195,17 @@ def main():
         print(f"Error: {e}", file=sys.stderr)
         return 1
 
-    # Find tenant
+    # Build parser with all task registry keys
+    task_choices = STANDARD_TASKS + list(TASK_REGISTRY.keys())
+    parser = build_parser(task_choices=task_choices)
+    args = parser.parse_args()
+
+    # Find tenant using --tenant argument (e.g. 'home' -> 'flamelet-home')
+    tenant_dir = f"flamelet-{args.tenant}"
     try:
-        tenant_path = find_tenant_path()
+        tenant_path = find_tenant_path(tenant_dir)
     except RuntimeError as e:
-        print(f"Error: {e}", file=sys.stderr)
+        print(f"Error: Tenant '{args.tenant}' not found. Expected: ~/.config/flamelet/tenants/{tenant_dir}/", file=sys.stderr)
         return 1
 
     # Load tenant configuration
@@ -209,11 +215,6 @@ def main():
     except RuntimeError as e:
         print(f"Error: {e}", file=sys.stderr)
         return 1
-
-    # Build parser with all task registry keys
-    task_choices = STANDARD_TASKS + list(TASK_REGISTRY.keys())
-    parser = build_parser(task_choices=task_choices)
-    args = parser.parse_args()
 
     # Build the add_ops function
     add_ops = build_add_ops_func(tenant_path, tenant_vars, dry=args.dry)

@@ -104,6 +104,11 @@ def build_parser(task_choices=None):
         task_choices = STANDARD_TASKS
 
     parser = argparse.ArgumentParser(description="Deploy infrastructure with pyinfra API")
+    parser.add_argument(
+        "--tenant",
+        required=True,
+        help="Tenant name (e.g. 'home' maps to ~/.config/flamelet/tenants/flamelet-home/)",
+    )
     parser.add_argument("--limit", help="Hostname or group name to deploy to")
     parser.add_argument(
         "--dry", action="store_true", help="Check mode: show what would run without executing"

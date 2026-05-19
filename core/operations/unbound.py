@@ -1,10 +1,12 @@
 """Unbound DNS resolver configuration."""
 
 import base64
+import tempfile
+import os
 
 from pyinfra.api.operation import add_op
 from pyinfra.facts.server import Kernel
-from pyinfra.operations import server
+from pyinfra.operations import files, server
 
 # OS-specific configuration defaults for unbound
 _OS_DEFAULTS = {
@@ -71,19 +73,27 @@ def add_unbound_ops(state, hosts, config, target_hosts=None, task="all"):
         content = _generate_unbound_conf(unbound_config, os_defaults)
         conf_path = os_defaults["conf_path"]
 
-        # Write config file using /bin/sh with here-document
-        # This is the most portable and reliable method across BSD and Linux
-        heredoc_cmd = (
-            f"cat > {conf_path} << 'UNBOUND_EOF'\n"
-            f"{content}\n"
-            f"UNBOUND_EOF"
-        )
+        # Write to persistent temp file for pyinfra files.put operation
+        # (deleted after the deployment completes via server.shell cleanup)
+        tmp_path = f"/tmp/flamelet-unbound-{host.name}.conf"
+        with open(tmp_path, 'w') as tmp:
+            tmp.write(content)
 
         add_op(
             state,
-            server.shell,
+            files.put,
             name=f"Deploy Unbound config on {host.name}",
-            commands=[heredoc_cmd],
+            src=tmp_path,
+            dest=conf_path,
+            host=host,
+        )
+
+        # Clean up temp file after transfer
+        add_op(
+            state,
+            server.shell,
+            name=f"Clean up temp Unbound config on {host.name}",
+            commands=[f"rm -f {tmp_path}"],
             host=host,
         )
 
