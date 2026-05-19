@@ -429,7 +429,7 @@ WIREGUARD = {
                     {
                         "pubkey": "...",
                         "allowed_ips": ["10.0.0.0/24"],
-                        "endpoint": "peer.example.com:51820",
+                        "endpoint": "peer.example.com:51820",  # format: "host:port"
                         "keepalive": 25,
                         "preshared_key": "...",  # Optional
                     }
@@ -439,6 +439,10 @@ WIREGUARD = {
     }
 }
 ```
+
+**Endpoint Format:** Specify as `"host:port"` in the Python config. The framework automatically formats it correctly for each OS:
+- **OpenBSD**: Generated as `wgendpoint host port` (space-separated in /etc/hostname.wg0)
+- **FreeBSD/Linux**: Generated as `Endpoint = host:port` (colon-separated)
 
 #### `unbound` — DNS Resolver
 **Config Attribute:** `UNBOUND` (hostname-keyed)
