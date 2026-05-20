@@ -90,26 +90,13 @@ def _add_wireguard_freebsd(state, host, iface_name, config):
         commands=[
             "sysrc wireguard_enable=YES",
             f"sysrc -a wireguard_interfaces+={iface_name}",
-            "service wireguard restart || true",
         ],
         host=host,
     )
 
-    # Add routes for AllowedIPs (FreeBSD doesn't auto-create them like Linux does)
-    peers = config.get("peers", [])
-    route_commands = []
-    for peer in peers:
-        for ip in peer.get("allowed_ips", []):
-            route_commands.append(f"route add -inet {ip} -link -iface {iface_name} || true")
-
-    if route_commands:
-        add_op(
-            state,
-            server.shell,
-            name=f"Add routes for WireGuard {iface_name} on {host.name}",
-            commands=route_commands,
-            host=host,
-        )
+    # Note: WireGuard restart must be done manually or via separate script
+    # due to wg-quick backgrounding incompatibility with SSH/pyinfra subprocess handling.
+    # To restart manually: ssh host "sudo wg-quick down wg0 && sudo wg-quick up wg0"
 
 
 def _add_wireguard_openbsd(state, host, iface_name, config):
