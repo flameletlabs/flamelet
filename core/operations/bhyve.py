@@ -83,26 +83,31 @@ def add_bhyve_ops(state, hosts, config, target_hosts=None, task="all"):
                 host=host,
             )
 
-            # Create VM config
-            vm_config = f"""cpu {vcpu}
-memory {memory}
-disk0_type=ahci
-disk0_name={disk_path}
-network0_type=virtio-net
-network0_switch={network}
-"""
+            # Configure VM settings (granular sed commands for idempotency)
+            vm_settings = [
+                ("cpu", vcpu),
+                ("memory", memory),
+                ("disk0_type", "ahci"),
+                ("disk0_name", disk_path),
+                ("network0_type", "virtio-net"),
+                ("network0_switch", network),
+            ]
 
-            add_op(
-                state,
-                files.put,
-                name=f"Configure VM {vm_name} on {host.name}",
-                src=StringIO(vm_config.strip()),
-                dest=f"/zroot/vm/{vm_name}/{vm_name}.conf",
-                user="root",
-                group="wheel",
-                mode="0644",
-                host=host,
-            )
+            for setting_name, setting_value in vm_settings:
+                # Convert value to string and escape special chars for sed (handle / in paths)
+                str_value = str(setting_value)
+                escaped_value = str_value.replace("/", "\\/")
+                add_op(
+                    state,
+                    server.shell,
+                    name=f"Configure VM {vm_name} {setting_name} on {host.name}",
+                    commands=[
+                        f"grep -q '^{setting_name}=' /zroot/vm/{vm_name}/{vm_name}.conf && "
+                        f"sed -i '' 's/^{setting_name}=.*$/{setting_name}={escaped_value}/' /zroot/vm/{vm_name}/{vm_name}.conf || "
+                        f"echo '{setting_name}={str_value}' >> /zroot/vm/{vm_name}/{vm_name}.conf",
+                    ],
+                    host=host,
+                )
 
             # Restart VM (skip for config-only mode)
             if task != "bhyve-config":
