@@ -4,6 +4,15 @@ from pyinfra.api.operation import add_op
 from pyinfra.operations import server
 
 
+def _parse_size_bytes(size_str: str) -> int:
+    """Convert size string like '20G', '512M' to bytes."""
+    units = {"K": 1024, "M": 1024**2, "G": 1024**3, "T": 1024**4}
+    s = size_str.strip().upper()
+    if s[-1] in units:
+        return int(s[:-1]) * units[s[-1]]
+    return int(s)
+
+
 def add_bhyve_ops(state, hosts, config, target_hosts=None, task="all"):
     """Deploy and manage FreeBSD bhyve virtual machines via vm-bhyve.
 
@@ -70,12 +79,26 @@ def add_bhyve_ops(state, hosts, config, target_hosts=None, task="all"):
 
             disk_path = vm.get("disk", f"{zvol_pool}/{vm_name}.img")
 
-            # Allocate/resize disk image file
+            # Create disk if it doesn't exist (new VMs)
             add_op(
                 state,
                 server.shell,
-                name=f"Allocate disk for VM {vm_name} on {host.name}",
+                name=f"Create disk for VM {vm_name} on {host.name}",
                 commands=[
+                    f"test -f {disk_path} || truncate -s {disk_size} {disk_path}",
+                ],
+                host=host,
+            )
+
+            # Grow disk only if needed (existing VMs, grow-only protection)
+            desired_bytes = _parse_size_bytes(disk_size)
+            add_op(
+                state,
+                server.shell,
+                name=f"Grow disk for VM {vm_name} on {host.name}",
+                commands=[
+                    f"test -f {disk_path} && "
+                    f"[ $(stat -f '%z' {disk_path}) -lt {desired_bytes} ] && "
                     f"truncate -s {disk_size} {disk_path} || true",
                 ],
                 host=host,
