@@ -45,19 +45,6 @@ def add_bhyve_ops(state, hosts, config, target_hosts=None, task="all"):
         bridges = spec.get("bridges", [])
         vms = spec.get("vms", [])
 
-        # Initialize vm-bhyve if not already done
-        add_op(
-            state,
-            server.shell,
-            name=f"Initialize vm-bhyve on {host.name}",
-            commands=[
-                "pw groupadd -n vm -M 2>/dev/null || true",
-                "mkdir -p /etc/vm /var/lib/vm && chown vm:vm /var/lib/vm /etc/vm",
-                "echo 'vm_enable=\"YES\"' >> /etc/rc.conf.local 2>/dev/null || true",
-            ],
-            host=host,
-        )
-
         # Create virtual network bridges
         for bridge in bridges:
             bridge_name = bridge.get("name")
@@ -110,25 +97,26 @@ network0_switch={network}
                 files.put,
                 name=f"Configure VM {vm_name} on {host.name}",
                 src=StringIO(vm_config.strip()),
-                dest=f"/etc/vm/{vm_name}.conf",
-                user="vm",
-                group="vm",
+                dest=f"/zroot/vm/{vm_name}/{vm_name}.conf",
+                user="root",
+                group="wheel",
                 mode="0644",
                 host=host,
             )
 
-            # Start VM
-            add_op(
-                state,
-                server.shell,
-                name=f"Start VM {vm_name} on {host.name}",
-                commands=[
-                    f"bhyvectl --vm={vm_name} --destroy 2>/dev/null || true",
-                    f"bhyve -A -H -P -s 0:0,hostbridge -s 1,lpc -s 2:0,virtio-net,{network} "
-                    f"-s 3:0,ahci,{disk_path} -c {vcpu} -m {memory} -w {vm_name} || true",
-                ],
-                host=host,
-            )
+            # Restart VM (skip for config-only mode)
+            if task != "bhyve-config":
+                add_op(
+                    state,
+                    server.shell,
+                    name=f"Restart VM {vm_name} on {host.name}",
+                    commands=[
+                        f"vm stop {vm_name} 2>/dev/null || true",
+                        "sleep 3",
+                        f"vm start {vm_name}",
+                    ],
+                    host=host,
+                )
 
             if autostart:
                 add_op(
