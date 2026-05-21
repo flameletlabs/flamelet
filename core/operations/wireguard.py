@@ -59,11 +59,7 @@ def _add_wireguard_freebsd(state, host, iface_name, config):
     content = _generate_wireguard_ini(config)
 
     # Write wg config file using heredoc (reliable for large configs)
-    heredoc_cmd = (
-        f"cat > /usr/local/etc/wireguard/{iface_name}.conf << 'WG_EOF'\n"
-        f"{content}\n"
-        f"WG_EOF"
-    )
+    heredoc_cmd = f"cat > /usr/local/etc/wireguard/{iface_name}.conf << 'WG_EOF'\n{content}\nWG_EOF"
 
     add_op(
         state,
@@ -104,11 +100,7 @@ def _add_wireguard_openbsd(state, host, iface_name, config):
     content = _generate_wireguard_openbsd(config, iface_name)
 
     # Write OpenBSD hostname.<iface> file using heredoc
-    heredoc_cmd = (
-        f"cat > /etc/hostname.{iface_name} << 'WG_EOF'\n"
-        f"{content}\n"
-        f"WG_EOF"
-    )
+    heredoc_cmd = f"cat > /etc/hostname.{iface_name} << 'WG_EOF'\n{content}\nWG_EOF"
 
     add_op(
         state,
@@ -160,11 +152,7 @@ def _add_wireguard_linux(state, host, iface_name, config):
     content = _generate_wireguard_ini(config)
 
     # Write config file using heredoc
-    heredoc_cmd = (
-        f"cat > /etc/wireguard/{iface_name}.conf << 'WG_EOF'\n"
-        f"{content}\n"
-        f"WG_EOF"
-    )
+    heredoc_cmd = f"cat > /etc/wireguard/{iface_name}.conf << 'WG_EOF'\n{content}\nWG_EOF"
 
     add_op(
         state,
@@ -252,10 +240,10 @@ def _generate_wireguard_openbsd(config, iface_name="wg0"):
 
         # Endpoint (OpenBSD format: host and port space-separated, not colon)
         if "endpoint" in peer:
-            endpoint = peer['endpoint']
+            endpoint = peer["endpoint"]
             # Parse endpoint: "host:port" → "host port"
-            if ':' in endpoint:
-                host, port = endpoint.rsplit(':', 1)
+            if ":" in endpoint:
+                host, port = endpoint.rsplit(":", 1)
                 lines.append(f"  wgendpoint {host} {port} \\")
             else:
                 lines.append(f"  wgendpoint {endpoint} \\")
