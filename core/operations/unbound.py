@@ -72,7 +72,7 @@ def add_unbound_ops(state, hosts, config, target_hosts=None, task="all"):
         # Write to persistent temp file for pyinfra files.put operation
         # (deleted after the deployment completes via server.shell cleanup)
         tmp_path = f"/tmp/flamelet-unbound-{host.name}.conf"
-        with open(tmp_path, 'w') as tmp:
+        with open(tmp_path, "w") as tmp:
             tmp.write(content)
 
         add_op(

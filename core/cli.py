@@ -205,7 +205,10 @@ def main():
     try:
         tenant_path = find_tenant_path(tenant_dir)
     except RuntimeError:
-        print(f"Error: Tenant '{args.tenant}' not found. Expected: ~/.config/flamelet/tenants/{tenant_dir}/", file=sys.stderr)
+        print(
+            f"Error: Tenant '{args.tenant}' not found. Expected: ~/.config/flamelet/tenants/{tenant_dir}/",
+            file=sys.stderr,
+        )
         return 1
 
     # Load tenant configuration
