@@ -70,11 +70,11 @@ def add_bhyve_ops(state, hosts, config, target_hosts=None, task="all"):
 
             disk_path = vm.get("disk", f"{zvol_pool}/{vm_name}.img")
 
-            # Create disk
+            # Allocate/resize disk image file
             add_op(
                 state,
                 server.shell,
-                name=f"Create disk for VM {vm_name} on {host.name}",
+                name=f"Allocate disk for VM {vm_name} on {host.name}",
                 commands=[
                     f"truncate -s {disk_size} {disk_path} || true",
                 ],
