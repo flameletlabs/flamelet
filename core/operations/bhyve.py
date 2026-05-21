@@ -1,7 +1,7 @@
 """FreeBSD bhyve VM operations (vm-bhyve)."""
 
 from pyinfra.api.operation import add_op
-from pyinfra.operations import server
+from pyinfra.operations import files, server
 
 
 def _parse_size_bytes(size_str: str) -> int:
@@ -158,8 +158,11 @@ def add_bhyve_ops(state, hosts, config, target_hosts=None, task="all"):
             vm_list = " ".join(autostart_vms)
             add_op(
                 state,
-                server.shell,
+                files.line,
                 name=f"Set VM autostart list on {host.name}",
-                commands=[f'sysrc vm_list="{vm_list}"'],
+                path="/etc/rc.conf",
+                line="^vm_list=",
+                replace=f'vm_list="{vm_list}"',
+                present=True,
                 host=host,
             )
