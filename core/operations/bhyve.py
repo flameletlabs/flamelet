@@ -102,9 +102,9 @@ def add_bhyve_ops(state, hosts, config, target_hosts=None, task="all"):
                     server.shell,
                     name=f"Configure VM {vm_name} {setting_name} on {host.name}",
                     commands=[
-                        f"grep -q '^{setting_name}[= ]' /zroot/vm/{vm_name}/{vm_name}.conf && "
-                        f"sed -i '' 's/^{setting_name}[= ].*$/{setting_name}={escaped_value}/' /zroot/vm/{vm_name}/{vm_name}.conf || "
-                        f"echo '{setting_name}={str_value}' >> /zroot/vm/{vm_name}/{vm_name}.conf",
+                        f"grep -q '^{setting_name}' /zroot/vm/{vm_name}/{vm_name}.conf && "
+                        f"sed -i '' 's/^{setting_name}[= \"].*$/{setting_name}=\"{escaped_value}\"/' /zroot/vm/{vm_name}/{vm_name}.conf || "
+                        f"echo '{setting_name}=\"{str_value}\"' >> /zroot/vm/{vm_name}/{vm_name}.conf",
                     ],
                     host=host,
                 )
