@@ -66,6 +66,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
         "node_exporter": [TaskEntry(add_node_exporter_ops, "NODE_EXPORTER", "standard")],
         "k3s": [TaskEntry(add_k3s_ops, "K3S", "standard", ["Linux"])],
         "bhyve": [TaskEntry(add_bhyve_ops, "BHYVE", "standard", ["FreeBSD"])],
+        "bhyve-config": [TaskEntry(add_bhyve_ops, "BHYVE", "standard", ["FreeBSD"])],
         "bastille": [TaskEntry(add_bastille_ops, "BASTILLE", "standard", ["FreeBSD"])],
         "storage": [TaskEntry(add_storage_ops, "STORAGE", "standard", ["FreeBSD", "Linux"])],
         "nginx": [TaskEntry(add_nginx_ops, "NGINX", "standard")],
