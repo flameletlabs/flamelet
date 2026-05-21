@@ -1,9 +1,5 @@
 """Unbound DNS resolver configuration."""
 
-import base64
-import tempfile
-import os
-
 from pyinfra.api.operation import add_op
 from pyinfra.facts.server import Kernel
 from pyinfra.operations import files, server

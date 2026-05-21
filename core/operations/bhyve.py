@@ -1,9 +1,7 @@
 """FreeBSD bhyve VM operations (vm-bhyve)."""
 
-from io import StringIO
-
 from pyinfra.api.operation import add_op
-from pyinfra.operations import files, server
+from pyinfra.operations import server
 
 
 def add_bhyve_ops(state, hosts, config, target_hosts=None, task="all"):
