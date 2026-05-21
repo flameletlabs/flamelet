@@ -154,7 +154,7 @@ def add_bhyve_ops(state, hosts, config, target_hosts=None, task="all"):
                     server.shell,
                     name=f"Enable autostart for VM {vm_name} on {host.name}",
                     commands=[
-                        f"echo '{vm_name}' >> /etc/vm/autostart 2>/dev/null || true",
+                        f"grep -q '^{vm_name}$' /etc/vm/autostart || echo '{vm_name}' >> /etc/vm/autostart",
                     ],
                     host=host,
                 )
