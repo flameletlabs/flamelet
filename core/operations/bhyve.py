@@ -69,6 +69,7 @@ def add_bhyve_ops(state, hosts, config, target_hosts=None, task="all"):
             )
 
         # Create and start VMs
+        autostart_vms = []
         for vm in vms:
             vm_name = vm.get("name")
             vcpu = vm.get("vcpu", 2)
@@ -78,6 +79,10 @@ def add_bhyve_ops(state, hosts, config, target_hosts=None, task="all"):
             autostart = vm.get("autostart", True)
 
             disk_path = vm.get("disk", f"{zvol_pool}/{vm_name}.img")
+
+            # Collect autostart VMs for rc.conf configuration
+            if autostart:
+                autostart_vms.append(vm_name)
 
             # Create disk if it doesn't exist (new VMs)
             add_op(
@@ -148,13 +153,13 @@ def add_bhyve_ops(state, hosts, config, target_hosts=None, task="all"):
                     host=host,
                 )
 
-            if autostart:
-                add_op(
-                    state,
-                    server.shell,
-                    name=f"Enable autostart for VM {vm_name} on {host.name}",
-                    commands=[
-                        f"grep -q '^{vm_name}$' /etc/vm/autostart || echo '{vm_name}' >> /etc/vm/autostart",
-                    ],
-                    host=host,
-                )
+        # Set VM autostart list in rc.conf (idempotent)
+        if autostart_vms:
+            vm_list = " ".join(autostart_vms)
+            add_op(
+                state,
+                server.shell,
+                name=f"Set VM autostart list on {host.name}",
+                commands=[f'sysrc vm_list="{vm_list}"'],
+                host=host,
+            )
