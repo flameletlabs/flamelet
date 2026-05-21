@@ -90,16 +90,20 @@ def add_bhyve_ops(state, hosts, config, target_hosts=None, task="all"):
                 host=host,
             )
 
-            # Grow disk only if needed (existing VMs, grow-only protection)
+            # Grow disk only if needed (existing VMs, fail on shrink attempt)
             desired_bytes = _parse_size_bytes(disk_size)
             add_op(
                 state,
                 server.shell,
                 name=f"Grow disk for VM {vm_name} on {host.name}",
                 commands=[
-                    f"test -f {disk_path} && "
-                    f"[ $(stat -f '%z' {disk_path}) -lt {desired_bytes} ] && "
-                    f"truncate -s {disk_size} {disk_path} || true",
+                    f"if test -f {disk_path}; then "
+                    f"current=$(stat -f '%z' {disk_path}); "
+                    f"if [ {desired_bytes} -lt $current ]; then "
+                    f"echo 'ERROR: disk shrink not supported: cannot reduce {disk_path} to {disk_size}' >&2; exit 1; "
+                    f"elif [ {desired_bytes} -gt $current ]; then "
+                    f"truncate -s {disk_size} {disk_path}; "
+                    f"fi; fi",
                 ],
                 host=host,
             )
