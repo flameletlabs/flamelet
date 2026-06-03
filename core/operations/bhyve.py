@@ -218,6 +218,8 @@ def add_bhyve_ops(state, hosts, config, target_hosts=None, task="all"):
                             f"runcmd:\n"
                             f"  - mkdir -p /home/debian/.ssh\n"
                             f"  - chmod 700 /home/debian/.ssh\n"
+                            f"  - systemctl enable ssh\n"
+                            f"  - systemctl restart ssh\n"
                             f"USERDATA_EOF",
                             # Create seed.iso from cloud-init files
                             f"cd /{zvol_pool}/vm/{vm_name} && "
