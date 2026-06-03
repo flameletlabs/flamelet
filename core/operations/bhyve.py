@@ -200,7 +200,7 @@ def add_bhyve_ops(state, hosts, config, target_hosts=None, task="all"):
                             # Read SSH key and generate user-data with write_files
                             f"SSH_KEY=$(cat {ssh_public_key}); "
                             f"mkdir -p /{zvol_pool}/vm/{vm_name}/.cloud-init; "
-                            f"cat > /{zvol_pool}/vm/{vm_name}/.cloud-init/user-data << 'USERDATA_EOF'\n"
+                            f"cat > /{zvol_pool}/vm/{vm_name}/.cloud-init/user-data << USERDATA_EOF\n"
                             f"#cloud-config\n"
                             f"resize_rootfs: true\n"
                             f"manage_etc_hosts: localhost\n"
