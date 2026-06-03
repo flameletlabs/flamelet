@@ -13,7 +13,7 @@ def _parse_size_bytes(size_str: str) -> int:
     return int(s)
 
 
-def _build_vm_create_command(vm_name, vcpu, memory, disk_size, image, network_config, ssh_public_key=None):
+def _build_vm_create_command(vm_name, vcpu, memory, disk_size, image, network_config, ssh_public_key=None, template="uefi-raw"):
     """Build vm create command with cloud-init network configuration and SSH key.
 
     Args:
@@ -24,11 +24,15 @@ def _build_vm_create_command(vm_name, vcpu, memory, disk_size, image, network_co
         image: Path to cloud image
         network_config: Network config string (e.g., "ip=192.168.1.100/24;gateway4=192.168.1.1")
         ssh_public_key: Path to SSH public key for cloud-init injection
+        template: VM template type (default: "uefi-raw" for UEFI boot)
 
     Returns:
         String with complete vm create command
     """
     cmd_parts = ["vm", "create"]
+
+    # Add template type (UEFI for cloud images)
+    cmd_parts.extend(["-t", template])
 
     # Add size and resource flags
     cmd_parts.extend(["-s", disk_size])
@@ -74,6 +78,7 @@ def add_bhyve_ops(state, hosts, config, target_hosts=None, task="all"):
                     "network": "vm-bridge0",
                     "network_config": "ip=192.168.1.100/24;gateway4=192.168.1.1;nameservers=192.168.1.1",
                     "ssh_public_key": "path/to/ssh/key.pub",
+                    "template": "uefi-raw",
                     "autostart": True,
                 }
             ],
@@ -125,6 +130,7 @@ def add_bhyve_ops(state, hosts, config, target_hosts=None, task="all"):
             image = vm.get("image")
             network_config = vm.get("network_config")
             ssh_public_key = vm.get("ssh_public_key")
+            template = vm.get("template", "uefi-raw")
 
             disk_path = vm.get("disk", f"{zvol_pool}/{vm_name}.img")
 
@@ -134,7 +140,7 @@ def add_bhyve_ops(state, hosts, config, target_hosts=None, task="all"):
 
             # If image is provided, use vm create with cloud-init
             if image:
-                create_cmd = _build_vm_create_command(vm_name, vcpu, memory, disk_size, image, network_config, ssh_public_key)
+                create_cmd = _build_vm_create_command(vm_name, vcpu, memory, disk_size, image, network_config, ssh_public_key, template)
                 add_op(
                     state,
                     server.shell,
