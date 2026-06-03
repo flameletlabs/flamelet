@@ -1,5 +1,6 @@
 """FreeBSD bhyve VM operations (vm-bhyve)."""
 
+import uuid
 from pyinfra.api.operation import add_op
 from pyinfra.operations import files, server
 
@@ -209,29 +210,30 @@ def add_bhyve_ops(state, hosts, config, target_hosts=None, task="all"):
                             f"    debian:debian\n"
                             f"  expire: false\n"
                             f"ssh_pwauth: true\n"
-                            f"bootcmd:\n"
-                            f"  - mkdir -p /home/debian/.ssh\n"
-                            f"  - chmod 700 /home/debian/.ssh\n"
-                            f"  - mkdir -p /etc/systemd/resolved.conf.d\n"
                             f"write_files:\n"
                             f"  - path: /home/debian/.ssh/authorized_keys\n"
                             f"    owner: debian:debian\n"
                             f"    permissions: '0600'\n"
                             f"    content: |\n"
                             f"      $SSH_KEY\n"
-                            f"  - path: /etc/systemd/resolved.conf.d/99-upstream-dns.conf\n"
-                            f"    content: |\n"
-                            f"      [Resolve]\n"
-                            f"      DNS=192.168.160.1 8.8.8.8\n"
-                            f"      FallbackDNS=8.8.4.4\n"
                             f"runcmd:\n"
-                            f"  - systemctl restart systemd-resolved\n"
-                            f"  - systemctl enable ssh\n"
-                            f"  - systemctl restart ssh\n"
+                            f"  - mkdir -p /home/debian/.ssh\n"
+                            f"  - chmod 700 /home/debian/.ssh\n"
                             f"USERDATA_EOF",
-                            # Create seed.iso from cloud-init files
+                            # Create meta-data file for cloud-init
+                            # Extract hostname from network_config (format: hostname=FQDN)
+                            f"CLOUD_HOSTNAME=$(echo '{network_config}' | grep -o 'hostname=[^;]*' | cut -d= -f2) || CLOUD_HOSTNAME={vm_name}; "
+                            f"cat > /{zvol_pool}/vm/{vm_name}/.cloud-init/meta-data << METADATA_EOF\n"
+                            f"instance-id: {str(uuid.uuid4())}\n"
+                            f"local-hostname: $CLOUD_HOSTNAME\n"
+                            f"METADATA_EOF",
+                            # Create seed.iso using cloud-localds (cloud-init standard tool)
+                            f"cloud-localds /{zvol_pool}/vm/{vm_name}/seed.iso "
+                            f"/{zvol_pool}/vm/{vm_name}/.cloud-init/user-data "
+                            f"/{zvol_pool}/vm/{vm_name}/.cloud-init/meta-data 2>&1 || "
+                            f"(echo 'cloud-localds failed, falling back to makefs' && "
                             f"cd /{zvol_pool}/vm/{vm_name} && "
-                            f"makefs -t cd9660 -o R,L=cidata seed.iso .cloud-init 2>/dev/null || true",
+                            f"makefs -t cd9660 -o R,L=cidata seed.iso .cloud-init 2>/dev/null || true)",
                         ],
                         host=host,
                     )
