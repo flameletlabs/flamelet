@@ -39,7 +39,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
     from core.operations.services import add_service_ops
     from core.operations.storage import add_storage_ops
     from core.operations.sudo import add_sudoers_ops
-    from core.operations.sysctl import add_sysctl_ops
+    from core.operations.sysctl import add_sysctl_ops, add_sysrc_ops
     from core.operations.unbound import add_unbound_ops
     from core.operations.users import add_user_ops
     from core.operations.wireguard import add_wireguard_ops
@@ -50,6 +50,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
         "packages": [TaskEntry(add_package_ops, "PACKAGES", "packages")],
         "package-update": [TaskEntry(add_package_update_ops, None, "no-config")],
         "sysctl": [TaskEntry(add_sysctl_ops, "SYSCTL", "standard")],
+        "sysrc": [TaskEntry(add_sysrc_ops, "SYSRC", "standard", ["FreeBSD", "OpenBSD"])],
         "services": [TaskEntry(add_service_ops, "SERVICES", "standard")],
         "autossh": [
             TaskEntry(add_autossh_ops, "AUTOSSH_TUNNELS", "autossh"),
