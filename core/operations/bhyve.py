@@ -13,8 +13,48 @@ def _parse_size_bytes(size_str: str) -> int:
     return int(s)
 
 
-def _build_vm_create_command(vm_name, vcpu, memory, disk_size, image, network_config, ssh_public_key=None, template="uefi-raw"):
-    """Build vm create command with cloud-init network configuration and SSH key.
+def _generate_cloud_init_user_data(ssh_public_key_content: str = None) -> str:
+    """Generate cloud-init user-data with write_files SSH key injection.
+
+    Args:
+        ssh_public_key_content: SSH public key content (not path)
+
+    Returns:
+        YAML string with cloud-init configuration
+    """
+    user_data = """#cloud-config
+# Resize root filesystem
+resize_rootfs: true
+# Don't modify /etc/hosts
+manage_etc_hosts: localhost
+# Set password for debian user (for emergency access)
+chpasswd:
+  list: |
+    debian:debian
+  expire: false
+ssh_pwauth: true
+"""
+
+    # Add SSH key via write_files if provided
+    if ssh_public_key_content:
+        user_data += f"""# Write SSH key directly to authorized_keys file
+write_files:
+  - path: /home/debian/.ssh/authorized_keys
+    owner: debian:debian
+    permissions: '0600'
+    content: |
+      {ssh_public_key_content}
+# Ensure .ssh directory exists with proper permissions
+runcmd:
+  - mkdir -p /home/debian/.ssh
+  - chmod 700 /home/debian/.ssh
+"""
+
+    return user_data
+
+
+def _build_vm_create_command(vm_name, vcpu, memory, disk_size, image, network_config, template="uefi-raw"):
+    """Build vm create command with cloud-init network configuration.
 
     Args:
         vm_name: Name of the VM
@@ -23,11 +63,13 @@ def _build_vm_create_command(vm_name, vcpu, memory, disk_size, image, network_co
         disk_size: Disk size (e.g., "20G")
         image: Path to cloud image
         network_config: Network config string (e.g., "ip=192.168.1.100/24;gateway4=192.168.1.1")
-        ssh_public_key: Path to SSH public key for cloud-init injection
         template: VM template type (default: "uefi-raw" for UEFI boot)
 
     Returns:
         String with complete vm create command
+
+    Note: SSH key injection is handled separately via cloud-init write_files in user-data.
+          The -k flag is not used as it doesn't work reliably with vm-bhyve 1.7.0.
     """
     cmd_parts = ["vm", "create"]
 
@@ -41,10 +83,6 @@ def _build_vm_create_command(vm_name, vcpu, memory, disk_size, image, network_co
 
     # Add cloud-init flag
     cmd_parts.append("-C")
-
-    # Add SSH public key if provided
-    if ssh_public_key:
-        cmd_parts.extend(["-k", ssh_public_key])
 
     # Add network configuration if provided
     if network_config:
@@ -140,7 +178,7 @@ def add_bhyve_ops(state, hosts, config, target_hosts=None, task="all"):
 
             # If image is provided, use vm create with cloud-init
             if image:
-                create_cmd = _build_vm_create_command(vm_name, vcpu, memory, disk_size, image, network_config, ssh_public_key, template)
+                create_cmd = _build_vm_create_command(vm_name, vcpu, memory, disk_size, image, network_config, template)
                 add_op(
                     state,
                     server.shell,
@@ -150,6 +188,43 @@ def add_bhyve_ops(state, hosts, config, target_hosts=None, task="all"):
                     ],
                     host=host,
                 )
+
+                # Configure SSH key via cloud-init write_files (after VM creation)
+                if ssh_public_key:
+                    # Read SSH public key content
+                    add_op(
+                        state,
+                        server.shell,
+                        name=f"Configure SSH key for {vm_name} on {host.name}",
+                        commands=[
+                            # Read SSH key and generate user-data with write_files
+                            f"SSH_KEY=$(cat {ssh_public_key}); "
+                            f"mkdir -p /{zvol_pool}/vm/{vm_name}/.cloud-init; "
+                            f"cat > /{zvol_pool}/vm/{vm_name}/.cloud-init/user-data << 'USERDATA_EOF'\n"
+                            f"#cloud-config\n"
+                            f"resize_rootfs: true\n"
+                            f"manage_etc_hosts: localhost\n"
+                            f"chpasswd:\n"
+                            f"  list: |\n"
+                            f"    debian:debian\n"
+                            f"  expire: false\n"
+                            f"ssh_pwauth: true\n"
+                            f"write_files:\n"
+                            f"  - path: /home/debian/.ssh/authorized_keys\n"
+                            f"    owner: debian:debian\n"
+                            f"    permissions: '0600'\n"
+                            f"    content: |\n"
+                            f"      $SSH_KEY\n"
+                            f"runcmd:\n"
+                            f"  - mkdir -p /home/debian/.ssh\n"
+                            f"  - chmod 700 /home/debian/.ssh\n"
+                            f"USERDATA_EOF",
+                            # Create seed.iso from cloud-init files
+                            f"cd /{zvol_pool}/vm/{vm_name} && "
+                            f"makefs -t cd9660 -o R,L=cidata seed.iso .cloud-init 2>/dev/null || true",
+                        ],
+                        host=host,
+                    )
             else:
                 # Traditional disk-based VM creation
                 # Create disk if it doesn't exist (new VMs)
