@@ -40,6 +40,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
     from core.operations.storage import add_storage_ops
     from core.operations.sudo import add_sudoers_ops
     from core.operations.sysctl import add_sysctl_ops, add_sysrc_ops
+    from core.operations.tailscale import add_tailscale_ops
     from core.operations.unbound import add_unbound_ops
     from core.operations.users import add_user_ops
     from core.operations.wireguard import add_wireguard_ops
@@ -58,6 +59,9 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
         ],
         "wireguard": [
             TaskEntry(add_wireguard_ops, "WIREGUARD", "standard", ["FreeBSD", "OpenBSD", "Linux"])
+        ],
+        "tailscale": [
+            TaskEntry(add_tailscale_ops, "TAILSCALE", "standard", ["FreeBSD", "OpenBSD", "Linux"])
         ],
         "unbound": [TaskEntry(add_unbound_ops, "UNBOUND", "standard")],
         "monit": [TaskEntry(add_monit_ops, "MONIT", "standard")],
