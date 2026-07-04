@@ -47,6 +47,19 @@ def add_monit_ops(state, hosts, config, target_hosts=None, task="all"):
         else:  # Linux
             monitrc_path = "/etc/monit/monitrc"
 
+        # Create /var/lib/monit directory for state files on Linux systems
+        if os_key == "Linux":
+            add_op(
+                state,
+                files.directory,
+                name=f"Create monit state directory on {host.name}",
+                path="/var/lib/monit",
+                user="root",
+                group="root",
+                mode="0755",
+                host=host,
+            )
+
         # Write monitrc
         add_op(
             state,
@@ -109,6 +122,11 @@ def _generate_monitrc(config):
     daemon_interval = config.get("daemon", 120)
     lines.append(f"set daemon {daemon_interval}")
     lines.append("  with start delay 0")
+    lines.append("")
+
+    # State files (use /var/lib/monit on systems where /root is read-only like Proxmox)
+    lines.append("set idfile /var/lib/monit/monit.id")
+    lines.append("set statefile /var/lib/monit/monit.state")
     lines.append("")
 
     # M/Monit settings (optional)
