@@ -34,6 +34,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
     from core.operations.packages import add_package_ops
     from core.operations.pf import add_pf_ops
     from core.operations.postgresql import add_postgresql_ops
+    from core.operations.proxmox import add_proxmox_ops
     from core.operations.prometheus import add_prometheus_ops
     from core.operations.registry import add_registry_ops
     from core.operations.services import add_service_ops
@@ -73,6 +74,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
         "bhyve": [TaskEntry(add_bhyve_ops, "BHYVE", "standard", ["FreeBSD"])],
         "bhyve-config": [TaskEntry(add_bhyve_ops, "BHYVE", "standard", ["FreeBSD"])],
         "bastille": [TaskEntry(add_bastille_ops, "BASTILLE", "standard", ["FreeBSD"])],
+        "proxmox": [TaskEntry(add_proxmox_ops, "PROXMOX", "standard", ["Linux"])],
         "storage": [TaskEntry(add_storage_ops, "STORAGE", "standard", ["FreeBSD", "Linux"])],
         "nginx": [TaskEntry(add_nginx_ops, "NGINX", "standard")],
         "postgresql": [TaskEntry(add_postgresql_ops, "POSTGRESQL", "standard")],
