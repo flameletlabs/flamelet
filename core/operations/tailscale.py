@@ -43,10 +43,9 @@ def add_tailscale_ops(state, hosts, config, target_hosts=None, task="all"):
 
         if os_key == "FreeBSD":
             _add_tailscale_freebsd(state, host, hostname, advertise_routes, accept_routes, auth_key)
-        elif os_key == "OpenBSD":
-            _add_tailscale_openbsd(state, host, hostname, advertise_routes, accept_routes, auth_key)
         elif os_key == "Linux":
             _add_tailscale_linux(state, host, hostname, advertise_routes, accept_routes, auth_key)
+        # Note: OpenBSD is NOT supported by Tailscale - core.home and controller.work remain on WireGuard
 
 
 def _add_tailscale_freebsd(state, host, hostname, advertise_routes, accept_routes, auth_key):
@@ -76,79 +75,6 @@ def _add_tailscale_freebsd(state, host, hostname, advertise_routes, accept_route
         server.shell,
         name=f"Start tailscaled on {host.name}",
         commands=["service tailscaled start"],
-        host=host,
-    )
-
-    # Wait for daemon to be ready
-    add_op(
-        state,
-        server.shell,
-        name=f"Wait for tailscaled to be ready on {host.name}",
-        commands=["sleep 2"],
-        host=host,
-    )
-
-    # Authenticate with pre-auth key
-    auth_cmd = f"tailscale up --auth-key={auth_key} --hostname={hostname}"
-    if accept_routes:
-        auth_cmd += " --accept-routes"
-
-    add_op(
-        state,
-        server.shell,
-        name=f"Authenticate Tailscale on {host.name}",
-        commands=[auth_cmd],
-        host=host,
-    )
-
-    # Advertise routes (if any specified)
-    if advertise_routes:
-        routes_str = ",".join(advertise_routes)
-        add_op(
-            state,
-            server.shell,
-            name=f"Advertise routes on {host.name}",
-            commands=[f"tailscale up --advertise-routes={routes_str}"],
-            host=host,
-        )
-
-    # Verify connection
-    add_op(
-        state,
-        server.shell,
-        name=f"Verify Tailscale status on {host.name}",
-        commands=["tailscale status"],
-        host=host,
-    )
-
-
-def _add_tailscale_openbsd(state, host, hostname, advertise_routes, accept_routes, auth_key):
-    """Configure Tailscale on OpenBSD."""
-
-    # Install tailscale package
-    add_op(
-        state,
-        server.shell,
-        name=f"Install tailscale on {host.name}",
-        commands=["pkg_add -I tailscale"],
-        host=host,
-    )
-
-    # Enable tailscaled service
-    add_op(
-        state,
-        server.shell,
-        name=f"Enable tailscaled on {host.name}",
-        commands=["rcctl enable tailscaled"],
-        host=host,
-    )
-
-    # Start tailscaled service
-    add_op(
-        state,
-        server.shell,
-        name=f"Start tailscaled on {host.name}",
-        commands=["rcctl start tailscaled"],
         host=host,
     )
 

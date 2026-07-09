@@ -62,7 +62,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
             TaskEntry(add_wireguard_ops, "WIREGUARD", "standard", ["FreeBSD", "OpenBSD", "Linux"])
         ],
         "tailscale": [
-            TaskEntry(add_tailscale_ops, "TAILSCALE", "standard", ["FreeBSD", "OpenBSD", "Linux"])
+            TaskEntry(add_tailscale_ops, "TAILSCALE", "standard", ["FreeBSD", "Linux"])
         ],
         "unbound": [TaskEntry(add_unbound_ops, "UNBOUND", "standard")],
         "monit": [TaskEntry(add_monit_ops, "MONIT", "standard")],
