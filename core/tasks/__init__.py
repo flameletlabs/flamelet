@@ -24,6 +24,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
     from core.operations.autossh import add_autossh_gateway_ops, add_autossh_ops
     from core.operations.bastille import add_bastille_ops
     from core.operations.bhyve import add_bhyve_ops
+    from core.operations.dnsmasq import add_dnsmasq_ops
     from core.operations.docker import add_docker_ops
     from core.operations.k3s import add_k3s_ops
     from core.operations.monit import add_monit_ops
@@ -68,6 +69,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
         "monit": [TaskEntry(add_monit_ops, "MONIT", "standard")],
         "opensmtpd": [TaskEntry(add_opensmtpd_ops, "OPENSMTPD", "standard")],
         "pf": [TaskEntry(add_pf_ops, "PF", "standard", ["FreeBSD", "OpenBSD"])],
+        "dnsmasq": [TaskEntry(add_dnsmasq_ops, "DNSMASQ", "standard", ["FreeBSD", "Linux"])],
         "docker": [TaskEntry(add_docker_ops, "DOCKER", "standard", ["Linux"])],
         "node_exporter": [TaskEntry(add_node_exporter_ops, "NODE_EXPORTER", "standard")],
         "k3s": [TaskEntry(add_k3s_ops, "K3S", "standard", ["Linux"])],
