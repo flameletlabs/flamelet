@@ -234,6 +234,9 @@ def _generate_dnsmasq_conf(config, os_defaults):
         if options.get("dhcp_fqdn", False):
             lines.append("dhcp-fqdn")
 
+        if options.get("dhcp_authoritative", False):
+            lines.append("dhcp-authoritative")
+
         lines.append("")
 
     # DHCP configuration (if specified)
