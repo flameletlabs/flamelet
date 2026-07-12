@@ -180,6 +180,15 @@ def _generate_dnsmasq_conf(config, os_defaults):
             lines.append(f"listen-address={addr}")
         lines.append("")
 
+    # Interface binding (for DHCP broadcast - optional)
+    interfaces = config.get("interface", [])
+    if interfaces:
+        if isinstance(interfaces, str):
+            interfaces = [interfaces]
+        for iface in interfaces:
+            lines.append(f"interface={iface}")
+        lines.append("")
+
     # Upstream DNS servers (required)
     servers = config.get("servers", [])
     if servers:
