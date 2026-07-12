@@ -106,6 +106,19 @@ def _add_dnsmasq_freebsd(state, host, config):
         host=host,
     )
 
+    # Update resolv.conf to use local dnsmasq (for auto-DNS to work)
+    add_op(
+        state,
+        server.shell,
+        name=f"Configure resolver to use local dnsmasq on {host.name}",
+        commands=[
+            "echo 'nameserver 127.0.0.1' > /etc/resolv.conf",
+            "grep -q 'nameserver 192.168' /etc/resolv.conf || echo 'nameserver 192.168.150.1' >> /etc/resolv.conf",
+            "grep -q 'nameserver 1.1.1.1' /etc/resolv.conf || echo 'nameserver 1.1.1.1' >> /etc/resolv.conf",
+        ],
+        host=host,
+    )
+
 
 def _add_dnsmasq_linux(state, host, config):
     """Configure dnsmasq on Linux (Debian/Ubuntu/Alpine)."""
@@ -152,6 +165,18 @@ def _add_dnsmasq_linux(state, host, config):
         commands=[
             "systemctl enable dnsmasq",
             "systemctl restart dnsmasq || true",
+        ],
+        host=host,
+    )
+
+    # Update resolv.conf to use local dnsmasq (for auto-DNS to work)
+    add_op(
+        state,
+        server.shell,
+        name=f"Configure resolver to use local dnsmasq on {host.name}",
+        commands=[
+            "echo 'nameserver 127.0.0.1' > /etc/resolv.conf",
+            "echo 'nameserver 1.1.1.1' >> /etc/resolv.conf",
         ],
         host=host,
     )
