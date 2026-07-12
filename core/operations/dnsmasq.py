@@ -233,6 +233,9 @@ def _generate_dnsmasq_conf(config, os_defaults):
 
         if options.get("dhcp_fqdn", False):
             lines.append("dhcp-fqdn")
+            # dhcp-fqdn requires a default domain
+            domain = options.get("domain", "local")
+            lines.append(f"domain={domain}")
 
         if options.get("dhcp_authoritative", False):
             lines.append("dhcp-authoritative")
