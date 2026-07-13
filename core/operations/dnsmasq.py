@@ -284,8 +284,20 @@ def _generate_dnsmasq_conf(config, os_defaults):
                 lines.append(f"dhcp-range={start},{end},{lease}")
 
         # Global DHCP options (apply to all subnets)
-        lines.append("dhcp-option=3")  # Router (will be set per subnet above)
-        lines.append("dhcp-option=6,1.1.1.1,8.8.8.8")  # DNS servers
+        lines.append("dhcp-option=3")  # Router
+
+        # DNS servers - check for per-subnet config first, otherwise use default
+        dns_servers = None
+        for subnet in dhcp_subnets:
+            if "dns_servers" in subnet:
+                dns_servers = subnet["dns_servers"]
+                break
+
+        if dns_servers:
+            dns_list = ",".join(dns_servers)
+            lines.append(f"dhcp-option=6,{dns_list}")
+        else:
+            lines.append("dhcp-option=6,1.1.1.1,8.8.8.8")  # Default: Cloudflare, Google
 
         # Lease file (global)
         lease_file = config.get("options", {}).get("lease_file", os_defaults["lease_path"])
