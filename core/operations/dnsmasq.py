@@ -284,7 +284,16 @@ def _generate_dnsmasq_conf(config, os_defaults):
                 lines.append(f"dhcp-range={start},{end},{lease}")
 
         # Global DHCP options (apply to all subnets)
-        lines.append("dhcp-option=3")  # Router
+        # Router option: use router from first subnet, or default to gateway
+        router = None
+        for subnet in dhcp_subnets:
+            if "router" in subnet:
+                router = subnet["router"]
+                break
+        if router:
+            lines.append(f"dhcp-option=3,{router}")  # Router with IP
+        else:
+            lines.append("dhcp-option=3")  # Router (default)
 
         # DNS servers - check for per-subnet config first, otherwise use default
         dns_servers = None
