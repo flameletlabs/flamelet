@@ -169,7 +169,7 @@ table <jails> persist
 table <k3s_nodes> persist
 
 # Options
-set block-policy return
+set block-policy drop
 set require-order no
 set skip on lo
 set skip on $bridge_if
