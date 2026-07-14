@@ -34,6 +34,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
     from core.operations.package_update import add_package_update_ops
     from core.operations.packages import add_package_ops
     from core.operations.pf import add_pf_ops
+    from core.operations.pf_gateway_routing import add_pf_gateway_routing_ops
     from core.operations.postgresql import add_postgresql_ops
     from core.operations.proxmox import add_proxmox_ops
     from core.operations.prometheus import add_prometheus_ops
@@ -69,6 +70,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
         "monit": [TaskEntry(add_monit_ops, "MONIT", "standard")],
         "opensmtpd": [TaskEntry(add_opensmtpd_ops, "OPENSMTPD", "standard")],
         "pf": [TaskEntry(add_pf_ops, "PF", "standard", ["FreeBSD", "OpenBSD"])],
+        "pf_gateway_routing": [TaskEntry(add_pf_gateway_routing_ops, "PF_GATEWAY_ROUTING", "standard", ["FreeBSD", "OpenBSD"])],
         "dnsmasq": [TaskEntry(add_dnsmasq_ops, "DNSMASQ", "standard", ["FreeBSD", "Linux"])],
         "docker": [TaskEntry(add_docker_ops, "DOCKER", "standard", ["Linux"])],
         "node_exporter": [TaskEntry(add_node_exporter_ops, "NODE_EXPORTER", "standard")],
