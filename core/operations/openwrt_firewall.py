@@ -105,6 +105,15 @@ chmod 755 /etc/init.d/tailscale-firewall
         host=host,
     )
 
+    # Restart service to ensure rules applied (idempotent)
+    add_op(
+        state,
+        server.shell,
+        name=f"Restart tailscale-firewall service on {host.name}",
+        commands=["/etc/init.d/tailscale-firewall restart"],
+        host=host,
+    )
+
     # Verify rules are applied
     add_op(
         state,
@@ -177,5 +186,14 @@ chmod 755 /etc/init.d/tailscale-routing
         server.shell,
         name=f"Start tailscale-routing service on {host.name}",
         commands=["/etc/init.d/tailscale-routing start"],
+        host=host,
+    )
+
+    # Restart service to ensure rules applied (idempotent)
+    add_op(
+        state,
+        server.shell,
+        name=f"Restart tailscale-routing service on {host.name}",
+        commands=["/etc/init.d/tailscale-routing restart"],
         host=host,
     )
