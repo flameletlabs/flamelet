@@ -265,11 +265,18 @@ def _generate_dnsmasq_conf(config, os_defaults):
         if options.get("dhcp_authoritative", False):
             lines.append("dhcp-authoritative")
 
-        # Rebind domains: allow these domains to resolve to private IPs (disable rebind attack protection)
-        rebind_domains = options.get("rebind_domains", [])
-        if rebind_domains:
-            for domain in rebind_domains:
-                lines.append(f"rebind-domain-ok={domain}")
+        # DNS rebind protection
+        if options.get("disable_rebind_protection", False):
+            # Disable rebind attack protection entirely (allow all domains to resolve to private IPs)
+            # Useful for split-DNS, zone forwarders, Tailscale, and similar scenarios
+            lines.append("# DNS rebind protection disabled - allow private IP responses for all domains")
+            # Note: we remove 'stop-dns-rebind' by not including it (it's not set by default)
+        else:
+            # Selective rebind domains (whitelist specific domains that should resolve to private IPs)
+            rebind_domains = options.get("rebind_domains", [])
+            if rebind_domains:
+                for domain in rebind_domains:
+                    lines.append(f"rebind-domain-ok={domain}")
 
         lines.append("")
 
