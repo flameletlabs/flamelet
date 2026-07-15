@@ -26,6 +26,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
     from core.operations.bhyve import add_bhyve_ops
     from core.operations.dnsmasq import add_dnsmasq_ops
     from core.operations.docker import add_docker_ops
+    from core.operations.openwrt_firewall import add_openwrt_firewall_ops
     from core.operations.k3s import add_k3s_ops
     from core.operations.monit import add_monit_ops
     from core.operations.nginx import add_nginx_ops
@@ -72,6 +73,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
         "pf": [TaskEntry(add_pf_ops, "PF", "standard", ["FreeBSD", "OpenBSD"])],
         "pf_gateway_routing": [TaskEntry(add_pf_gateway_routing_ops, "PF_GATEWAY_ROUTING", "standard", ["FreeBSD", "OpenBSD"])],
         "dnsmasq": [TaskEntry(add_dnsmasq_ops, "DNSMASQ", "standard", ["FreeBSD", "Linux"])],
+        "openwrt-firewall": [TaskEntry(add_openwrt_firewall_ops, "OPENWRT_FIREWALL", "standard", ["Linux"])],
         "docker": [TaskEntry(add_docker_ops, "DOCKER", "standard", ["Linux"])],
         "node_exporter": [TaskEntry(add_node_exporter_ops, "NODE_EXPORTER", "standard")],
         "k3s": [TaskEntry(add_k3s_ops, "K3S", "standard", ["Linux"])],
