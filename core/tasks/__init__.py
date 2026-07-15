@@ -24,6 +24,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
     from core.operations.autossh import add_autossh_gateway_ops, add_autossh_ops
     from core.operations.bastille import add_bastille_ops
     from core.operations.bhyve import add_bhyve_ops
+    from core.operations.debian_network import add_debian_network_ops
     from core.operations.dnsmasq import add_dnsmasq_ops
     from core.operations.docker import add_docker_ops
     from core.operations.openwrt_firewall import add_openwrt_firewall_ops
@@ -73,6 +74,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
         "pf": [TaskEntry(add_pf_ops, "PF", "standard", ["FreeBSD", "OpenBSD"])],
         "pf_gateway_routing": [TaskEntry(add_pf_gateway_routing_ops, "PF_GATEWAY_ROUTING", "standard", ["FreeBSD", "OpenBSD"])],
         "dnsmasq": [TaskEntry(add_dnsmasq_ops, "DNSMASQ", "standard", ["FreeBSD", "Linux"])],
+        "debian-network": [TaskEntry(add_debian_network_ops, "NETWORK", "standard", ["Linux"])],
         "openwrt-firewall": [TaskEntry(add_openwrt_firewall_ops, "OPENWRT_FIREWALL", "standard", ["Linux"])],
         "docker": [TaskEntry(add_docker_ops, "DOCKER", "standard", ["Linux"])],
         "node_exporter": [TaskEntry(add_node_exporter_ops, "NODE_EXPORTER", "standard")],
