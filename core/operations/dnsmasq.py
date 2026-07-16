@@ -124,6 +124,21 @@ def _add_dnsmasq_linux(state, host, config):
     """Configure dnsmasq on Linux (Debian/Ubuntu/Alpine, including OpenWrt)."""
     os_defaults = _OS_DEFAULTS["Linux"]
 
+    # Detect OpenWrt and skip direct config generation (use UCI instead)
+    is_openwrt = False
+    detect_openwrt_cmd = (
+        f"IS_OPENWRT=0; command -v opkg >/dev/null && IS_OPENWRT=1; "
+        f"echo $IS_OPENWRT > /tmp/is_openwrt_{host.name}; exit 0"
+    )
+
+    add_op(
+        state,
+        server.shell,
+        name=f"Detect OpenWrt on {host.name}",
+        commands=[detect_openwrt_cmd],
+        host=host,
+    )
+
     # Install package (skip on OpenWrt which uses opkg)
     add_op(
         state,
@@ -135,18 +150,18 @@ def _add_dnsmasq_linux(state, host, config):
         host=host,
     )
 
-    # Generate and deploy config
-    conf_content = _generate_dnsmasq_conf(config, os_defaults)
-    heredoc_cmd = (
-        f"cat > {os_defaults['conf_path']} << 'DNSMASQ_EOF'\n"
-        f"{conf_content}\nDNSMASQ_EOF"
-    )
-
+    # Generate and deploy config (SKIP on OpenWrt - use UCI instead)
     add_op(
         state,
         server.shell,
         name=f"Deploy dnsmasq config on {host.name}",
-        commands=[heredoc_cmd],
+        commands=[
+            # Only deploy /etc/dnsmasq.conf if NOT OpenWrt (OpenWrt uses UCI)
+            f"if ! command -v opkg >/dev/null; then "
+            f"cat > {os_defaults['conf_path']} << 'DNSMASQ_EOF'\n"
+            f"{_generate_dnsmasq_conf(config, os_defaults)}\nDNSMASQ_EOF; "
+            f"else echo 'OpenWrt: using UCI config instead'; fi"
+        ],
         host=host,
     )
 
