@@ -265,6 +265,14 @@ def _generate_dnsmasq_conf(config, os_defaults):
             lines.append(f"server={zone_server}")
         lines.append("")
 
+    # Local zones (mark private zones to prevent ICANN root queries)
+    # Critical for dnsmasq 2.93+ bug where real ICANN TLDs (.work, .app, etc.) are queried to root servers
+    local_zones = config.get("local", [])
+    if local_zones:
+        for local_zone in local_zones:
+            lines.append(f"local={local_zone}")
+        lines.append("")
+
     # RFC 2136 DNS UPDATE support (DHCP integration)
     dhcp_update = config.get("dhcp_update", {})
     if dhcp_update.get("enabled", False):
