@@ -122,32 +122,36 @@ def _add_tailscale_freebsd(state, host, hostname, advertise_routes, accept_route
 
 
 def _add_tailscale_linux(state, host, hostname, advertise_routes, accept_routes, auth_key):
-    """Configure Tailscale on Linux (Debian/Alpine - PiKVM)."""
+    """Configure Tailscale on Linux (OpenWrt or Debian/Alpine)."""
 
-    # For PiKVM (read-only filesystem): enable write mode first
+    # Detect if system is OpenWrt (has /etc/openwrt_release) or PiKVM (has rw command)
     add_op(
         state,
         server.shell,
         name=f"Enable write mode on {host.name}",
-        commands=["rw"],
+        commands=["if [ -f /etc/openwrt_release ]; then echo 'OpenWrt detected'; else rw; fi"],
         host=host,
     )
 
-    # Install tailscale package
+    # Install tailscale package (OpenWrt: opkg, Debian: apt-get)
     add_op(
         state,
-        apt.packages,
+        server.shell,
         name=f"Install tailscale on {host.name}",
-        packages=["tailscale"],
+        commands=[
+            "if [ -f /etc/openwrt_release ]; then opkg install tailscale; else apt-get install -y tailscale; fi"
+        ],
         host=host,
     )
 
-    # Enable tailscaled service (systemd)
+    # Enable and start tailscaled service (OpenWrt: /etc/init.d/tailscale, Debian: systemctl)
     add_op(
         state,
         server.shell,
         name=f"Enable tailscaled on {host.name}",
-        commands=["systemctl enable tailscaled"],
+        commands=[
+            "if [ -f /etc/openwrt_release ]; then /etc/init.d/tailscale enable; else systemctl enable tailscaled; fi"
+        ],
         host=host,
     )
 
@@ -156,7 +160,9 @@ def _add_tailscale_linux(state, host, hostname, advertise_routes, accept_routes,
         state,
         server.shell,
         name=f"Start tailscaled on {host.name}",
-        commands=["systemctl start tailscaled"],
+        commands=[
+            "if [ -f /etc/openwrt_release ]; then /etc/init.d/tailscale start; else systemctl start tailscaled; fi"
+        ],
         host=host,
     )
 
@@ -193,12 +199,12 @@ def _add_tailscale_linux(state, host, hostname, advertise_routes, accept_routes,
             host=host,
         )
 
-    # Return to read-only mode (for PiKVM)
+    # Return to read-only mode (for PiKVM only - OpenWrt doesn't need this)
     add_op(
         state,
         server.shell,
         name=f"Return to read-only mode on {host.name}",
-        commands=["ro"],
+        commands=["if [ ! -f /etc/openwrt_release ]; then ro; fi"],
         host=host,
     )
 
