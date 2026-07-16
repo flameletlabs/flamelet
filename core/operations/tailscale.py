@@ -199,6 +199,10 @@ def _add_tailscale_linux(state, host, hostname, advertise_routes, accept_routes,
             host=host,
         )
 
+    # For OpenWrt: Create persistent auth init script that runs on every boot
+    # (This ensures tailscale up is called even after reboot, making route advertising persistent)
+    _add_tailscale_auth_script(state, host, hostname, advertise_routes, accept_routes, auth_key)
+
     # Return to read-only mode (for PiKVM only - OpenWrt doesn't need this)
     add_op(
         state,
@@ -214,5 +218,68 @@ def _add_tailscale_linux(state, host, hostname, advertise_routes, accept_routes,
         server.shell,
         name=f"Verify Tailscale status on {host.name}",
         commands=["tailscale status"],
+        host=host,
+    )
+
+def _add_tailscale_auth_script(state, host, hostname, advertise_routes, accept_routes, auth_key):
+    """Create persistent OpenWrt init script for tailscale up (runs on every boot)."""
+
+    routes_str = ",".join(advertise_routes) if advertise_routes else ""
+
+    # Build tailscale up command
+    auth_cmd = f"tailscale up --auth-key={auth_key} --hostname={hostname}"
+    if routes_str:
+        auth_cmd += f" --advertise-routes={routes_str}"
+    if accept_routes:
+        auth_cmd += " --accept-routes"
+
+    # Create init.d script that runs tailscale up on boot (for OpenWrt only)
+    auth_script = f"""cat > /etc/init.d/tailscale-auth << 'EOFSCRIPT'
+#!/bin/sh /etc/rc.common
+
+START=95  # Run after tailscale daemon starts (START=80)
+
+start() {{
+    # Check if already authenticated by looking for state file changes
+    if [ -f /etc/tailscale/tailscaled.state ]; then
+        # Already have a state file, just ensure we're advertising routes
+        {auth_cmd}
+    else
+        # First boot - authenticate and advertise routes
+        {auth_cmd}
+    fi
+    echo "$(date): Tailscale authentication and route advertising completed" >> /var/log/tailscale-auth.log
+}}
+
+stop() {{
+    true
+}}
+EOFSCRIPT
+chmod 755 /etc/init.d/tailscale-auth
+"""
+
+    # Only deploy this script on OpenWrt (has /etc/openwrt_release file)
+    add_op(
+        state,
+        server.shell,
+        name=f"Deploy Tailscale authentication init script on {host.name}",
+        commands=[f"if [ -f /etc/openwrt_release ]; then {auth_script}; fi"],
+        host=host,
+    )
+
+    # Enable and start the auth service (OpenWrt only)
+    add_op(
+        state,
+        server.shell,
+        name=f"Enable tailscale-auth service on {host.name}",
+        commands=["if [ -f /etc/openwrt_release ]; then /etc/init.d/tailscale-auth enable; fi"],
+        host=host,
+    )
+
+    add_op(
+        state,
+        server.shell,
+        name=f"Start tailscale-auth service on {host.name}",
+        commands=["if [ -f /etc/openwrt_release ]; then /etc/init.d/tailscale-auth start; fi"],
         host=host,
     )
