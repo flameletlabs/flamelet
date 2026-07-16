@@ -123,6 +123,21 @@ chmod 755 /etc/init.d/tailscale-firewall
         host=host,
     )
 
+    # Add cron watchdog to auto-restart services if they crash
+    add_op(
+        state,
+        server.shell,
+        name=f"Deploy cron watchdog for Tailscale services on {host.name}",
+        commands=[
+            "mkdir -p /etc/cron.d",
+            "printf '%s\\n' '# Monitor Tailscale services every 5 minutes' > /etc/cron.d/tailscale-watchdog",
+            "printf '%s\\n' '*/5 * * * * root /etc/init.d/tailscale-firewall running || /etc/init.d/tailscale-firewall start >> /var/log/tailscale-watchdog.log 2>&1' >> /etc/cron.d/tailscale-watchdog",
+            "printf '%s\\n' '*/5 * * * * root /etc/init.d/tailscale-routing running || /etc/init.d/tailscale-routing start >> /var/log/tailscale-watchdog.log 2>&1' >> /etc/cron.d/tailscale-watchdog",
+            "chmod 600 /etc/cron.d/tailscale-watchdog",
+        ],
+        host=host,
+    )
+
 
 def _add_policy_routing(state, host, config):
     """Configure policy-based routing rules on OpenWrt."""

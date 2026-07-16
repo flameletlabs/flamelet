@@ -204,6 +204,15 @@ pass in inet proto tcp from any to any port ssh flags S/SA keep state
 # ICMP (ping)
 pass inet proto icmp all icmp-type $icmp_types
 
+# DNS/DHCP on local gateway (from bridge10 clients)
+pass in on $bridge_if inet proto {{ tcp, udp }} from {local_subnet} to {local_ip} port {{ 53, 67, 68 }} keep state
+
+# Local bridge clients can reach gateway for any service
+pass in on $bridge_if inet proto {{ tcp, udp }} from {local_subnet} to any keep state
+
+# Monitoring: k3s node_exporter (9100)
+pass in inet proto tcp from <k3s_nodes> to any port 9100 keep state
+
 # External traffic
 pass out on $ext_if inet proto {{ tcp, udp }} from {local_subnet} to any keep state
 
