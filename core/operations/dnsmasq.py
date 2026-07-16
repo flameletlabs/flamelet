@@ -85,12 +85,12 @@ def _add_dnsmasq_freebsd(state, host, config):
         host=host,
     )
 
-    # Set permissions
+    # Set permissions (only if config file exists - not on OpenWrt which uses UCI)
     add_op(
         state,
         server.shell,
         name=f"Set dnsmasq config permissions on {host.name}",
-        commands=[f"chmod 0644 {os_defaults['conf_path']}"],
+        commands=[f"[ -f {os_defaults['conf_path']} ] && chmod 0644 {os_defaults['conf_path']} || true"],
         host=host,
     )
 
@@ -124,22 +124,7 @@ def _add_dnsmasq_linux(state, host, config):
     """Configure dnsmasq on Linux (Debian/Ubuntu/Alpine, including OpenWrt)."""
     os_defaults = _OS_DEFAULTS["Linux"]
 
-    # Detect OpenWrt and skip direct config generation (use UCI instead)
-    is_openwrt = False
-    detect_openwrt_cmd = (
-        f"IS_OPENWRT=0; command -v opkg >/dev/null && IS_OPENWRT=1; "
-        f"echo $IS_OPENWRT > /tmp/is_openwrt_{host.name}; exit 0"
-    )
-
-    add_op(
-        state,
-        server.shell,
-        name=f"Detect OpenWrt on {host.name}",
-        commands=[detect_openwrt_cmd],
-        host=host,
-    )
-
-    # Install package (skip on OpenWrt which uses opkg)
+    # Install package (OpenWrt uses opkg, Debian/Ubuntu use apt-get)
     add_op(
         state,
         server.shell,
@@ -150,7 +135,7 @@ def _add_dnsmasq_linux(state, host, config):
         host=host,
     )
 
-    # Generate and deploy dnsmasq config
+    # Generate and deploy dnsmasq config (used by Debian/Linux only)
     conf_content = _generate_dnsmasq_conf(config, os_defaults)
     heredoc_cmd = (
         f"cat > {os_defaults['conf_path']} << 'DNSMASQ_EOF'\n"
@@ -165,41 +150,51 @@ def _add_dnsmasq_linux(state, host, config):
         host=host,
     )
 
-    # On OpenWrt, disable rebind protection and clean up stop-dns-rebind lines
+    # On OpenWrt, disable rebind protection and clean up config conflicts
+    # OpenWrt uses UCI system which generates /var/etc/dnsmasq.conf.cfg* files
+    # Custom /etc/dnsmasq.conf should NOT be loaded (causes duplicate keywords)
     add_op(
         state,
         server.shell,
         name=f"Disable DNS rebind protection on {host.name}",
         commands=[
-            # Remove rebind_protection UCI setting to prevent OpenWrt from auto-adding stop-dns-rebind
-            "uci delete dhcp.@dnsmasq[0].rebind_protection 2>/dev/null || true",
-            "uci commit dhcp 2>/dev/null || true",
-            "/etc/init.d/dnsmasq restart",
-            "sleep 2",
-            # Remove any stop-dns-rebind lines from OpenWrt-generated configs (they regenerate automatically)
-            "sed -i '/^stop-dns-rebind$/d' /var/etc/dnsmasq.conf.cfg* 2>/dev/null || true",
-            "/etc/init.d/dnsmasq restart",
+            "sh << 'REBIND_EOF'\n"
+            "if command -v uci >/dev/null; then\n"
+            "  # Set UCI option explicitly to 0 (prevents OpenWrt from using default rebind_protection=1)\n"
+            "  uci set dhcp.@dnsmasq[0].rebind_protection='0'\n"
+            "  uci commit dhcp\n"
+            "  # Delete any ghost/duplicate dnsmasq UCI blocks that cause config conflicts\n"
+            "  uci delete dhcp.@dnsmasq[1] 2>/dev/null || true\n"
+            "  uci commit dhcp\n"
+            "  # Remove custom config file (let UCI-generated configs take over)\n"
+            "  rm -f /etc/dnsmasq.conf\n"
+            "  # Clean up old cached config files to force fresh generation\n"
+            "  rm -f /var/etc/dnsmasq.conf.cfg*\n"
+            "  # Restart dnsmasq to apply clean config\n"
+            "  /etc/init.d/dnsmasq restart\n"
+            "fi\n"
+            "REBIND_EOF\n",
         ],
         host=host,
     )
 
-    # Set permissions
+    # Set permissions (only if config file exists - not on OpenWrt which uses UCI)
     add_op(
         state,
         server.shell,
         name=f"Set dnsmasq config permissions on {host.name}",
-        commands=[f"chmod 0644 {os_defaults['conf_path']}"],
+        commands=[f"[ -f {os_defaults['conf_path']} ] && chmod 0644 {os_defaults['conf_path']} || true"],
         host=host,
     )
 
-    # Enable and start service
+    # Enable and start service (OpenWrt uses /etc/init.d, not systemctl)
     add_op(
         state,
         server.shell,
         name=f"Enable dnsmasq on {host.name}",
         commands=[
-            "systemctl enable dnsmasq",
-            "systemctl restart dnsmasq || true",
+            "/etc/init.d/dnsmasq enable",
+            "/etc/init.d/dnsmasq restart || true",
         ],
         host=host,
     )
