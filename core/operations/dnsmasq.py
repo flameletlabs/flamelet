@@ -165,25 +165,23 @@ def _add_dnsmasq_linux(state, host, config):
         host=host,
     )
 
-    # On OpenWrt, configure UCI options (rebind_protection, rebind_domain, etc.)
-    uci_options = config.get("uci_options", {})
-    if uci_options:
-        commands = []
-        for option, value in uci_options.items():
-            # Convert option name from snake_case to UCI format (e.g., rebind_protection -> rebind_protection)
-            commands.append(f"uci set dhcp.@dnsmasq[0].{option}='{value}'")
-
-        if commands:
-            commands.append("uci commit dhcp")
-            commands.append("/etc/init.d/dnsmasq restart")
-
-            add_op(
-                state,
-                server.shell,
-                name=f"Configure OpenWrt UCI dnsmasq options on {host.name}",
-                commands=commands,
-                host=host,
-            )
+    # On OpenWrt, configure UCI options and disable rebind protection
+    add_op(
+        state,
+        server.shell,
+        name=f"Configure OpenWrt dnsmasq on {host.name}",
+        commands=[
+            # Remove rebind_protection if exists (so OpenWrt doesn't auto-add stop-dns-rebind)
+            "uci delete dhcp.@dnsmasq[0].rebind_protection 2>/dev/null || true",
+            "uci commit dhcp",
+            "/etc/init.d/dnsmasq restart",
+            "sleep 1",
+            # Remove any automatically-generated stop-dns-rebind lines from OpenWrt configs
+            "sed -i '/^stop-dns-rebind$/d' /var/etc/dnsmasq.conf.cfg* 2>/dev/null || true",
+            "/etc/init.d/dnsmasq restart",
+        ],
+        host=host,
+    )
 
     # Set permissions
     add_op(
