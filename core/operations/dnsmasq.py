@@ -150,33 +150,37 @@ def _add_dnsmasq_linux(state, host, config):
         host=host,
     )
 
-    # Generate and deploy config (SKIP on OpenWrt - use UCI instead)
+    # For non-OpenWrt systems, generate and deploy config file directly
+    # For OpenWrt, skip file generation and use UCI-based cleanup instead
+    conf_content = _generate_dnsmasq_conf(config, os_defaults)
+    heredoc_cmd = (
+        f"cat > {os_defaults['conf_path']} << 'DNSMASQ_EOF'\n"
+        f"{conf_content}\nDNSMASQ_EOF"
+    )
+
     add_op(
         state,
         server.shell,
         name=f"Deploy dnsmasq config on {host.name}",
         commands=[
-            # Only deploy /etc/dnsmasq.conf if NOT OpenWrt (OpenWrt uses UCI)
-            f"if ! command -v opkg >/dev/null; then "
-            f"cat > {os_defaults['conf_path']} << 'DNSMASQ_EOF'\n"
-            f"{_generate_dnsmasq_conf(config, os_defaults)}\nDNSMASQ_EOF; "
-            f"else echo 'OpenWrt: using UCI config instead'; fi"
+            # Only deploy /etc/dnsmasq.conf if NOT OpenWrt
+            f"if ! command -v opkg >/dev/null; then {heredoc_cmd}; else echo 'OpenWrt: skipping /etc/dnsmasq.conf'; fi"
         ],
         host=host,
     )
 
-    # On OpenWrt, configure UCI options and disable rebind protection
+    # On OpenWrt, disable rebind protection and clean up stop-dns-rebind lines
     add_op(
         state,
         server.shell,
-        name=f"Configure OpenWrt dnsmasq on {host.name}",
+        name=f"Disable DNS rebind protection on {host.name}",
         commands=[
-            # Remove rebind_protection if exists (so OpenWrt doesn't auto-add stop-dns-rebind)
+            # Remove rebind_protection UCI setting to prevent OpenWrt from auto-adding stop-dns-rebind
             "uci delete dhcp.@dnsmasq[0].rebind_protection 2>/dev/null || true",
-            "uci commit dhcp",
+            "uci commit dhcp 2>/dev/null || true",
             "/etc/init.d/dnsmasq restart",
-            "sleep 1",
-            # Remove any automatically-generated stop-dns-rebind lines from OpenWrt configs
+            "sleep 2",
+            # Remove any stop-dns-rebind lines from OpenWrt-generated configs (they regenerate automatically)
             "sed -i '/^stop-dns-rebind$/d' /var/etc/dnsmasq.conf.cfg* 2>/dev/null || true",
             "/etc/init.d/dnsmasq restart",
         ],
