@@ -57,7 +57,15 @@ start() {{
 	# Wait for firewall to be fully initialized
 	sleep 2
 
-	# Add nftables rules for Tailscale forwarding
+	# CRITICAL: Add rule to main forward chain to route Tailscale packets to forward_lan
+	# This must be done BEFORE handle_reject so packets get processed
+	# Use handle-based insertion to put it before handle_reject
+	REJECT_HANDLE=$(nft -a list chain inet fw4 forward | grep "handle_reject" | awk '{{print $(NF)}}' | tr -d '}}')
+	if [ -n "$REJECT_HANDLE" ]; then
+		nft insert rule inet fw4 forward handle "$REJECT_HANDLE" 'iifname "{ts_interface}" jump forward_lan comment "Tailscale ingress: forward to LAN"' 2>/dev/null || true
+	fi
+
+	# Add nftables rules for Tailscale forwarding in forward_lan
 	nft add rule inet fw4 forward_lan 'iifname "{lan_zone}" oifname "{ts_interface}" counter accept comment "LAN to Tailscale"' 2>/dev/null || true
 	nft add rule inet fw4 forward_lan 'iifname "{ts_interface}" oifname "{lan_zone}" counter accept comment "Tailscale to LAN"' 2>/dev/null || true
 
@@ -67,7 +75,7 @@ start() {{
 	# Allow ICMP through firewall
 	iptables -I FORWARD -p icmp -j ACCEPT 2>/dev/null || true
 
-	echo "$(date): Tailscale firewall rules loaded" >> /var/log/tailscale-fw.log
+	echo "$(date): Tailscale firewall rules loaded (including main forward chain rule)" >> /var/log/tailscale-fw.log
 }}
 
 stop() {{
