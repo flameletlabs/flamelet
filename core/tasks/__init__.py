@@ -43,6 +43,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
     from core.operations.prometheus import add_prometheus_ops
     from core.operations.registry import add_registry_ops
     from core.operations.services import add_service_ops
+    from core.operations.static_routes import add_static_routes_ops
     from core.operations.storage import add_storage_ops
     from core.operations.sudo import add_sudoers_ops
     from core.operations.sysctl import add_sysctl_ops, add_sysrc_ops
@@ -90,6 +91,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
         "postgresql": [TaskEntry(add_postgresql_ops, "POSTGRESQL", "standard")],
         "prometheus": [TaskEntry(add_prometheus_ops, "PROMETHEUS", "standard")],
         "registry": [TaskEntry(add_registry_ops, "REGISTRY", "standard", ["Linux"])],
+        "static-routes": [TaskEntry(add_static_routes_ops, "RC_LOCAL_ROUTES", "standard", ["FreeBSD"])],
     }
 
 

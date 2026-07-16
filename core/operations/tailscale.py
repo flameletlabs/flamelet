@@ -91,6 +91,8 @@ def _add_tailscale_freebsd(state, host, hostname, advertise_routes, accept_route
     auth_cmd = f"tailscale up --auth-key={auth_key} --hostname={hostname}"
     if accept_routes:
         auth_cmd += " --accept-routes"
+    # Disable Tailscale DNS management to use local dnsmasq instead
+    auth_cmd += " --accept-dns=false"
 
     add_op(
         state,
@@ -179,6 +181,8 @@ def _add_tailscale_linux(state, host, hostname, advertise_routes, accept_routes,
     auth_cmd = f"tailscale up --auth-key={auth_key} --hostname={hostname}"
     if accept_routes:
         auth_cmd += " --accept-routes"
+    # Disable Tailscale DNS management to use local dnsmasq instead
+    auth_cmd += " --accept-dns=false"
 
     add_op(
         state,
