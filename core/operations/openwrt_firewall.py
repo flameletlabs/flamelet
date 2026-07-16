@@ -129,10 +129,13 @@ chmod 755 /etc/init.d/tailscale-firewall
         server.shell,
         name=f"Deploy cron watchdog for Tailscale services on {host.name}",
         commands=[
-            "mkdir -p /etc/cron.d",
-            "printf '%s\\n' '# Monitor Tailscale services every 5 minutes' > /etc/cron.d/tailscale-watchdog",
-            "printf '%s\\n' '*/5 * * * * root /etc/init.d/tailscale-firewall running || /etc/init.d/tailscale-firewall start >> /var/log/tailscale-watchdog.log 2>&1' >> /etc/cron.d/tailscale-watchdog",
-            "printf '%s\\n' '*/5 * * * * root /etc/init.d/tailscale-routing running || /etc/init.d/tailscale-routing start >> /var/log/tailscale-watchdog.log 2>&1' >> /etc/cron.d/tailscale-watchdog",
+            "mkdir -p /etc/cron.d /var/log",
+            # Create watchdog that checks if nftables rules exist (proof service ran)
+            "cat > /etc/cron.d/tailscale-watchdog << 'EOFCRON'\n"
+            "# Monitor Tailscale services every 5 minutes\n"
+            "*/5 * * * * root nft list chain inet fw4 forward_lan 2>/dev/null | grep -q tailscale || (/etc/init.d/tailscale-firewall restart && logger 'Restarted tailscale-firewall') >> /var/log/tailscale-watchdog.log 2>&1\n"
+            "*/5 * * * * root /etc/init.d/tailscale-routing status >/dev/null 2>&1 || (/etc/init.d/tailscale-routing restart && logger 'Restarted tailscale-routing') >> /var/log/tailscale-watchdog.log 2>&1\n"
+            "EOFCRON\n",
             "chmod 600 /etc/cron.d/tailscale-watchdog",
         ],
         host=host,
