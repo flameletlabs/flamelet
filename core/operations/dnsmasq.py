@@ -121,15 +121,17 @@ def _add_dnsmasq_freebsd(state, host, config):
 
 
 def _add_dnsmasq_linux(state, host, config):
-    """Configure dnsmasq on Linux (Debian/Ubuntu/Alpine)."""
+    """Configure dnsmasq on Linux (Debian/Ubuntu/Alpine, including OpenWrt)."""
     os_defaults = _OS_DEFAULTS["Linux"]
 
-    # Install package
+    # Install package (skip on OpenWrt which uses opkg)
     add_op(
         state,
-        apt.packages,
+        server.shell,
         name=f"Install dnsmasq on {host.name}",
-        packages=["dnsmasq"],
+        commands=[
+            "command -v opkg >/dev/null && echo 'OpenWrt detected, dnsmasq pre-installed' || apt-get install -y dnsmasq"
+        ],
         host=host,
     )
 
@@ -147,6 +149,26 @@ def _add_dnsmasq_linux(state, host, config):
         commands=[heredoc_cmd],
         host=host,
     )
+
+    # On OpenWrt, configure UCI options (rebind_protection, rebind_domain, etc.)
+    uci_options = config.get("uci_options", {})
+    if uci_options:
+        commands = []
+        for option, value in uci_options.items():
+            # Convert option name from snake_case to UCI format (e.g., rebind_protection -> rebind_protection)
+            commands.append(f"uci set dhcp.@dnsmasq[0].{option}='{value}'")
+
+        if commands:
+            commands.append("uci commit dhcp")
+            commands.append("/etc/init.d/dnsmasq restart")
+
+            add_op(
+                state,
+                server.shell,
+                name=f"Configure OpenWrt UCI dnsmasq options on {host.name}",
+                commands=commands,
+                host=host,
+            )
 
     # Set permissions
     add_op(
