@@ -150,8 +150,7 @@ def _add_dnsmasq_linux(state, host, config):
         host=host,
     )
 
-    # For non-OpenWrt systems, generate and deploy config file directly
-    # For OpenWrt, skip file generation and use UCI-based cleanup instead
+    # Generate and deploy dnsmasq config
     conf_content = _generate_dnsmasq_conf(config, os_defaults)
     heredoc_cmd = (
         f"cat > {os_defaults['conf_path']} << 'DNSMASQ_EOF'\n"
@@ -162,10 +161,7 @@ def _add_dnsmasq_linux(state, host, config):
         state,
         server.shell,
         name=f"Deploy dnsmasq config on {host.name}",
-        commands=[
-            # Only deploy /etc/dnsmasq.conf if NOT OpenWrt
-            f"if ! command -v opkg >/dev/null; then {heredoc_cmd}; else echo 'OpenWrt: skipping /etc/dnsmasq.conf'; fi"
-        ],
+        commands=[heredoc_cmd],
         host=host,
     )
 
