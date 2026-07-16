@@ -26,6 +26,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
     from core.operations.bhyve import add_bhyve_ops
     from core.operations.debian_network import add_debian_network_ops
     from core.operations.dnsmasq import add_dnsmasq_ops
+    from core.operations.resolv_conf import add_resolv_conf_ops
     from core.operations.docker import add_docker_ops
     from core.operations.openwrt_firewall import add_openwrt_firewall_ops
     from core.operations.k3s import add_k3s_ops
@@ -69,6 +70,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
             TaskEntry(add_tailscale_ops, "TAILSCALE", "standard", ["FreeBSD", "Linux"])
         ],
         "unbound": [TaskEntry(add_unbound_ops, "UNBOUND", "standard")],
+        "resolv-conf": [TaskEntry(add_resolv_conf_ops, "RESOLV_CONF", "standard", ["FreeBSD", "OpenBSD"])],
         "monit": [TaskEntry(add_monit_ops, "MONIT", "standard")],
         "opensmtpd": [TaskEntry(add_opensmtpd_ops, "OPENSMTPD", "standard")],
         "pf": [TaskEntry(add_pf_ops, "PF", "standard", ["FreeBSD", "OpenBSD"])],
