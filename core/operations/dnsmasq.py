@@ -187,14 +187,22 @@ def _add_dnsmasq_linux(state, host, config):
         host=host,
     )
 
-    # Enable and start service (OpenWrt uses /etc/init.d, not systemctl)
+    # Enable and start service
     add_op(
         state,
         server.shell,
         name=f"Enable dnsmasq on {host.name}",
         commands=[
-            "/etc/init.d/dnsmasq enable",
-            "/etc/init.d/dnsmasq restart || true",
+            "sh << 'ENABLE_EOF'\n"
+            "if command -v systemctl >/dev/null; then\n"
+            "  systemctl enable dnsmasq\n"
+            "  systemctl restart dnsmasq || true\n"
+            "else\n"
+            "  # OpenWrt uses /etc/init.d\n"
+            "  /etc/init.d/dnsmasq enable 2>/dev/null || true\n"
+            "  /etc/init.d/dnsmasq restart || true\n"
+            "fi\n"
+            "ENABLE_EOF\n",
         ],
         host=host,
     )
@@ -228,12 +236,14 @@ def _generate_dnsmasq_conf(config, os_defaults):
         "",
     ]
 
-    # Listen addresses (required)
-    listen_addrs = config.get("listen", ["127.0.0.1"])
-    if listen_addrs:
-        for addr in listen_addrs:
-            lines.append(f"listen-address={addr}")
-        lines.append("")
+    # Port (optional, defaults to 53)
+    port = config.get("port", 53)
+    if port:
+        lines.append(f"port={port}")
+
+    # Bind to interfaces only (restrict listening to specified interfaces)
+    if config.get("bind_interfaces", False):
+        lines.append("bind-interfaces")
 
     # Interface binding (for DHCP broadcast - optional)
     interfaces = config.get("interface", [])
@@ -242,6 +252,19 @@ def _generate_dnsmasq_conf(config, os_defaults):
             interfaces = [interfaces]
         for iface in interfaces:
             lines.append(f"interface={iface}")
+
+    # Listen addresses (required - specifies which addresses to bind to)
+    listen_addrs = config.get("listen", ["127.0.0.1"])
+    if listen_addrs:
+        for addr in listen_addrs:
+            lines.append(f"listen-address={addr}")
+
+    if port or interfaces or config.get("bind_interfaces") or listen_addrs:
+        lines.append("")
+
+    # Don't read /etc/resolv.conf (use explicit upstream servers only)
+    if config.get("no_resolv", False):
+        lines.append("no-resolv")
         lines.append("")
 
     # Upstream DNS servers (required)
