@@ -94,6 +94,16 @@ def _add_dnsmasq_freebsd(state, host, config):
         host=host,
     )
 
+    # Create lease directory (FreeBSD: /var/db, already exists by default)
+    # This is a safety check to ensure the directory exists before dnsmasq starts
+    add_op(
+        state,
+        server.shell,
+        name=f"Ensure dnsmasq lease directory exists on {host.name}",
+        commands=[f"mkdir -p /var/db && chmod 755 /var/db"],
+        host=host,
+    )
+
     # Enable and start service
     add_op(
         state,
@@ -184,6 +194,17 @@ def _add_dnsmasq_linux(state, host, config):
         server.shell,
         name=f"Set dnsmasq config permissions on {host.name}",
         commands=[f"[ -f {os_defaults['conf_path']} ] && chmod 0644 {os_defaults['conf_path']} || true"],
+        host=host,
+    )
+
+    # Create lease directory (Linux: /var/lib/dnsmasq)
+    # CRITICAL: dnsmasq will fail to start if this directory doesn't exist
+    # LXC containers especially may not have this pre-created
+    add_op(
+        state,
+        server.shell,
+        name=f"Ensure dnsmasq lease directory exists on {host.name}",
+        commands=["mkdir -p /var/lib/dnsmasq && chmod 755 /var/lib/dnsmasq"],
         host=host,
     )
 
