@@ -26,9 +26,10 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
     from core.operations.bhyve import add_bhyve_ops
     from core.operations.debian_network import add_debian_network_ops
     from core.operations.dnsmasq import add_dnsmasq_ops
-    from core.operations.gateway_tailscale_routing import add_gateway_tailscale_routing_ops
+    from core.operations.gateway_netbird_routing import add_gateway_netbird_routing_ops
     from core.operations.resolv_conf import add_resolv_conf_ops
     from core.operations.docker import add_docker_ops
+    from core.operations.netbird import add_netbird_ops
     from core.operations.openwrt_firewall import add_openwrt_firewall_ops
     from core.operations.k3s import add_k3s_ops
     from core.operations.monit import add_monit_ops
@@ -48,7 +49,6 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
     from core.operations.storage import add_storage_ops
     from core.operations.sudo import add_sudoers_ops
     from core.operations.sysctl import add_sysctl_ops, add_sysrc_ops
-    from core.operations.tailscale import add_tailscale_ops
     from core.operations.unbound import add_unbound_ops
     from core.operations.users import add_user_ops
     from core.operations.wireguard import add_wireguard_ops
@@ -68,11 +68,11 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
         "wireguard": [
             TaskEntry(add_wireguard_ops, "WIREGUARD", "standard", ["FreeBSD", "OpenBSD", "Linux"])
         ],
-        "tailscale": [
-            TaskEntry(add_tailscale_ops, "TAILSCALE", "standard", ["FreeBSD", "Linux"])
+        "netbird": [
+            TaskEntry(add_netbird_ops, "NETBIRD", "standard", ["Linux"])
         ],
-        "gateway-tailscale-routing": [
-            TaskEntry(add_gateway_tailscale_routing_ops, "GATEWAY_TAILSCALE_ROUTING", "standard", ["Linux"])
+        "gateway-netbird-routing": [
+            TaskEntry(add_gateway_netbird_routing_ops, "GATEWAY_NETBIRD_ROUTING", "standard", ["Linux"])
         ],
         "unbound": [TaskEntry(add_unbound_ops, "UNBOUND", "standard")],
         "resolv-conf": [TaskEntry(add_resolv_conf_ops, "RESOLV_CONF", "standard", ["FreeBSD", "OpenBSD"])],
