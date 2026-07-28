@@ -8,7 +8,10 @@ from pyinfra.operations import files, server
 def add_debian_network_ops(state, hosts, config, target_hosts=None, task="all"):
     """Configure Debian/Ubuntu network interfaces via /etc/network/interfaces.
 
-    Manages static IP addresses, gateways, DNS, and bridge configurations.
+    Manages static IP addresses, gateways, DNS, bridge configurations, "manual"
+    stub interfaces (e.g. physical NICs enslaved to a bridge that carry no
+    address of their own), and an optional trailing `source` directive (e.g.
+    for Proxmox-style `/etc/network/interfaces.d/*` drop-ins).
 
     Args:
         state: pyinfra State object
@@ -19,15 +22,26 @@ def add_debian_network_ops(state, hosts, config, target_hosts=None, task="all"):
                     "interfaces": [
                         {
                             "name": "vmbr0",
-                            "type": "bridge",
+                            "type": "inet",  # address family: inet or inet6 (default inet)
+                            "method": "static",  # "static" (default) or "manual"
+                            "auto": True,  # emit "auto <name>" before the iface line (default True)
                             "address": "10.40.0.145",
                             "netmask": "255.255.255.0",
                             "gateway": "10.40.0.253",
                             "dns_nameservers": ["10.40.0.253", "8.8.8.8"],
                             "dns_search": "lan london newyork",
                             "ports": ["nic0"],  # For bridges
-                        }
-                    ]
+                        },
+                        {
+                            # A stub interface enslaved to the bridge above - no
+                            # address/gateway/dns, and not auto-started itself.
+                            "name": "nic0",
+                            "method": "manual",
+                            "auto": False,
+                        },
+                    ],
+                    # Optional: emit "source <pattern>" line(s) after all interfaces
+                    "sources": ["/etc/network/interfaces.d/*"],
                 }
             }
         target_hosts: list of Host objects (default: all)
@@ -109,7 +123,27 @@ def _build_interfaces_file(config):
         if not name:
             continue
 
+        # NOTE: "type" is the ADDRESS FAMILY (inet/inet6) that goes between the
+        # interface name and "static" in the iface line below, e.g.
+        # "iface eth0 inet static" - it is NOT the method or interface role.
+        # Bridges are already distinguished by the presence of "ports" below,
+        # not by this field. Previously several host configs set "type" to
+        # "static" or "bridge" (the role, not the family), which produced
+        # invalid output like "iface eth0 static static" - always fall back to
+        # "inet" for anything that isn't a recognized address family so a wrong
+        # value in config data can't produce broken interfaces syntax.
         iface_type = iface.get("type", "inet")
+        if iface_type not in ("inet", "inet6"):
+            iface_type = "inet"
+
+        # "manual" is for stub interfaces (e.g. physical NICs enslaved to a
+        # bridge via that bridge's "ports") that carry no address/gateway/DNS
+        # of their own - just declared so ifupdown/the bridge knows about them.
+        method = iface.get("method", "static")
+        if method not in ("static", "manual"):
+            method = "static"
+
+        auto = iface.get("auto", True)
         address = iface.get("address")
         netmask = iface.get("netmask")
         gateway = iface.get("gateway")
@@ -118,8 +152,14 @@ def _build_interfaces_file(config):
         dns_search = iface.get("dns_search")
 
         # Interface declaration
-        lines.append(f"auto {name}\n")
-        lines.append(f"iface {name} {iface_type} static\n")
+        if auto:
+            lines.append(f"auto {name}\n")
+        lines.append(f"iface {name} {iface_type} {method}\n")
+
+        if method == "manual":
+            # Manual interfaces carry no address/gateway/dns/bridge config
+            lines.append("\n")
+            continue
 
         # Address configuration
         if address and netmask:
@@ -149,5 +189,13 @@ def _build_interfaces_file(config):
             lines.append(f"    dns-search {dns_search}\n")
 
         lines.append("\n")
+
+    # Optional trailing "source" directive(s), e.g. for Proxmox-style
+    # /etc/network/interfaces.d/* drop-ins
+    sources = config.get("sources", [])
+    if isinstance(sources, str):
+        sources = [sources]
+    for source_pattern in sources:
+        lines.append(f"source {source_pattern}\n")
 
     return "".join(lines)
