@@ -51,6 +51,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
     from core.operations.sysctl import add_sysctl_ops, add_sysrc_ops
     from core.operations.unbound import add_unbound_ops
     from core.operations.users import add_user_ops
+    from core.operations.watchcat import add_watchcat_ops
     from core.operations.wireguard import add_wireguard_ops
 
     return {
@@ -83,6 +84,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
         "dnsmasq": [TaskEntry(add_dnsmasq_ops, "DNSMASQ", "standard", ["FreeBSD", "Linux"])],
         "debian-network": [TaskEntry(add_debian_network_ops, "NETWORK", "standard", ["Linux"])],
         "openwrt-firewall": [TaskEntry(add_openwrt_firewall_ops, "OPENWRT_FIREWALL", "standard", ["Linux"])],
+        "watchcat": [TaskEntry(add_watchcat_ops, "WATCHCAT", "standard", ["Linux"])],
         "docker": [TaskEntry(add_docker_ops, "DOCKER", "standard", ["Linux"])],
         "node_exporter": [TaskEntry(add_node_exporter_ops, "NODE_EXPORTER", "standard")],
         "k3s": [TaskEntry(add_k3s_ops, "K3S", "standard", ["Linux"])],
