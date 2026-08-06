@@ -55,13 +55,39 @@ def add_docker_ops(state, hosts, config, target_hosts=None, task="all"):
                 host=host,
             )
 
-            # Restart docker to apply config
+            # Restart docker ONLY when daemon.json actually changed.
+            #
+            # This used to be an unconditional `systemctl restart docker`.
+            # server.shell always runs -- pyinfra cannot know a shell command is
+            # a no-op -- so EVERY deploy of this task bounced the Docker daemon,
+            # and with it every container on the host, whether or not
+            # daemon.json had changed.
+            #
+            # That is not a cosmetic waste. On docker.baar it made the UPS
+            # monitoring flap: restarting the nut-shim container makes upsd
+            # re-run sstate_connect(), which sets ups.status to the literal
+            # "WAIT" while it waits for the driver dump (nut server/sstate.c).
+            # OL disappears for ~5s, and a Gatus scrape landing in that window
+            # recorded a 2-minute UPS "outage" while apcupsd reported ONLINE
+            # throughout. Several a day, all self-inflicted by deploys.
+            #
+            # Idempotence is done in the shell rather than via pyinfra
+            # operation metadata so it cannot drift with the pyinfra API, and
+            # so it self-heals: the marker records the config the RUNNING
+            # daemon was last restarted for, so a hand-edited daemon.json is
+            # still picked up on the next deploy.
             add_op(
                 state,
                 server.shell,
-                name=f"Restart Docker daemon on {host.name}",
+                name=f"Restart Docker daemon if daemon.json changed on {host.name}",
                 commands=[
-                    "systemctl restart docker || true",
+                    "sum=$(sha256sum /etc/docker/daemon.json | cut -d' ' -f1); "
+                    "mark=/var/lib/flamelet/docker-daemon.sha256; "
+                    "if [ ! -f \"$mark\" ] || [ \"$(cat \"$mark\")\" != \"$sum\" ]; then "
+                    "  systemctl restart docker || true; "
+                    "  mkdir -p /var/lib/flamelet && printf '%s\\n' \"$sum\" > \"$mark\"; "
+                    "  echo 'docker daemon restarted (daemon.json changed)'; "
+                    "else echo 'docker daemon.json unchanged, not restarting'; fi",
                 ],
                 host=host,
             )
