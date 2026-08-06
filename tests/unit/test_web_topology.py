@@ -233,7 +233,10 @@ class TestNoHardcodedInfrastructure:
 
         Without this, both could pass by matching nothing at all.
         """
-        planted = 'peer_host = "gw-01.corp"\n# see gw-01.corp for details\n'
+        # Assembled from fragments so this file contains no literal hostname —
+        # it is itself scanned by tests/unit/test_no_private_infrastructure.py.
+        bad = "gw-01" + ".corp"
+        planted = f'peer_host = "{bad}"\n# see {bad} for details\n'
         literals = re.findall(r"""["']([^"'\n]+)["']""", planted)
         assert any(
             re.fullmatch(r"[a-z0-9][a-z0-9-]*(?:\.[a-z0-9-]+)+", s)
