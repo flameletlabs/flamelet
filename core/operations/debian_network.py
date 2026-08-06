@@ -143,7 +143,7 @@ def _build_interfaces_file(config):
         # bridge via that bridge's "ports") that carry no address/gateway/DNS
         # of their own - just declared so ifupdown/the bridge knows about them.
         method = iface.get("method", "static")
-        if method not in ("static", "manual"):
+        if method not in ("static", "manual", "dhcp"):
             method = "static"
 
         auto = iface.get("auto", True)
@@ -159,8 +159,20 @@ def _build_interfaces_file(config):
             lines.append(f"auto {name}\n")
         lines.append(f"iface {name} {iface_type} {method}\n")
 
-        if method == "manual":
-            # Manual interfaces carry no address/gateway/dns/bridge config
+        if method in ("manual", "dhcp"):
+            # Neither carries a static address/gateway here. "manual" is
+            # declared so ifupdown/a bridge knows about it; "dhcp" gets its
+            # address, gateway and resolver from the lease. Emitting an
+            # address block for either produces an invalid stanza.
+            #
+            # dhcp was previously coerced to "static", which rendered
+            # "iface eth1 inet static" with no address -- a broken interface.
+            # gateway.madrid WAN (eth1, DHCP from the ISP modem) could
+            # not be expressed in config at all until this was fixed.
+            if dns_search:
+                if isinstance(dns_search, list):
+                    dns_search = " ".join(dns_search)
+                lines.append(f"    dns-search {dns_search}\n")
             lines.append("\n")
             continue
 
