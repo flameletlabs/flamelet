@@ -41,8 +41,9 @@ EXEMPT_PREFIXES = (
     # A deliberately fictional example tenant. Generic addresses are the point.
     "tenants/flamelet-example/",
     # Vendored/minified third-party JS and build output. Not authored here, and
-    # a source of false positives: lunr's Dutch stemmer contains the literal
-    # "baar" (a Dutch suffix), and RxJS bundles contain tokens like "this.work".
+    # a source of false positives: lunr's Dutch stemmer contains a literal that
+    # reads as a hostname label (it is a Dutch suffix), and RxJS bundles
+    # contain attribute accesses that match the same shape.
     "assets/",
     "web/dist/",
     "site/",
@@ -144,13 +145,13 @@ def _email_violations(text):
 # ---------------------------------------------------------------------------
 # Private-TLD hostnames. THIS IS THE CHECK THAT MATTERS MOST.
 #
-# The leak that escaped the 2026-08-06 remediation was `gateway.nonesuch` — a host
-# under a PRIVATE, non-ICANN TLD. A public-TLD check cannot see it, because
-# `.nonesuch` is not a TLD anyone can look up. So this inverts the test: every
-# trailing label must be on the list below, and anything unrecognised FAILS.
+# The leak that escaped the 2026-08-06 remediation was a host under a PRIVATE,
+# non-ICANN TLD. A public-TLD check cannot see one, because such a TLD is not
+# resolvable by anyone. So this inverts the test: every trailing label must be
+# on the list below, and anything unrecognised FAILS.
 #
-# Failing closed is deliberate. A new private TLD (`.example`, `.invalid`,
-# `.pangea` were all real) trips it immediately. The cost is that genuinely new
+# Failing closed is deliberate. A newly introduced private TLD trips it
+# immediately, which is precisely what did not happen last time. The cost is that genuinely new
 # vocabulary — a new dict key inside an f-string, a new file extension — also
 # trips it. That is a one-line fix here, and it is the right trade: the
 # alternative failed silently and cost a full history rewrite.
@@ -322,7 +323,7 @@ CHECKS = {
     ),
     "email": (
         lambda t, md=False: _email_violations(t),
-        "mail " + "someone@real" + "company.co here",
+        "mail " + "someone@ex" + "ample" + "corp" + ".co here",
     ),
     "secret": (
         lambda t, md=False: SECRET_RE.findall(t),
@@ -361,6 +362,24 @@ def test_probe_fires_on_planted_violation(name):
     assert finder(planted, True), (
         f"probe {name!r} did NOT fire on its planted positive {planted!r}. "
         "Every clean result it reports is therefore meaningless."
+    )
+
+
+def test_guard_scans_itself():
+    """This file must be inside its own scan.
+
+    ``git ls-files`` lists only TRACKED files. While this module was still
+    untracked it was silently excluded, so the explanatory comments in it —
+    which quoted the very hostnames it forbids — passed locally and only failed
+    once CI ran against the committed tree. An exemption here would recreate
+    that blind spot permanently.
+    """
+    scanned = {rel for rel, _ in tracked_text_files()}
+    me = str(Path(__file__).resolve().relative_to(REPO_ROOT))
+    assert me in scanned, (
+        f"{me} is not in its own scan (untracked?). Its contents would go "
+        "unchecked, which is how the first version of this file shipped "
+        "literal hostnames in its comments."
     )
 
 
