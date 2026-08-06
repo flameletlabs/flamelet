@@ -578,6 +578,38 @@ AUTOSSH_GATEWAY = {
 }
 ```
 
+#### `ENDPOINT_ALIASES` — Public Endpoint → Internal Hostname Map
+**Config Attribute:** `ENDPOINT_ALIASES` (public-name-keyed) — **OPTIONAL, defaults to `{}`**
+
+Not a task. There is no `flamelet --task endpoint-aliases`; this is read by the web
+UI's topology endpoint (`GET /tenants/{tenant}/topology`) and changes nothing on any
+host.
+
+An AutoSSH tunnel's `remote_host` is usually the **public** gateway name, while the
+topology graph keys its nodes by **internal** hostname. Those are two names for one
+machine, so without a mapping the tunnel's edge points at a node that does not exist
+and dangles in the graph. This map reconciles them.
+
+Absent is the normal case and means identity mapping — the public name is used as
+the node id. Set it only when a tunnel's `remote_host` differs from the hostname the
+same machine is known by elsewhere in the tenant.
+
+```python
+# vars/all.py — keys are what AUTOSSH_TUNNELS uses as remote_host,
+# values are the hostname the topology graph knows that machine by.
+ENDPOINT_ALIASES = {
+    "vpn.example.com": "gateway-01.internal",
+}
+```
+
+Applied to the `AUTOSSH_TUNNELS` example above, mapping `gateway.example.com` to the
+gateway's internal hostname makes that tunnel render as an edge to the existing
+node. The edge still reports the public name in its `remote_host` field; only the
+graph node it attaches to is remapped.
+
+Malformed values degrade rather than fail: if the attribute is missing, or is not a
+dict, it is treated as `{}` and the topology still renders.
+
 ### System Configuration
 
 #### `sysctl` — Kernel Parameters
