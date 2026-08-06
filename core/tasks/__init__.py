@@ -26,24 +26,24 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
     from core.operations.bhyve import add_bhyve_ops
     from core.operations.debian_network import add_debian_network_ops
     from core.operations.dnsmasq import add_dnsmasq_ops
-    from core.operations.gateway_netbird_routing import add_gateway_netbird_routing_ops
-    from core.operations.resolv_conf import add_resolv_conf_ops
     from core.operations.docker import add_docker_ops
-    from core.operations.netbird import add_netbird_ops
-    from core.operations.openwrt_firewall import add_openwrt_firewall_ops
+    from core.operations.gateway_netbird_routing import add_gateway_netbird_routing_ops
     from core.operations.k3s import add_k3s_ops
     from core.operations.monit import add_monit_ops
+    from core.operations.netbird import add_netbird_ops
     from core.operations.nginx import add_nginx_ops
     from core.operations.node_exporter import add_node_exporter_ops
     from core.operations.opensmtpd import add_opensmtpd_ops
+    from core.operations.openwrt_firewall import add_openwrt_firewall_ops
     from core.operations.package_update import add_package_update_ops
     from core.operations.packages import add_package_ops
     from core.operations.pf import add_pf_ops
     from core.operations.pf_gateway_routing import add_pf_gateway_routing_ops
     from core.operations.postgresql import add_postgresql_ops
-    from core.operations.proxmox import add_proxmox_ops
     from core.operations.prometheus import add_prometheus_ops
+    from core.operations.proxmox import add_proxmox_ops
     from core.operations.registry import add_registry_ops
+    from core.operations.resolv_conf import add_resolv_conf_ops
     from core.operations.services import add_service_ops
     from core.operations.static_routes import add_static_routes_ops
     from core.operations.storage import add_storage_ops
@@ -69,21 +69,29 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
         "wireguard": [
             TaskEntry(add_wireguard_ops, "WIREGUARD", "standard", ["FreeBSD", "OpenBSD", "Linux"])
         ],
-        "netbird": [
-            TaskEntry(add_netbird_ops, "NETBIRD", "standard", ["Linux"])
-        ],
+        "netbird": [TaskEntry(add_netbird_ops, "NETBIRD", "standard", ["Linux"])],
         "gateway-netbird-routing": [
-            TaskEntry(add_gateway_netbird_routing_ops, "GATEWAY_NETBIRD_ROUTING", "standard", ["Linux"])
+            TaskEntry(
+                add_gateway_netbird_routing_ops, "GATEWAY_NETBIRD_ROUTING", "standard", ["Linux"]
+            )
         ],
         "unbound": [TaskEntry(add_unbound_ops, "UNBOUND", "standard")],
-        "resolv-conf": [TaskEntry(add_resolv_conf_ops, "RESOLV_CONF", "standard", ["FreeBSD", "OpenBSD"])],
+        "resolv-conf": [
+            TaskEntry(add_resolv_conf_ops, "RESOLV_CONF", "standard", ["FreeBSD", "OpenBSD"])
+        ],
         "monit": [TaskEntry(add_monit_ops, "MONIT", "standard")],
         "opensmtpd": [TaskEntry(add_opensmtpd_ops, "OPENSMTPD", "standard")],
         "pf": [TaskEntry(add_pf_ops, "PF", "standard", ["FreeBSD", "OpenBSD"])],
-        "pf_gateway_routing": [TaskEntry(add_pf_gateway_routing_ops, "PF_GATEWAY_ROUTING", "standard", ["FreeBSD", "OpenBSD"])],
+        "pf_gateway_routing": [
+            TaskEntry(
+                add_pf_gateway_routing_ops, "PF_GATEWAY_ROUTING", "standard", ["FreeBSD", "OpenBSD"]
+            )
+        ],
         "dnsmasq": [TaskEntry(add_dnsmasq_ops, "DNSMASQ", "standard", ["FreeBSD", "Linux"])],
         "debian-network": [TaskEntry(add_debian_network_ops, "NETWORK", "standard", ["Linux"])],
-        "openwrt-firewall": [TaskEntry(add_openwrt_firewall_ops, "OPENWRT_FIREWALL", "standard", ["Linux"])],
+        "openwrt-firewall": [
+            TaskEntry(add_openwrt_firewall_ops, "OPENWRT_FIREWALL", "standard", ["Linux"])
+        ],
         "watchcat": [TaskEntry(add_watchcat_ops, "WATCHCAT", "standard", ["Linux"])],
         "docker": [TaskEntry(add_docker_ops, "DOCKER", "standard", ["Linux"])],
         "node_exporter": [TaskEntry(add_node_exporter_ops, "NODE_EXPORTER", "standard")],
@@ -97,7 +105,9 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
         "postgresql": [TaskEntry(add_postgresql_ops, "POSTGRESQL", "standard")],
         "prometheus": [TaskEntry(add_prometheus_ops, "PROMETHEUS", "standard")],
         "registry": [TaskEntry(add_registry_ops, "REGISTRY", "standard", ["Linux"])],
-        "static-routes": [TaskEntry(add_static_routes_ops, "RC_LOCAL_ROUTES", "standard", ["FreeBSD"])],
+        "static-routes": [
+            TaskEntry(add_static_routes_ops, "RC_LOCAL_ROUTES", "standard", ["FreeBSD"])
+        ],
     }
 
 

@@ -105,6 +105,7 @@ def add_myservice_ops(state, hosts, config, target_hosts=None, task="all"):
 # tests/unit/test_myservice.py
 from core.operations.myservice import add_myservice_ops
 
+
 def test_myservice_ops_called():
     """Test that operation is dispatched correctly"""
     # Mock state, hosts, config and verify add_op calls

@@ -41,11 +41,16 @@ Example: provision users with SSH keys and NOPASSWD sudoers in **10 lines of Pyt
 from core.operations.users import add_user_ops
 from core.operations.sudo import add_sudoers_ops
 
+
 def add_ops(state, inventory, target_hosts=None, task="all"):
-    add_user_ops(state, inventory, 
-        users_config=USERS,      # From tenant vars
+    add_user_ops(
+        state,
+        inventory,
+        users_config=USERS,  # From tenant vars
         group_names=GROUPS,
-        target_hosts=target_hosts, task=task)
+        target_hosts=target_hosts,
+        task=task,
+    )
     if task in ("sudo", "all"):
         add_sudoers_ops(state, inventory, users_config=USERS)
 ```
@@ -107,6 +112,7 @@ Tenants live in `~/.config/flamelet/tenants/<name>/` (XDG-compliant) and are aut
 ```python
 from pyinfra.inventory import Inventory
 
+
 def build_inventory():
     return Inventory(
         ssh_hosts={
@@ -145,7 +151,7 @@ PACKAGES = {
 }
 
 WIREGUARD = {}  # Optional: add here if deploying WireGuard
-MONIT = {}      # Optional: add here if deploying Monit
+MONIT = {}  # Optional: add here if deploying Monit
 ```
 
 ### vars/location/{location}.py (Optional - Location-Specific)
@@ -153,12 +159,7 @@ MONIT = {}      # Optional: add here if deploying Monit
 For hostname `app.production.example.com`, create `vars/location/production.py`:
 
 ```python
-MONIT = {
-    "app.production.example.com": {
-        "daemon": 120,
-        "checks": {...}
-    }
-}
+MONIT = {"app.production.example.com": {"daemon": 120, "checks": {...}}}
 ```
 
 ### vars/hosts/{hostname}.py (Optional - Host-Specific)
@@ -166,12 +167,7 @@ MONIT = {
 For hostname `app.example.com`, create `vars/hosts/app_example_com.py`:
 
 ```python
-MONIT = {
-    "app.example.com": {
-        "daemon": 120,
-        "checks": {...}
-    }
-}
+MONIT = {"app.example.com": {"daemon": 120, "checks": {...}}}
 ```
 
 ### Deploy

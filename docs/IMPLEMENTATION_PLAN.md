@@ -30,18 +30,18 @@ Utility:  files, get_url, lineinfile, blockinfile, copy, shell, raw, systemd
 - **Tenant config format**:
   ```python
   K3S = {
-    "k3s.example.com": {
-      "role": "server",  # or "worker"
-      "cluster_cidr": "10.42.0.0/16",
-      "service_cidr": "10.43.0.0/16",
-      "server_url": "https://k3s-server:6443",  # for workers
-      "token": "...",  # for workers
-      "node_ip": "10.0.0.100",
-      "advertise_address": "10.0.0.100",
-      "flannel_iface": "eth0",
-      "disable": ["traefik", "servicelb"],  # components to disable
-      "extra_args": "--tls-san k3s.example.com"
-    }
+      "k3s.example.com": {
+          "role": "server",  # or "worker"
+          "cluster_cidr": "10.42.0.0/16",
+          "service_cidr": "10.43.0.0/16",
+          "server_url": "https://k3s-server:6443",  # for workers
+          "token": "...",  # for workers
+          "node_ip": "10.0.0.100",
+          "advertise_address": "10.0.0.100",
+          "flannel_iface": "eth0",
+          "disable": ["traefik", "servicelb"],  # components to disable
+          "extra_args": "--tls-san k3s.example.com",
+      }
   }
   ```
 
@@ -59,26 +59,22 @@ Utility:  files, get_url, lineinfile, blockinfile, copy, shell, raw, systemd
 - **Tenant config format**:
   ```python
   VIRTUALIZATION = {
-    "virt.example.com": {
-      "hypervisor": "vm-bhyve",  # or "bastille"
-      "storage": "zfs:tank/vm",
-      "switches": [
-        {"name": "public", "type": "manual", "bridge": "bridge0"}
-      ],
-      "images": [
-        "https://cloud.debian.org/images/cloud/bookworm/.../debian-12.qcow2"
-      ],
-      "guests": [
-        {
-          "name": "debian-1",
-          "image": "debian-12.qcow2",
-          "memory": "2G",
-          "cpus": 2,
-          "switch": "public",
-          "loader": "uefi"
-        }
-      ]
-    }
+      "virt.example.com": {
+          "hypervisor": "vm-bhyve",  # or "bastille"
+          "storage": "zfs:tank/vm",
+          "switches": [{"name": "public", "type": "manual", "bridge": "bridge0"}],
+          "images": ["https://cloud.debian.org/images/cloud/bookworm/.../debian-12.qcow2"],
+          "guests": [
+              {
+                  "name": "debian-1",
+                  "image": "debian-12.qcow2",
+                  "memory": "2G",
+                  "cpus": 2,
+                  "switch": "public",
+                  "loader": "uefi",
+              }
+          ],
+      }
   }
   ```
 

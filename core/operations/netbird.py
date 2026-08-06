@@ -2,7 +2,7 @@
 
 from pyinfra.api.operation import add_op
 from pyinfra.facts.server import Kernel
-from pyinfra.operations import apt, pkg, server, systemd
+from pyinfra.operations import apt, server, systemd
 
 
 def add_netbird_ops(state, hosts, config, target_hosts=None, task="all"):
@@ -51,12 +51,12 @@ def _add_netbird_linux(state, host, config):
         server.shell,
         name=f"Add Netbird GPG key on {host.name}",
         commands=[
-            'mkdir -p /usr/share/keyrings /tmp',
-            'rm -f /tmp/netbird-public.key /usr/share/keyrings/netbird-archive-keyring.gpg',
-            'curl -sSL --resolve pkgs.netbird.io:443:5.22.212.152 https://pkgs.netbird.io/debian/public.key -o /tmp/netbird-public.key',
-            'gpg --batch --dearmor --output /usr/share/keyrings/netbird-archive-keyring.gpg /tmp/netbird-public.key',
-            'chmod 0644 /usr/share/keyrings/netbird-archive-keyring.gpg',
-            'rm -f /tmp/netbird-public.key',
+            "mkdir -p /usr/share/keyrings /tmp",
+            "rm -f /tmp/netbird-public.key /usr/share/keyrings/netbird-archive-keyring.gpg",
+            "curl -sSL --resolve pkgs.netbird.io:443:5.22.212.152 https://pkgs.netbird.io/debian/public.key -o /tmp/netbird-public.key",
+            "gpg --batch --dearmor --output /usr/share/keyrings/netbird-archive-keyring.gpg /tmp/netbird-public.key",
+            "chmod 0644 /usr/share/keyrings/netbird-archive-keyring.gpg",
+            "rm -f /tmp/netbird-public.key",
         ],
         host=host,
     )
@@ -67,8 +67,8 @@ def _add_netbird_linux(state, host, config):
         server.shell,
         name=f"Add Netbird repository on {host.name}",
         commands=[
-            'mkdir -p /etc/apt/sources.list.d',
-            'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/netbird-archive-keyring.gpg] https://pkgs.netbird.io/debian stable main" | tee /etc/apt/sources.list.d/netbird.list'
+            "mkdir -p /etc/apt/sources.list.d",
+            'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/netbird-archive-keyring.gpg] https://pkgs.netbird.io/debian stable main" | tee /etc/apt/sources.list.d/netbird.list',
         ],
         host=host,
     )
@@ -105,7 +105,7 @@ def _add_netbird_linux(state, host, config):
         commands=[
             f'hostnamectl set-hostname {hostname} || echo "{hostname}" > /etc/hostname',
             f'sed -i "s/^.*$/{hostname}/" /etc/hostname',
-            'sysctl kernel.hostname | head -1 || true',
+            "sysctl kernel.hostname | head -1 || true",
         ],
         host=host,
     )
@@ -165,9 +165,9 @@ def _add_netbird_linux(state, host, config):
             server.shell,
             name=f"Log Netbird group assignments for {host.name}",
             commands=[
-                f'echo "✓ Netbird peer \'{hostname}\' deployed and connected."',
+                f"echo \"✓ Netbird peer '{hostname}' deployed and connected.\"",
                 f'echo "  → Add to groups: {group_list}"',
-                f'echo "  → Via: Dashboard | API | Claude Code MCP (type: \\"Add peer {hostname} to group <group_name>\\"")'
+                f'echo "  → Via: Dashboard | API | Claude Code MCP (type: \\"Add peer {hostname} to group <group_name>\\"")',
             ],
             host=host,
         )

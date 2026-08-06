@@ -1,6 +1,7 @@
 """FreeBSD bhyve VM operations (vm-bhyve)."""
 
 import uuid
+
 from pyinfra.api.operation import add_op
 from pyinfra.operations import files, server
 
@@ -54,7 +55,9 @@ runcmd:
     return user_data
 
 
-def _build_vm_create_command(vm_name, vcpu, memory, disk_size, image, network_config, template="uefi-raw"):
+def _build_vm_create_command(
+    vm_name, vcpu, memory, disk_size, image, network_config, template="uefi-raw"
+):
     """Build vm create command with cloud-init network configuration.
 
     Args:
@@ -179,7 +182,9 @@ def add_bhyve_ops(state, hosts, config, target_hosts=None, task="all"):
 
             # If image is provided, use vm create with cloud-init
             if image:
-                create_cmd = _build_vm_create_command(vm_name, vcpu, memory, disk_size, image, network_config, template)
+                create_cmd = _build_vm_create_command(
+                    vm_name, vcpu, memory, disk_size, image, network_config, template
+                )
                 add_op(
                     state,
                     server.shell,

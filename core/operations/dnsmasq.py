@@ -2,8 +2,7 @@
 
 from pyinfra.api.operation import add_op
 from pyinfra.facts.server import Kernel
-from pyinfra.operations import apt, pkg, server
-
+from pyinfra.operations import pkg, server
 
 # OS-specific configuration defaults
 _OS_DEFAULTS = {
@@ -72,10 +71,7 @@ def _add_dnsmasq_freebsd(state, host, config):
 
     # Generate and deploy config
     conf_content = _generate_dnsmasq_conf(config, os_defaults)
-    heredoc_cmd = (
-        f"cat > {os_defaults['conf_path']} << 'DNSMASQ_EOF'\n"
-        f"{conf_content}\nDNSMASQ_EOF"
-    )
+    heredoc_cmd = f"cat > {os_defaults['conf_path']} << 'DNSMASQ_EOF'\n{conf_content}\nDNSMASQ_EOF"
 
     add_op(
         state,
@@ -90,7 +86,9 @@ def _add_dnsmasq_freebsd(state, host, config):
         state,
         server.shell,
         name=f"Set dnsmasq config permissions on {host.name}",
-        commands=[f"[ -f {os_defaults['conf_path']} ] && chmod 0644 {os_defaults['conf_path']} || true"],
+        commands=[
+            f"[ -f {os_defaults['conf_path']} ] && chmod 0644 {os_defaults['conf_path']} || true"
+        ],
         host=host,
     )
 
@@ -100,7 +98,7 @@ def _add_dnsmasq_freebsd(state, host, config):
         state,
         server.shell,
         name=f"Ensure dnsmasq lease directory exists on {host.name}",
-        commands=[f"mkdir -p /var/db && chmod 755 /var/db"],
+        commands=["mkdir -p /var/db && chmod 755 /var/db"],
         host=host,
     )
 
@@ -147,10 +145,7 @@ def _add_dnsmasq_linux(state, host, config):
 
     # Generate and deploy dnsmasq config (used by Debian/Linux only)
     conf_content = _generate_dnsmasq_conf(config, os_defaults)
-    heredoc_cmd = (
-        f"cat > {os_defaults['conf_path']} << 'DNSMASQ_EOF'\n"
-        f"{conf_content}\nDNSMASQ_EOF"
-    )
+    heredoc_cmd = f"cat > {os_defaults['conf_path']} << 'DNSMASQ_EOF'\n{conf_content}\nDNSMASQ_EOF"
 
     add_op(
         state,
@@ -193,7 +188,9 @@ def _add_dnsmasq_linux(state, host, config):
         state,
         server.shell,
         name=f"Set dnsmasq config permissions on {host.name}",
-        commands=[f"[ -f {os_defaults['conf_path']} ] && chmod 0644 {os_defaults['conf_path']} || true"],
+        commands=[
+            f"[ -f {os_defaults['conf_path']} ] && chmod 0644 {os_defaults['conf_path']} || true"
+        ],
         host=host,
     )
 
@@ -351,7 +348,9 @@ def _generate_dnsmasq_conf(config, os_defaults):
         if options.get("disable_rebind_protection", False):
             # Disable rebind attack protection entirely (allow all domains to resolve to private IPs)
             # Useful for split-DNS, zone forwarders, Tailscale, and similar scenarios
-            lines.append("# DNS rebind protection disabled - allow private IP responses for all domains")
+            lines.append(
+                "# DNS rebind protection disabled - allow private IP responses for all domains"
+            )
             # Note: we remove 'stop-dns-rebind' by not including it (it's not set by default)
         else:
             # Selective rebind domains (whitelist specific domains that should resolve to private IPs)

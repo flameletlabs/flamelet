@@ -265,8 +265,7 @@ async def get_topology(tenant_name: str):
                         "to": peer_host,
                         "type": "wireguard",
                         "interface": iface_name,
-                        "direction": ("spoke-to-hub" if peer_host in hub_names
-                                      else "peer-to-peer"),
+                        "direction": ("spoke-to-hub" if peer_host in hub_names else "peer-to-peer"),
                     }
                 )
 

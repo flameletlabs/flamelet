@@ -268,15 +268,16 @@ Use pyinfra's `add_op()` API (not the `@operation` decorator):
 from pyinfra.api import add_op
 from pyinfra.operations import files
 
+
 def add_myservice_ops(state, hosts, config, target_hosts=None, task="all"):
     targets = target_hosts if target_hosts else list(hosts)
-    
+
     for host in targets:
         if host.name not in config:
             continue
-        
+
         host_config = config[host.name]
-        
+
         # Queue a file write
         add_op(
             state,
@@ -404,6 +405,7 @@ flamelet --dry --limit core --task all
 
 ```python
 from core.tasks import TASK_REGISTRY
+
 print(TASK_REGISTRY.keys())  # All available tasks
 ```
 
@@ -510,7 +512,7 @@ WIREGUARD = {
                         "keepalive": 25,
                         "preshared_key": "...",  # Optional
                     }
-                ]
+                ],
             }
         }
     }
@@ -570,7 +572,7 @@ AUTOSSH_GATEWAY = {
                     "public_key": "ssh-rsa AAAA...",
                     "options": "no-pty,no-agent-forwarding",
                 }
-            ]
+            ],
         }
     }
 }
@@ -636,7 +638,7 @@ MONIT = {
             "system": "check system app.example.com\n  if memory usage > 75% then alert",
             "filesystem_root": "check filesystem rootfs with path /\n  if space usage > 90% then alert",
             "process_sshd": "check process sshd with pidfile /var/run/sshd.pid\n  if failed port 22 then restart",
-        }
+        },
     }
 }
 ```
@@ -735,7 +737,7 @@ VIRTUALIZATION = {
                 "network": "vm-bridge0",
                 "autostart": True,
             }
-        ]
+        ],
     }
 }
 ```
@@ -749,22 +751,22 @@ bootstrapping, jail creation, networking, SSH access, and package installation.
 ```python
 BASTILLE = {
     "virt.example.com": {
-        "release": "14.3-RELEASE",   # FreeBSD release to bootstrap
-        "bridge": "bridge10",         # VNET bridge interface
-        "zfs_enable": True,           # Use ZFS for jail storage
-        "zfs_zpool": "zroot",         # ZFS pool name
+        "release": "14.3-RELEASE",  # FreeBSD release to bootstrap
+        "bridge": "bridge10",  # VNET bridge interface
+        "zfs_enable": True,  # Use ZFS for jail storage
+        "zfs_zpool": "zroot",  # ZFS pool name
         "jails": [
             {
                 "name": "db",
                 "release": "14.3-RELEASE",
-                "ip": "10.0.0.51/24",    # static IP; use "0.0.0.0" for DHCP
+                "ip": "10.0.0.51/24",  # static IP; use "0.0.0.0" for DHCP
                 "gateway": "10.0.0.1",
-                "thick": True,            # thick jail (full OS copy)
-                "static_mac": True,       # stable MAC across restarts
-                "sysvipc": True,          # needed for PostgreSQL/MariaDB
+                "thick": True,  # thick jail (full OS copy)
+                "static_mac": True,  # stable MAC across restarts
+                "sysvipc": True,  # needed for PostgreSQL/MariaDB
                 "allow": {"raw_sockets": 1},  # allow.* jail flags
                 "packages": ["mariadb1011-server", "python3"],
-                "ssh": True,              # enable sshd + copy authorized_keys
+                "ssh": True,  # enable sshd + copy authorized_keys
                 "authorized_keys_src": "/root/.ssh/authorized_keys",
                 "autostart": True,
             },
@@ -922,6 +924,7 @@ Understand all 20 operations and their config attributes.
 ```python
 from pyinfra.api.inventory import Inventory
 
+
 def build_inventory():
     return Inventory(
         (
@@ -963,7 +966,7 @@ PACKAGES = {
 
 # Add service configs for all hosts (global defaults)
 WIREGUARD = {}  # If hosts use WireGuard
-MONIT = {}      # If hosts use Monit
+MONIT = {}  # If hosts use Monit
 # ... other services
 ```
 
@@ -989,11 +992,12 @@ Create `core/operations/myservice.py`:
 from pyinfra.api import add_op
 from pyinfra.operations import files, server
 
+
 def add_myservice_ops(state, hosts, config, target_hosts=None, task="all"):
     """Deploy MyService.
-    
+
     Config attribute: MYSERVICE (hostname-keyed dict)
-    
+
     Args:
         state: pyinfra State
         hosts: pyinfra Inventory
@@ -1002,13 +1006,13 @@ def add_myservice_ops(state, hosts, config, target_hosts=None, task="all"):
         task: task name being run
     """
     targets = target_hosts if target_hosts else list(hosts)
-    
+
     for host in targets:
         if host.name not in config:
             continue
-        
+
         host_config = config[host.name]
-        
+
         # Write config file
         add_op(
             state,
@@ -1021,7 +1025,7 @@ def add_myservice_ops(state, hosts, config, target_hosts=None, task="all"):
             group="root",
             host=host,
         )
-        
+
         # Restart service
         add_op(
             state,
@@ -1030,6 +1034,7 @@ def add_myservice_ops(state, hosts, config, target_hosts=None, task="all"):
             commands=["systemctl restart myservice"],
             host=host,
         )
+
 
 def generate_config(config):
     """Generate config file content from dict."""

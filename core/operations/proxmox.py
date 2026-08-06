@@ -1,8 +1,7 @@
 """Proxmox VE hypervisor operations."""
 
-import json
 from pyinfra.api.operation import add_op
-from pyinfra.operations import files, server
+from pyinfra.operations import server
 
 
 def add_proxmox_ops(state, hosts, config, target_hosts=None, task="proxmox"):
@@ -130,7 +129,11 @@ def _configure_storage(state, host, spec):
     for pool in storage_pools:
         pool_name = pool.get("name")
         pool_type = pool.get("type")
-        enabled = pool.get("enabled", True)
+
+        # "enabled" was read but never acted on, so a pool declared
+        # enabled: False was configured anyway. Honour it.
+        if not pool.get("enabled", True):
+            continue
 
         if pool_type == "zfspool":
             _configure_zfs_pool(state, host, pool)
@@ -279,7 +282,6 @@ def _configure_networks(state, host, spec):
     # Note: This is a simplified implementation
     # Full implementation would use netplan or /etc/network/interfaces
     for net in networks:
-        iface = net.get("iface")
         net_type = net.get("type")
 
         if net_type == "bridge":
@@ -292,7 +294,13 @@ def _configure_networks(state, host, spec):
 
 
 def _configure_bridge(state, host, bridge_spec):
-    """Configure a Linux network bridge for Proxmox.
+    """Verify a Linux network bridge for Proxmox.
+
+    NOT YET IMPLEMENTED: this only checks that the bridge already exists. The
+    ports/address/netmask/gateway keys of bridge_spec are accepted but NOT
+    applied — a full implementation would write netplan or
+    /etc/network/interfaces. They used to be unpacked into locals that were
+    never read, which made the gap look like working code.
 
     Args:
         state: pyinfra State object
@@ -300,10 +308,6 @@ def _configure_bridge(state, host, bridge_spec):
         bridge_spec: Bridge configuration dict
     """
     iface = bridge_spec.get("iface")
-    ports = bridge_spec.get("ports", [])
-    address = bridge_spec.get("address")
-    netmask = bridge_spec.get("netmask")
-    gateway = bridge_spec.get("gateway")
 
     # Verify bridge exists
     add_op(
@@ -318,7 +322,10 @@ def _configure_bridge(state, host, bridge_spec):
 
 
 def _configure_bond(state, host, bond_spec):
-    """Configure a bonded interface for Proxmox.
+    """Verify a bonded interface for Proxmox.
+
+    NOT YET IMPLEMENTED: this only checks that the bond already exists. The
+    slaves key of bond_spec is accepted but NOT applied.
 
     Args:
         state: pyinfra State object
@@ -326,7 +333,6 @@ def _configure_bond(state, host, bond_spec):
         bond_spec: Bond configuration dict
     """
     iface = bond_spec.get("iface")
-    slaves = bond_spec.get("slaves", [])
 
     # Verify bond exists
     add_op(

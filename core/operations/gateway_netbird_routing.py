@@ -89,8 +89,7 @@ nft list chain ip custom-nat-nb postrouting 2>/dev/null | \\
 """
 
     heredoc_cmd = (
-        'cat > /usr/local/sbin/fix-netbird-route.sh << \'SCRIPT_EOF\'\n'
-        f'{script_content}\nSCRIPT_EOF'
+        f"cat > /usr/local/sbin/fix-netbird-route.sh << 'SCRIPT_EOF'\n{script_content}\nSCRIPT_EOF"
     )
 
     add_op(
@@ -138,7 +137,7 @@ def _apply_routing_rules(state, host, local_subnet):
         name=f"Verify nftables rules on {host.name}",
         commands=[
             "nft list table ip custom-nat-nb",
-            'nft list chain ip custom-nat-nb postrouting | grep masquerade',
+            "nft list chain ip custom-nat-nb postrouting | grep masquerade",
         ],
         host=host,
     )
@@ -156,8 +155,7 @@ def _deploy_watchdog_cron(state, host, watchdog_interval):
 """
 
     heredoc_cmd = (
-        'cat > /etc/cron.d/fix-netbird-route-watchdog << \'CRON_EOF\'\n'
-        f'{cron_content}\nCRON_EOF'
+        f"cat > /etc/cron.d/fix-netbird-route-watchdog << 'CRON_EOF'\n{cron_content}\nCRON_EOF"
     )
 
     add_op(

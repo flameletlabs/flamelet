@@ -31,23 +31,24 @@ Defines all hosts, groups, and SSH configuration using pyinfra's Inventory API:
 ```python
 from pyinfra.api import Inventory
 
+
 def build_inventory(local=False):
     """Build example home infrastructure inventory.
-    
+
     Args:
         local: If True, use @local connector (for CI/testing without SSH).
     """
     if local:
         # CI/testing mode: @local connector (no SSH, runs on local machine)
         return Inventory((([("@local", {})], {}),))
-    
+
     # SSH-based inventory for real deployment
     all_hosts = [
         ("gw.example.com", {"_doas": True}),  # OpenBSD with doas
         ("nas.example.com", {"ssh_hostname": "10.0.0.10"}),  # FreeBSD
         # ... more hosts ...
     ]
-    
+
     return Inventory(
         (all_hosts, {"ssh_user": "syseng", "ssh_key": "~/.ssh/id_rsa"}),
         openbsd=(["gw.example.com"], {"_doas": True}),
@@ -72,7 +73,7 @@ USERS = {
         "comment": "System Engineering",
         "password": "$6$...",  # sha-512 hash
         "groups": SUDO_GROUP,  # OS-aware (dict per OS)
-        "shell": BASH,         # OS-aware (dict per OS)
+        "shell": BASH,  # OS-aware (dict per OS)
         "public_keys": ["ssh-rsa AAAA..."],
     }
 }
@@ -115,18 +116,9 @@ Provides location-specific configuration. Location is extracted from hostname's 
 
 ```python
 # vars/location/example.py
-MONIT = {
-    "gw.example.com": {
-        "daemon": 120,
-        "checks": {...}
-    }
-}
+MONIT = {"gw.example.com": {"daemon": 120, "checks": {...}}}
 
-WIREGUARD = {
-    "gw.example.com": {
-        "interfaces": {"wg0": {...}}
-    }
-}
+WIREGUARD = {"gw.example.com": {"interfaces": {"wg0": {...}}}}
 ```
 
 **Key concepts:**
@@ -141,15 +133,9 @@ Provides host-specific configuration. Hostname has `.` and `-` replaced by `_`:
 
 ```python
 # vars/hosts/docker_example_com.py
-DOCKER = {
-    "docker.example.com": {
-        "storage_driver": "overlay2"
-    }
-}
+DOCKER = {"docker.example.com": {"storage_driver": "overlay2"}}
 
-PACKAGES = {
-    "Linux": ["docker-ce", "docker-compose-plugin"]
-}
+PACKAGES = {"Linux": ["docker-ce", "docker-compose-plugin"]}
 ```
 
 **Key concepts:**

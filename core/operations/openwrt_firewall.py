@@ -127,7 +127,9 @@ chmod 755 /etc/init.d/tailscale-firewall
         state,
         server.shell,
         name=f"Verify Tailscale firewall rules on {host.name}",
-        commands=["nft list chain inet fw4 forward_lan | grep -i tailscale || echo 'Rules pending'"],
+        commands=[
+            "nft list chain inet fw4 forward_lan | grep -i tailscale || echo 'Rules pending'"
+        ],
         host=host,
     )
 
@@ -170,8 +172,8 @@ start() {
         priority = rule.get("priority", 1000)
 
         routing_script += f'\tif ! ip rule show | grep -q "from {from_net}"; then\n'
-        routing_script += f'\t\tip rule add from {from_net} lookup {table} priority {priority}\n'
-        routing_script += '\tfi\n'
+        routing_script += f"\t\tip rule add from {from_net} lookup {table} priority {priority}\n"
+        routing_script += "\tfi\n"
 
     routing_script += """\techo "$(date): Policy routing rules loaded" >> /var/log/tailscale-routing.log
 }

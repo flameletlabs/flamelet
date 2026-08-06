@@ -1,6 +1,7 @@
 """Debian/Ubuntu network interface configuration (/etc/network/interfaces)."""
 
 from io import StringIO
+
 from pyinfra.api.operation import add_op
 from pyinfra.operations import files, server
 
@@ -63,7 +64,9 @@ def add_debian_network_ops(state, hosts, config, target_hosts=None, task="all"):
             state,
             server.shell,
             name=f"Backup /etc/network/interfaces on {host.name}",
-            commands=["test -f /etc/network/interfaces && cp /etc/network/interfaces /etc/network/interfaces.bak || true"],
+            commands=[
+                "test -f /etc/network/interfaces && cp /etc/network/interfaces /etc/network/interfaces.bak || true"
+            ],
             host=host,
         )
 

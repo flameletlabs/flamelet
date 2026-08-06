@@ -34,16 +34,8 @@ def build_configs(hub="hub-01.example.com", spokes=("s1.example.com", "s2.exampl
                 }
             }
         },
-        s1: {
-            "interfaces": {
-                "wg0": {"address": "10.0.0.2/24", "peers": [{"pubkey": HUB_PUBKEY}]}
-            }
-        },
-        s2: {
-            "interfaces": {
-                "wg0": {"address": "10.0.0.3/24", "peers": [{"pubkey": HUB_PUBKEY}]}
-            }
-        },
+        s1: {"interfaces": {"wg0": {"address": "10.0.0.2/24", "peers": [{"pubkey": HUB_PUBKEY}]}}},
+        s2: {"interfaces": {"wg0": {"address": "10.0.0.3/24", "peers": [{"pubkey": HUB_PUBKEY}]}}},
     }
     return wireguard
 
@@ -76,9 +68,7 @@ class TestHubDerivation:
         """A hub named anything at all is still recognised as the hub."""
         for hub in ("hub-01.example.com", "zzz", "gateway.internal", "a.b.c.d.e"):
             result = run_topology(monkeypatch, build_configs(hub=hub))
-            assert edge(result, "s1.example.com", hub) is not None, (
-                f"hub {hub!r} was not derived"
-            )
+            assert edge(result, "s1.example.com", hub) is not None, f"hub {hub!r} was not derived"
 
     def test_spoke_to_hub_direction(self, monkeypatch):
         """Spoke→hub edges are spoke-to-hub; hub→spoke edges are not."""
@@ -97,12 +87,11 @@ class TestHubDerivation:
         """
 
         def shape(result):
-            return sorted(
-                (e["direction"], e["type"], e["interface"]) for e in result["edges"]
-            )
+            return sorted((e["direction"], e["type"], e["interface"]) for e in result["edges"])
 
         a = run_topology(
-            monkeypatch, build_configs(hub="hub-01.example.com", spokes=("s1.example.com", "s2.example.com"))
+            monkeypatch,
+            build_configs(hub="hub-01.example.com", spokes=("s1.example.com", "s2.example.com")),
         )
         b = run_topology(
             monkeypatch, build_configs(hub="totally-different", spokes=("x.other", "y.other"))
@@ -119,9 +108,7 @@ class TestHubDerivation:
                 }
             },
             "b.example.com": {
-                "interfaces": {
-                    "wg0": {"address": "10.0.0.2/24", "peers": [{"pubkey": HUB_PUBKEY}]}
-                }
+                "interfaces": {"wg0": {"address": "10.0.0.2/24", "peers": [{"pubkey": HUB_PUBKEY}]}}
             },
         }
         result = run_topology(monkeypatch, wireguard)
@@ -203,8 +190,15 @@ class TestNoHardcodedInfrastructure:
     """
 
     # Domains that are safe to appear in a public repository.
-    APPROVED = ("example.com", "example.net", "example.org", ".internal",
-                ".local", ".invalid", ".test")
+    APPROVED = (
+        "example.com",
+        "example.net",
+        "example.org",
+        ".internal",
+        ".local",
+        ".invalid",
+        ".test",
+    )
 
     def _source(self):
         return Path(services.__file__).read_text()
@@ -217,7 +211,8 @@ class TestNoHardcodedInfrastructure:
         """
         literals = re.findall(r"""["']([^"'\n]+)["']""", self._source())
         suspects = [
-            s for s in literals
+            s
+            for s in literals
             if re.fullmatch(r"[a-z0-9][a-z0-9-]*(?:\.[a-z0-9-]+)+", s)
             and not s.endswith(self.APPROVED)
         ]
