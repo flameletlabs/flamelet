@@ -67,14 +67,15 @@ def add_proxmox_ops(state, hosts, config, target_hosts=None, task="proxmox"):
                     "enabled": True,
                 }
             ],
+            # VERIFICATION ONLY. "iface" and "type" are the only keys accepted;
+            # declaring address/netmask/gateway/ports raises, because this
+            # operation checks that an interface exists and never builds one.
+            # Define the bridge itself with the 'debian-network' task (NETWORK
+            # config attribute), which renders /etc/network/interfaces.
             "networks": [
                 {
                     "iface": "vmbr0",
                     "type": "bridge",
-                    "address": "10.20.0.2",
-                    "netmask": "255.255.255.0",
-                    "gateway": "10.20.0.1",
-                    "ports": ["nic0"],
                 }
             ],
         }
@@ -293,14 +294,46 @@ def _configure_networks(state, host, spec):
             pass
 
 
-def _configure_bridge(state, host, bridge_spec):
-    """Verify a Linux network bridge for Proxmox.
+# Keys that describe how to BUILD an interface rather than how to check one.
+# This operation cannot apply any of them — see _reject_unapplied_keys.
+_BRIDGE_UNAPPLIED = ("ports", "address", "netmask", "gateway")
+_BOND_UNAPPLIED = ("slaves",)
 
-    NOT YET IMPLEMENTED: this only checks that the bridge already exists. The
-    ports/address/netmask/gateway keys of bridge_spec are accepted but NOT
-    applied — a full implementation would write netplan or
-    /etc/network/interfaces. They used to be unpacked into locals that were
-    never read, which made the gap look like working code.
+
+def _reject_unapplied_keys(kind, iface, spec, unapplied):
+    """Fail at plan time on any key this operation cannot honour.
+
+    These helpers only VERIFY that an interface already exists; they do not
+    build one. Accepting an address or gateway and silently not applying it is
+    the worst available failure shape for hypervisor networking, because the
+    operation reports success and the operator believes the bridge is
+    configured. Better to refuse the config than to quietly ignore half of it.
+
+    Writing the interface definitions is deliberately NOT done here.
+    ``core/operations/debian_network.py`` (task ``debian-network``, config
+    attribute ``NETWORK``) already renders /etc/network/interfaces, including
+    bridge-ports. It owns that file as a whole — it emits loopback and every
+    interface — so a second renderer in this module would fight it for
+    ownership of the same file on the same host.
+    """
+    present = sorted(k for k in unapplied if spec.get(k))
+    if present:
+        raise ValueError(
+            f"proxmox: {kind} {iface!r} declares {', '.join(present)}, which this "
+            f"operation does not apply — it only verifies that an existing "
+            f"interface is present. Define the interface with the "
+            f"'debian-network' task (NETWORK config attribute), which renders "
+            f"/etc/network/interfaces, and keep the PROXMOX networks entry to "
+            f"'iface' and 'type' for verification only."
+        )
+
+
+def _configure_bridge(state, host, bridge_spec):
+    """Verify that a Linux network bridge exists for Proxmox.
+
+    This VERIFIES only; it does not create or configure the bridge. Any
+    build-time key is rejected rather than ignored — see
+    _reject_unapplied_keys for why, and for where to define the bridge instead.
 
     Args:
         state: pyinfra State object
@@ -308,24 +341,25 @@ def _configure_bridge(state, host, bridge_spec):
         bridge_spec: Bridge configuration dict
     """
     iface = bridge_spec.get("iface")
+    _reject_unapplied_keys("bridge", iface, bridge_spec, _BRIDGE_UNAPPLIED)
 
-    # Verify bridge exists
+    # Bare `ip link show` so a missing bridge FAILS the deploy. The previous
+    # form ended in `|| echo 'not found'`, which always exited 0 — it printed a
+    # verdict but could never fail, so it verified nothing.
     add_op(
         state,
         server.shell,
-        name=f"Verify bridge {iface} on {host.name}",
-        commands=[
-            f"ip link show {iface} > /dev/null 2>&1 && echo 'Bridge {iface} exists' || echo 'Bridge {iface} not found'",
-        ],
+        name=f"Verify bridge {iface} exists on {host.name}",
+        commands=[f"ip link show {iface}"],
         host=host,
     )
 
 
 def _configure_bond(state, host, bond_spec):
-    """Verify a bonded interface for Proxmox.
+    """Verify that a bonded interface exists for Proxmox.
 
-    NOT YET IMPLEMENTED: this only checks that the bond already exists. The
-    slaves key of bond_spec is accepted but NOT applied.
+    Verifies only; does not create or configure the bond. See
+    _reject_unapplied_keys.
 
     Args:
         state: pyinfra State object
@@ -333,15 +367,13 @@ def _configure_bond(state, host, bond_spec):
         bond_spec: Bond configuration dict
     """
     iface = bond_spec.get("iface")
+    _reject_unapplied_keys("bond", iface, bond_spec, _BOND_UNAPPLIED)
 
-    # Verify bond exists
     add_op(
         state,
         server.shell,
-        name=f"Verify bond {iface} on {host.name}",
-        commands=[
-            f"ip link show {iface} > /dev/null 2>&1 && echo 'Bond {iface} exists' || echo 'Bond {iface} not found'",
-        ],
+        name=f"Verify bond {iface} exists on {host.name}",
+        commands=[f"ip link show {iface}"],
         host=host,
     )
 
