@@ -87,7 +87,29 @@ def add_docker_ops(state, hosts, config, target_hosts=None, task="all"):
             stack_name = stack.get("name", "")
             stack_file = stack.get("file", f"{stack_name}.yaml")
             stack_content = stack.get("content", "")
+            stack_dir = stack.get("dir", "")
             stack_path = f"{storage_path}/containers/stacks/{stack_file}"
+
+            # "dir" mode: the compose file and everything it mounts are already
+            # on the host, put there by the files task. Just bring the stack up.
+            #
+            # Added 2026-08-06. "content" mode requires the whole compose YAML to
+            # be embedded as a Python string in vars/hosts/*.py, which hides it
+            # from YAML tooling and review, and gives no natural home for the
+            # files a stack mounts alongside it (a Gatus config, a Caddyfile).
+            # With "dir", the stack lives as real files under config/docker/<name>/
+            # in the tenant, ships via FILES, and this just runs compose in place.
+            if stack_dir:
+                add_op(
+                    state,
+                    server.shell,
+                    name=f"Start Docker Compose stack {stack_name} on {host.name}",
+                    commands=[
+                        f"cd {stack_dir} && docker compose up -d --remove-orphans",
+                    ],
+                    host=host,
+                )
+                continue
 
             if stack_content:
                 add_op(
