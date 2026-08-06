@@ -15,7 +15,10 @@ flamelet = "core.cli:main"
 
 [project.optional-dependencies]
 web = ["fastapi>=0.110", "uvicorn[standard]>=0.25", "sse-starlette>=1.6"]
-dev = ["pytest>=8.0", "ruff>=0.1"]
+# Includes [web] because tests/unit/test_web_topology.py imports the FastAPI
+# routers. Skipping those tests when fastapi is absent would be worse than
+# failing: a test that silently does not run proves nothing.
+dev = ["pytest>=8.0", "ruff>=0.1", "pyinfra-framework[web]"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
