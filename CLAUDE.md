@@ -2,6 +2,83 @@
 
 **This document is designed for AI systems to generate complete, production-ready tenant configurations.**
 
+---
+
+## MANDATORY: This Repository Is Public
+
+**flamelet is a public repository. Everything committed to it must be safe for anyone in the world to read. Private infrastructure details must NEVER enter this repo — not in code, not in tests, not in docs, not in comments, and not in commit messages.**
+
+This is not advisory. It applies to every change, every file, and every commit.
+
+### Never commit
+
+| Category | Examples |
+|---|---|
+| Real hostnames | any host under a private/internal TLD, any real FQDN. Do not enumerate your private TLDs anywhere in this repo either — the naming scheme is itself infrastructure detail |
+| Public endpoint names | VPN/gateway names that resolve externally — these have **direct** attack value, not just reconnaissance value |
+| Real IP addresses | RFC1918 addresses of actual hosts, Tailscale CGNAT `100.64.0.0/10` node IPs, any public IP |
+| Tailscale identifiers | `*.ts.net` machine names, node IPs, auth keys |
+| Credentials | keys, tokens, password hashes, preshared keys, registry auth |
+| Personal identifiers | emails, usernames tied to a person, `/home/<realuser>/...` paths |
+| Network topology | real subnet layouts, hub/spoke maps, route tables of a live network |
+
+### Always use instead
+
+- Hostnames: `host.example.com`, `gateway.internal`, `hub-01.example.com`
+- Addresses: `10.0.0.0/24`, `192.0.2.0/24` (RFC 5737 TEST-NET), `203.0.113.0/24`
+- Secrets: obvious placeholders — `"$6$..."`, `"REPLACE_ME"`, `"ssh-ed25519 AAAA..."`
+
+`tenants/flamelet-example/` is a deliberate example tenant; generic addresses there are correct and expected.
+
+### Never hardcode one deployment's values in real logic
+
+Framework code must work for **any** tenant. If a code path tests for a specific
+hostname, that is two defects at once: it silently fails for every other tenant,
+and it publishes private infrastructure.
+
+Derive behaviour **structurally** from config shape, or take it from tenant
+config with a safe default. Example: the topology endpoint finds the WireGuard
+hub by looking for the node whose peers carry `spoke` comments, not by matching
+a hostname (`core/web/api/services.py`), and reconciles public endpoint names
+via an optional tenant `ENDPOINT_ALIASES` map defaulting to `{}`.
+
+### Scanning rules — read before you trust a grep
+
+Two traps have produced false "the repo is clean" results here:
+
+1. **`git grep -E` silently ignores `\b`.** It does not error; it returns zero
+   hits. Measured in this repo on one internal-hostname pattern of the form
+   `\b[a-z]+\.<tld>\b`: `git grep -E` → 0 hits, `git grep -P` on the identical
+   pattern → 2 hits, plain `grep` → 18. **Always use `git grep -P`.**
+2. **BSD/macOS `sed` also silently ignores `\b`.** Same failure mode: no error,
+   the substitution just doesn't happen. Control: `echo 'virt.tld' | sed -E
+   's/\.tld\b/.NEW/'` prints `virt.tld` unchanged, while `perl -pe` on the same
+   pattern prints `virt.NEW`. **Use `perl -pe` for any word-boundary rewrite.**
+3. **Validate every probe against a known-positive control before believing a
+   zero.** A zero-hit result is only meaningful once you have shown the same
+   probe finds something you know is there. This applies to rewrites too: after
+   sanitizing, confirm the probe still finds hits in the *unsanitized* original.
+
+Also check your own diff — a comment explaining why a private name was removed
+can reintroduce that name:
+
+```bash
+git diff | grep -P '^\+' | grep -P '<private-token>'   # must be empty
+```
+
+And check commit messages, not just file content — they are rewritten
+separately from blobs and are just as public:
+
+```bash
+git log --all --perl-regexp --grep='<private-token>'
+```
+
+Beware legitimate matches when sanitizing: `Path.home()`, Tailscale's public
+resolver `100.100.100.100`, and `.work`/`.app` as real ICANN TLDs are all
+false positives. Never blind-replace.
+
+---
+
 ## Core Principle
 
 ```

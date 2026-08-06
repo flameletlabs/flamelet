@@ -6,10 +6,13 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5173,
-    allowedHosts: ['dev.newyork', 'localhost', '127.0.0.1'],
+    // Dev host comes from the environment so no contributor's private hostname is
+    // baked in. Set FLAMELET_DEV_HOST to reach the dev server by name from another
+    // machine; unset means localhost, which is what a fresh clone should get.
+    allowedHosts: [process.env.FLAMELET_DEV_HOST, 'localhost', '127.0.0.1'].filter(Boolean),
     hmr: {
       protocol: 'ws',
-      host: 'dev.newyork',
+      host: process.env.FLAMELET_DEV_HOST || 'localhost',
       port: 5173
     },
     proxy: {

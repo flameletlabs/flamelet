@@ -4,7 +4,7 @@
 set -e
 
 FRAMEWORK_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PYTHON="${PYTHON:-python3}"
+PYTHON="${PYTHON:-$(command -v python3)}"
 PYTEST="${PYTEST:-$PYTHON -m pytest}"
 
 echo "╔════════════════════════════════════════════════════════════════════════╗"

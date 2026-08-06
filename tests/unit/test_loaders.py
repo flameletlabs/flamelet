@@ -183,12 +183,12 @@ PACKAGES = {
         (tmp_tenant_dir / "vars" / "all.py").write_text("""
 PACKAGES = {"Linux": ["base"]}
 """)
-        (tmp_tenant_dir / "vars" / "location" / "home.py").write_text("""
+        (tmp_tenant_dir / "vars" / "location" / "london.py").write_text("""
 PACKAGES = {
-    "Linux": ["home-pkg"],
+    "Linux": ["london-pkg"],
 }
 """)
-        # Hostname: app.london → location: home (last dot segment)
+        # Hostname: app.london → location: london (last dot segment)
         config = load_packages_config(tmp_tenant_dir, "app.london", "Linux")
-        assert "home-pkg" in config["Linux"]
+        assert "london-pkg" in config["Linux"]
         assert "base" in config["Linux"]

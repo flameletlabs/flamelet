@@ -159,24 +159,46 @@ async def get_topology(tenant_name: str):
     except Exception as e:
         return {"error": f"Failed to load configs: {str(e)}"}
 
-    # Build pubkey → hostname map from peer comments (hub topology)
-    # The hub (core.london) has comments like "virt.london spoke" on each peer
-    pubkey_to_host = {}
+    # Optional tenant map of public endpoint name -> internal hostname, e.g.
+    #     ENDPOINT_ALIASES = {"vpn.example.com": "gateway-01.internal"}
+    # Absent is the normal case and means identity mapping, so a missing config
+    # is {} rather than an error.
+    try:
+        endpoint_aliases = load_service_config(tenant_path, "ENDPOINT_ALIASES") or {}
+    except Exception:
+        endpoint_aliases = {}
+    if not isinstance(endpoint_aliases, dict):
+        endpoint_aliases = {}
 
-    if "core.london" in wireguard_config:
-        core_cfg = wireguard_config["core.london"]
-        if isinstance(core_cfg, dict) and "interfaces" in core_cfg:
-            for iface, iface_cfg in core_cfg.get("interfaces", {}).items():
-                for peer in iface_cfg.get("peers", []):
-                    comment = peer.get("comment", "")
-                    pubkey = peer.get("pubkey")
-                    if pubkey and "spoke" in comment:
-                        # Extract hostname from comment like "virt.london spoke"
-                        hostname = comment.split()[0]
-                        pubkey_to_host[pubkey] = hostname
-                    elif pubkey and "uplink" not in comment:
-                        # Other hub peers map to self
-                        pubkey_to_host[pubkey] = "core.london"
+    # Build pubkey → hostname map from peer comments (hub topology).
+    # The hub is derived structurally — it is the node whose peers carry "spoke"
+    # comments — so this works for any tenant regardless of naming.
+    pubkey_to_host = {}
+    hub_names = []
+
+    for hub_name, hub_cfg in wireguard_config.items():
+        if not isinstance(hub_cfg, dict) or "interfaces" not in hub_cfg:
+            continue
+        hub_peers = [
+            peer
+            for iface_cfg in hub_cfg.get("interfaces", {}).values()
+            for peer in iface_cfg.get("peers", [])
+        ]
+        # A hub is a node that describes its peers as spokes. A spoke never does.
+        if not any("spoke" in (peer.get("comment") or "") for peer in hub_peers):
+            continue
+        hub_names.append(hub_name)
+        for peer in hub_peers:
+            comment = peer.get("comment", "")
+            pubkey = peer.get("pubkey")
+            if not pubkey:
+                continue
+            if "spoke" in comment:
+                # Comments read like "<hostname> spoke"
+                pubkey_to_host[pubkey] = comment.split()[0]
+            elif "uplink" not in comment:
+                # Other hub peers map to the hub itself
+                pubkey_to_host[pubkey] = hub_name
 
     # Build nodes
     nodes = []
@@ -219,9 +241,11 @@ async def get_topology(tenant_name: str):
                 # Look up which host this pubkey belongs to
                 peer_host = pubkey_to_host.get(peer_pubkey)
                 if not peer_host:
-                    # Unknown peer, assume core.london for spokes pointing to hub
-                    if "core.london" in pubkey_to_host.values():
-                        peer_host = "core.london"
+                    # Unknown peer: a spoke pointing at the hub. Only resolvable when
+                    # exactly one hub was detected — with several, guessing which one
+                    # would invent an edge, so the peer is skipped instead.
+                    if len(hub_names) == 1:
+                        peer_host = hub_names[0]
                     else:
                         continue
 
@@ -241,7 +265,8 @@ async def get_topology(tenant_name: str):
                         "to": peer_host,
                         "type": "wireguard",
                         "interface": iface_name,
-                        "direction": "spoke-to-hub" if peer_host == "core.london" else "peer-to-peer",
+                        "direction": ("spoke-to-hub" if peer_host in hub_names
+                                      else "peer-to-peer"),
                     }
                 )
 
@@ -258,9 +283,10 @@ async def get_topology(tenant_name: str):
         local_port = tunnel_config.get("local_port")
 
         for from_host in deploy_to:
-            # AutoSSH tunnel goes FROM deploy_to host TO remote_host
-            # Map external gateway domain to internal hostname
-            display_host = "core.london" if remote_host == "vpn.example.com" else remote_host
+            # AutoSSH tunnel goes FROM deploy_to host TO remote_host. A tunnel's
+            # remote_host is often the public gateway name while graph nodes are
+            # keyed by internal hostname, so ENDPOINT_ALIASES reconciles the two.
+            display_host = endpoint_aliases.get(remote_host, remote_host)
 
             edge_id = f"autossh:{tunnel_name}"
             if edge_id not in edge_ids:

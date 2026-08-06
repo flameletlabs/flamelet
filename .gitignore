@@ -54,3 +54,12 @@ pyinfra-debug.log
 # Docs (legacy)
 docs/venv/
 site/
+
+# Node / frontend
+node_modules/
+web/node_modules/
+web/dist/
+
+# Privacy remediation working files must never be committed —
+# they contain the private tokens they exist to remove.
+.sanitize-map.txt

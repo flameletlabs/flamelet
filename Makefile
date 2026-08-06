@@ -1,13 +1,15 @@
 .PHONY: test lint integration all help setup
 
-PYTHON := python3
-PYTEST := pytest
-RUFF   := ruff
+# Resolved from the environment so the suite runs on any machine. Override to
+# target a specific interpreter, e.g.  make test PYTHON=~/venv/bin/python
+PYTHON ?= $(shell command -v python3 2>/dev/null || command -v python)
+PYTEST ?= $(PYTHON) -m pytest
+RUFF   ?= $(PYTHON) -m ruff
 
 help:
 	@echo "pyinfra-framework test suite"
 	@echo ""
-	@echo "make setup       - Install pytest and ruff into pyinfra venv (one-time)"
+	@echo "make setup       - Install pytest and ruff into the active environment"
 	@echo "make test       - Run unit tests (no SSH)"
 	@echo "make lint       - Run ruff linting"
 	@echo "make integration - Run integration tests (requires SSH to controller.paris)"
@@ -15,7 +17,7 @@ help:
 	@echo ""
 
 setup:
-	pipx inject pyinfra pytest ruff
+	$(PYTHON) -m pip install pytest ruff pyinfra
 
 test:
 	$(PYTEST) tests/ -v -m "not integration"
