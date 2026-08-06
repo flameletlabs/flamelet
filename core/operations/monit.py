@@ -37,7 +37,6 @@ def add_monit_ops(state, hosts, config, target_hosts=None, task="all"):
 
         os_key = host.get_fact(Kernel)
         monit_config = config[host.name]
-        content = _generate_monitrc(monit_config)
 
         # Determine monitrc path based on OS
         if os_key == "FreeBSD":
@@ -47,18 +46,26 @@ def add_monit_ops(state, hosts, config, target_hosts=None, task="all"):
         else:  # Linux
             monitrc_path = "/etc/monit/monitrc"
 
-        # Create /var/lib/monit directory for state files on Linux systems
-        if os_key == "Linux":
-            add_op(
-                state,
-                files.directory,
-                name=f"Create monit state directory on {host.name}",
-                path="/var/lib/monit",
-                user="root",
-                group="root",
-                mode="0755",
-                host=host,
-            )
+        # State directory, per-OS. This used to be hardcoded to /var/lib/monit
+        # in the rendered config while the directory was only CREATED on Linux,
+        # so on OpenBSD monit was handed idfile/statefile paths under a
+        # directory that does not exist and never would. The BSDs use
+        # /var/monit, which is where core.london's existing id and state already
+        # live -- deploying the hardcoded version would also have orphaned the
+        # instance id monit has carried since 2023.
+        state_dir = "/var/monit" if os_key in ("OpenBSD", "FreeBSD") else "/var/lib/monit"
+        content = _generate_monitrc(monit_config, state_dir=state_dir)
+
+        add_op(
+            state,
+            files.directory,
+            name=f"Create monit state directory on {host.name}",
+            path=state_dir,
+            user="root",
+            group="wheel" if os_key in ("OpenBSD", "FreeBSD") else "root",
+            mode="0755",
+            host=host,
+        )
 
         # Write monitrc
         add_op(
@@ -114,8 +121,13 @@ def _generate_monit_config(config, hostname=None):
     return _generate_monitrc(config)
 
 
-def _generate_monitrc(config):
-    """Generate monitrc content."""
+def _generate_monitrc(config, state_dir="/var/lib/monit"):
+    """Generate monitrc content.
+
+    state_dir defaults to the Linux location for backwards compatibility; the
+    caller passes /var/monit on the BSDs, which is where monit already keeps
+    its id and state there.
+    """
     lines = []
 
     # Global settings
@@ -124,9 +136,9 @@ def _generate_monitrc(config):
     lines.append("  with start delay 0")
     lines.append("")
 
-    # State files (use /var/lib/monit on systems where /root is read-only like Proxmox)
-    lines.append("set idfile /var/lib/monit/monit.id")
-    lines.append("set statefile /var/lib/monit/monit.state")
+    # State files kept off /root, which is read-only on some hosts (Proxmox).
+    lines.append(f"set idfile {state_dir}/monit.id")
+    lines.append(f"set statefile {state_dir}/monit.state")
     lines.append("")
 
     # M/Monit settings (optional)
