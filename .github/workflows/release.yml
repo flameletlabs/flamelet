@@ -1,16 +1,34 @@
 name: release
+
 on:
   push:
     tags:
       - 'v*'
+
 permissions:
   contents: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Create GitHub Release
-        run: gh release create "${{ github.ref_name }}" --generate-notes
+      - name: Create GitHub Release if one does not already exist
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          # A tag can legitimately be re-pushed — a history rewrite moves every
+          # tag it touches — and `gh release create` answers HTTP 422
+          # "Release.tag_name already exists" in that case, which turned two
+          # such re-pushes into red runs on 2026-08-06.
+          #
+          # Deliberately does NOT regenerate notes for an existing release.
+          # Published release notes should not silently change underneath a tag
+          # that merely moved; recreating them is a decision for a human.
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists — nothing to do."
+          else
+            echo "Creating release $TAG"
+            gh release create "$TAG" --generate-notes --verify-tag
+          fi
