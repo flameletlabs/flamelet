@@ -63,7 +63,7 @@ def add_docker_ops(state, hosts, config, target_hosts=None, task="all"):
             # and with it every container on the host, whether or not
             # daemon.json had changed.
             #
-            # That is not a cosmetic waste. On docker.baar it made the UPS
+            # That is not a cosmetic waste. On docker.newyork it made the UPS
             # monitoring flap: restarting the nut-shim container makes upsd
             # re-run sstate_connect(), which sets ups.status to the literal
             # "WAIT" while it waits for the driver dump (nut server/sstate.c).
@@ -83,9 +83,9 @@ def add_docker_ops(state, hosts, config, target_hosts=None, task="all"):
                 commands=[
                     "sum=$(sha256sum /etc/docker/daemon.json | cut -d' ' -f1); "
                     "mark=/var/lib/flamelet/docker-daemon.sha256; "
-                    "if [ ! -f \"$mark\" ] || [ \"$(cat \"$mark\")\" != \"$sum\" ]; then "
+                    'if [ ! -f "$mark" ] || [ "$(cat "$mark")" != "$sum" ]; then '
                     "  systemctl restart docker || true; "
-                    "  mkdir -p /var/lib/flamelet && printf '%s\\n' \"$sum\" > \"$mark\"; "
+                    '  mkdir -p /var/lib/flamelet && printf \'%s\\n\' "$sum" > "$mark"; '
                     "  echo 'docker daemon restarted (daemon.json changed)'; "
                     "else echo 'docker daemon.json unchanged, not restarting'; fi",
                 ],

@@ -385,7 +385,7 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
             # real case that motivated this: sftp disabled on the host -- raises
             # out of the greenlet without ever incrementing error_ops, so a run
             # that failed to upload a single file reported
-            #   ✓ core.home   1 changed   0 ok   0 failed
+            #   ✓ core.london   1 changed   0 ok   0 failed
             # while /etc/monitrc kept the previous day's contents. Take the
             # worst of every signal available, and treat an aborted run as a
             # failure for every host rather than trusting a per-host counter
@@ -405,7 +405,9 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
     if aborted:
         # Say it in words as well as in the tick. A summary is the thing people
         # read INSTEAD of the scrollback; if it is green they will not scroll.
-        print("\n[ABORTED] The run did not complete. Do NOT treat the above as "
-              "deployed — re-run and confirm before relying on it.")
+        print(
+            "\n[ABORTED] The run did not complete. Do NOT treat the above as "
+            "deployed — re-run and confirm before relying on it."
+        )
 
     return exit_code
