@@ -102,16 +102,18 @@ class TestOpensmtpdPaths:
     @pytest.mark.parametrize(
         "config", [{}, {"smtp_relay": "smtp.example.com:587"}], ids=["direct", "relayed"]
     )
-    @pytest.mark.xfail(
-        reason="mail_from is interpolated with no default, so a config omitting it "
-        'renders the literal mail-from "None" in BOTH branches. That is not a '
-        "valid envelope sender — receiving servers reject or bounce it, and the "
-        "config loads cleanly so nothing surfaces the problem until mail fails. "
-        "Recorded rather than fixed inline; the fix is a behaviour change.",
-        strict=True,
-    )
-    def test_absent_mail_from_does_not_render_the_string_None(self, config):
-        assert 'mail-from "None"' not in _generate_smtpd_conf(config, "/etc/mail")
+    def test_absent_mail_from_omits_the_clause_entirely(self, config):
+        """It used to interpolate unconditionally and render the literal
+        mail-from "None" — not a valid envelope sender, and smtpd loads the
+        file happily so it only surfaced when mail bounced."""
+        text = _generate_smtpd_conf(config, "/etc/mail")
+        assert 'mail-from "None"' not in text
+        assert "mail-from" not in text
+
+    def test_present_mail_from_is_still_emitted(self):
+        """Control: the omission must be conditional, not unconditional."""
+        text = _generate_smtpd_conf({"mail_from": "alerts@example.com"}, "/etc/mail")
+        assert 'mail-from "alerts@example.com"' in text
 
     def test_listeners_are_always_present(self):
         text = _generate_smtpd_conf({}, "/etc/mail")
@@ -234,28 +236,36 @@ class TestNginx:
     def test_listen_defaults_to_80(self):
         assert "listen 80;" in _generate_nginx_config({"servers": [{}]})
 
-    @pytest.mark.xfail(
-        reason="`listen` is iterated directly, so a STRING is walked character by "
-        'character: "80" renders as `listen 8;` and `listen 0;`. CLAUDE.md\'s own '
-        "nginx example documents the string form, so the documented config "
-        "produces an nginx that binds the wrong ports. dnsmasq normalises a bare "
-        "string to a list; this does not. Recorded rather than fixed inline.",
-        strict=True,
-    )
     def test_listen_accepts_a_bare_string_like_the_docs_show(self):
+        """A string used to be walked character by character: "80" rendered as
+        `listen 8;` plus `listen 0;`."""
         text = _generate_nginx_config({"servers": [{"listen": "80"}]})
         assert "listen 80;" in text
+        assert "listen 8;" not in text
+        assert "listen 0;" not in text
 
-    @pytest.mark.xfail(
-        reason="the renderer reads spec['upstreams'] (plural) while CLAUDE.md "
-        "documents spec['upstream'] (singular), so a config written from the "
-        "documentation has its upstream blocks SILENTLY DROPPED and every "
-        "proxy_pass referencing them fails to resolve. Recorded rather than "
-        "fixed inline: whether code or docs should move is a decision.",
-        strict=True,
-    )
-    def test_documented_singular_upstream_key_is_honoured(self):
+    def test_listen_accepts_a_bare_int(self):
+        assert "listen 8080;" in _generate_nginx_config({"servers": [{"listen": 8080}]})
+
+    def test_documented_plural_upstreams_key_is_honoured(self):
         text = _generate_nginx_config(
-            {"upstream": [{"name": "api", "servers": ["127.0.0.1:8080"]}]}
+            {"upstreams": [{"name": "api", "servers": ["127.0.0.1:8080"]}]}
         )
         assert "upstream api {" in text
+
+    def test_singular_upstream_key_is_rejected_not_silently_dropped(self):
+        """It was previously ignored, leaving every proxy_pass referencing it
+        unresolvable at runtime — far harder to diagnose than a failed deploy."""
+        with pytest.raises(ValueError) as exc:
+            _generate_nginx_config({"upstream": [{"name": "api", "servers": ["127.0.0.1:8080"]}]})
+        assert "upstreams" in str(exc.value)
+
+    def test_plural_wins_when_both_are_present(self):
+        text = _generate_nginx_config(
+            {
+                "upstreams": [{"name": "api", "servers": ["127.0.0.1:8080"]}],
+                "upstream": [{"name": "ignored", "servers": ["127.0.0.1:9999"]}],
+            }
+        )
+        assert "upstream api {" in text
+        assert "ignored" not in text

@@ -880,7 +880,10 @@ NGINX = {
     "nginx.example.com": {
         "user": "www-data",
         "worker_processes": 4,
-        "upstream": [
+        # "upstreams", plural — matching "servers". The singular form was
+        # documented here previously and is now rejected with an error rather
+        # than silently ignored.
+        "upstreams": [
             {
                 "name": "api",
                 "servers": ["127.0.0.1:8080", "127.0.0.1:8081"],
@@ -888,7 +891,11 @@ NGINX = {
         ],
         "servers": [
             {
-                "listen": "80",
+                # A list of ports. A bare string used to be iterated character
+                # by character, so "80" became `listen 8;` and `listen 0;`;
+                # a plain string or int is now normalised to a list.
+                # Port 443 automatically gains `ssl http2`.
+                "listen": [80],
                 "server_name": "example.com",
                 "locations": [
                     {

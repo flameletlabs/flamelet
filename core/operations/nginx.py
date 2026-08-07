@@ -131,6 +131,20 @@ def _generate_nginx_config(spec, conf_dir="/etc/nginx"):
         "",
     ]
 
+    # The documented key was "upstream" (singular) while this read "upstreams",
+    # so a config written from CLAUDE.md had its upstream blocks SILENTLY
+    # DROPPED and every proxy_pass referencing them failed to resolve at
+    # runtime. Plural is canonical (it matches "servers"); the singular now
+    # fails loudly rather than being ignored, because a missing upstream is
+    # far harder to diagnose from nginx's error log than from a deploy that
+    # refuses to run.
+    if "upstream" in spec and "upstreams" not in spec:
+        raise ValueError(
+            "nginx: config uses 'upstream'; the key is 'upstreams' (plural, like "
+            "'servers'). It was previously accepted and silently ignored, which "
+            "left every proxy_pass referencing it unresolvable."
+        )
+
     # Add upstream blocks
     for upstream in spec.get("upstreams", []):
         config_lines.append(f"    upstream {upstream['name']} {{")
@@ -144,7 +158,13 @@ def _generate_nginx_config(spec, conf_dir="/etc/nginx"):
         config_lines.append("    server {")
 
         # Listen directives
-        for port in srv_block.get("listen", [80]):
+        # A bare string was iterated character by character, so "80" rendered
+        # as `listen 8;` and `listen 0;`. Normalised the way dnsmasq already
+        # normalises a bare interface name.
+        listen_ports = srv_block.get("listen", [80])
+        if isinstance(listen_ports, (str, int)):
+            listen_ports = [listen_ports]
+        for port in listen_ports:
             if port == 443:
                 config_lines.append(f"        listen {port} ssl http2;")
             else:
