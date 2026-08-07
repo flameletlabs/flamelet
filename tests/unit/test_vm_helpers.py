@@ -37,48 +37,48 @@ class TestParseSizeUnits:
         because int() tolerates the trailing space left behind."""
         assert _parse_size_bytes(text) == 20 * G
 
-    def test_a_bare_number_is_bytes_not_gigabytes(self):
-        """Worth pinning explicitly: "20" is twenty BYTES. A config that omits
-        the unit gets a VM 2^30 times smaller than intended, and nothing
-        complains."""
-        assert _parse_size_bytes("20") == 20
+    def test_a_unitless_number_is_rejected(self):
+        """It used to be accepted AS BYTES, so "20" provisioned a disk 2**30
+        times smaller than the "20G" that was meant, and nothing complained."""
+        with pytest.raises(ValueError) as exc:
+            _parse_size_bytes("20")
+        assert "unit suffix" in str(exc.value)
 
     def test_zero_is_preserved(self):
         assert _parse_size_bytes("0G") == 0
 
 
 class TestParseSizeRejectsJunk:
-    """Junk raises rather than silently returning a wrong number. The exception
-    types are incidental — what matters is that none of these return a value."""
+    """Every malformed input raises ValueError naming the problem. Two of these
+    previously did not: a negative size returned a negative byte count, and an
+    empty string raised IndexError from indexing off the end — which reads as a
+    bug in flamelet rather than a bad value in tenant config."""
 
     @pytest.mark.parametrize(
-        "text,exc",
+        "text,fragment",
         [
-            ("20GB", ValueError),  # trailing B is not a recognised unit
-            ("1.5G", ValueError),  # fractional sizes unsupported
-            ("20X", ValueError),  # unknown unit
-            ("", IndexError),  # empty string indexes off the end
+            ("-5G", "negative"),
+            ("", "empty"),
+            (None, "empty"),
+            ("20", "unit suffix"),
+            ("20GB", "unit suffix"),
+            ("20X", "unit suffix"),
         ],
     )
-    def test_malformed_input_raises(self, text, exc):
-        with pytest.raises(exc):
+    def test_malformed_input_raises_value_error(self, text, fragment):
+        with pytest.raises(ValueError) as exc:
             _parse_size_bytes(text)
+        assert fragment in str(exc.value)
 
-    def test_none_raises(self):
-        with pytest.raises(AttributeError):
-            _parse_size_bytes(None)
-
-    @pytest.mark.xfail(
-        reason="a negative size is accepted and returns a NEGATIVE byte count "
-        "instead of raising — the one input that is silently wrong rather than "
-        "loud. It would be passed straight to `vm create` as a disk or memory "
-        "size. Recorded rather than fixed inline; adding a guard is a behaviour "
-        "change and belongs in its own card.",
-        strict=True,
-    )
-    def test_negative_size_is_rejected(self):
+    def test_fractional_size_raises(self):
+        """Still a ValueError, from int() — the type callers can rely on."""
         with pytest.raises(ValueError):
-            _parse_size_bytes("-5G")
+            _parse_size_bytes("1.5G")
+
+    def test_valid_sizes_still_parse(self):
+        """Control: the rejection is conditional, not a blanket refusal."""
+        assert _parse_size_bytes("20G") == 20 * G
+        assert _parse_size_bytes("0G") == 0
 
 
 class TestVmCreateCommand:

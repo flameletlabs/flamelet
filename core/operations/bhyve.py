@@ -7,12 +7,35 @@ from pyinfra.operations import files, server
 
 
 def _parse_size_bytes(size_str: str) -> int:
-    """Convert size string like '20G', '512M' to bytes."""
+    """Convert a size string like '20G' or '512M' to bytes.
+
+    Rejects anything that is not a positive, unit-suffixed size. The value it
+    returns decides whether a disk is grown, and the same string is passed to
+    `truncate -s` on the create path — where a negative size REDUCES the file
+    rather than setting it. Every other malformed input to this function
+    already raised; these were the two that did not.
+
+    Raises:
+        ValueError: on an empty, negative, unitless or otherwise malformed size.
+    """
     units = {"K": 1024, "M": 1024**2, "G": 1024**3, "T": 1024**4}
-    s = size_str.strip().upper()
-    if s[-1] in units:
-        return int(s[:-1]) * units[s[-1]]
-    return int(s)
+    s = (size_str or "").strip().upper()
+    if not s:
+        # Indexing s[-1] below would raise IndexError, which reads as a bug in
+        # flamelet rather than a bad value in tenant config.
+        raise ValueError("bhyve: size is empty; expected a value like '20G'")
+    if s[-1] not in units:
+        # A bare number used to be accepted AS BYTES, so "20" provisioned a
+        # disk 2**30 times smaller than the "20G" that was meant, and nothing
+        # complained. Require the unit.
+        raise ValueError(
+            f"bhyve: size {size_str!r} has no unit suffix; expected one of "
+            f"{'/'.join(sorted(units))}, e.g. '20G'"
+        )
+    value = int(s[:-1])
+    if value < 0:
+        raise ValueError(f"bhyve: size {size_str!r} is negative")
+    return value * units[s[-1]]
 
 
 def _generate_cloud_init_user_data(ssh_public_key_content: str = None) -> str:
