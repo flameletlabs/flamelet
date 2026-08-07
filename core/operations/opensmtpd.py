@@ -160,13 +160,18 @@ def _generate_smtpd_conf(config, conf_dir):
     lines.append("# Actions")
     lines.append('action "local_mail" mbox alias <aliases>')
 
+    # mail_from was interpolated unconditionally, so a config omitting it
+    # rendered the literal mail-from "None" - not a valid envelope sender, and
+    # smtpd loads the file happily, so it only surfaced when mail bounced.
+    # Omitting the clause entirely is valid smtpd.conf and lets smtpd use its
+    # own default.
     smtp_relay = config.get("smtp_relay", "")
+    mail_from = config.get("mail_from")
+    mail_from_clause = f' mail-from "{mail_from}"' if mail_from else ""
     if smtp_relay:
-        lines.append(
-            f'action "outbound" relay host {smtp_relay} auth <secrets> mail-from "{config.get("mail_from")}"'
-        )
+        lines.append(f'action "outbound" relay host {smtp_relay} auth <secrets>{mail_from_clause}')
     else:
-        lines.append(f'action "outbound" relay mail-from "{config.get("mail_from")}"')
+        lines.append(f'action "outbound" relay{mail_from_clause}')
     lines.append("")
 
     # Rules
