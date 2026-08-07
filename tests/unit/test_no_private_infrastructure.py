@@ -250,6 +250,8 @@ ALLOWED_TRAILING_LABELS = {
     "shell",
     "split",
     "state",
+    # "ups.status" appears in docker.py prose: an attribute name, not a host.
+    "status",
     "swappiness",
     "sysvipc",
     "target",
