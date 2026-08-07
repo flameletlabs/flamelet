@@ -438,7 +438,7 @@ print(config.keys())  # All hosts with MONIT config
 
 ```bash
 TENANT_PATH=~/.config/flamelet/tenants/flamelet-example \
-FRAMEWORK_ROOT=~/src/flamelet \
+FRAMEWORK_ROOT="$(git rev-parse --show-toplevel)" \
 flamelet --help
 ```
 
