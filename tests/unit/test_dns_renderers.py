@@ -41,15 +41,9 @@ class TestDnsmasqListening:
         assert "bind-interfaces" in conf({"bind_interfaces": True})
         assert "bind-interfaces" not in conf({"bind_interfaces": False})
 
-    @pytest.mark.xfail(
-        reason="port: 0 is dropped by a falsy check, so no port= line is emitted. "
-        "In dnsmasq port=0 means 'disable DNS, run DHCP only' — a legitimate "
-        "config that silently becomes 'DNS enabled on 53' instead. Recorded "
-        "rather than silently accepted; the fix is a behaviour change and "
-        "belongs in its own card.",
-        strict=True,
-    )
-    def test_port_zero_disables_dns_and_must_be_emitted(self):
+    def test_port_zero_is_emitted_because_it_disables_dns(self):
+        """dnsmasq treats port=0 as "disable DNS, run DHCP only". A falsy
+        check used to drop the line, silently leaving DNS on 53."""
         assert "port=0" in conf({"port": 0})
 
 

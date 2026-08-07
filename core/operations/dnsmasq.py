@@ -254,9 +254,13 @@ def _generate_dnsmasq_conf(config, os_defaults):
         "",
     ]
 
-    # Port (optional, defaults to 53)
+    # Port (optional, defaults to 53).
+    # `is not None` rather than truthiness: dnsmasq treats port=0 as "disable
+    # DNS, run DHCP only", which is a legitimate configuration. A falsy check
+    # dropped the line entirely, so a DHCP-only server silently came up
+    # answering DNS on 53.
     port = config.get("port", 53)
-    if port:
+    if port is not None:
         lines.append(f"port={port}")
 
     # Bind to interfaces only (restrict listening to specified interfaces)
