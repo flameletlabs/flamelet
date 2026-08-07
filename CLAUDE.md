@@ -42,6 +42,20 @@ hub by looking for the node whose peers carry `spoke` comments, not by matching
 a hostname (`core/web/api/services.py`), and reconciles public endpoint names
 via an optional tenant `ENDPOINT_ALIASES` map defaulting to `{}`.
 
+### Enforcement: a hook before the commit, CI behind it
+
+`make hooks` installs a **pre-commit** hook that scans staged content and
+refuses a commit carrying private infrastructure. Run it once per clone —
+`.git/hooks` is not tracked, so a fresh clone has none.
+
+Both the hook and the CI guard share `core/privacy_scan.py`. Never add a second
+copy of those patterns: the copy that drifts will be the one reporting CLEAN.
+
+The hook exists **because CI is too late**. CI sees a leak only once the commit
+object exists, and sanitizing the tip afterwards leaves the hostname permanently
+in the commit that introduced it — which is how leaks kept reappearing in
+history with CI green.
+
 ### Scanning rules — read before you trust a grep
 
 Two traps have produced false "the repo is clean" results here:

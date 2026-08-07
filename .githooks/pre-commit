@@ -1,0 +1,20 @@
+#!/bin/sh
+# Versioned pre-commit hook. Installed via `make hooks` (sets core.hooksPath),
+# so edits here take effect on pull without reinstalling.
+#
+# Keep this thin: the real work is in scripts/pre_commit_privacy_scan.py, which
+# shares its detection code with the CI guard.
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+
+# Prefer an explicit interpreter, else whatever python3 is on PATH. A hook that
+# cannot find an interpreter must FAIL, not pass silently — a guard that
+# quietly does nothing is worse than no guard.
+PY="${FLAMELET_PYTHON:-$(command -v python3 || command -v python)}"
+if [ -z "$PY" ]; then
+    echo "pre-commit: no python3 found; cannot run the privacy scan." >&2
+    echo "Set FLAMELET_PYTHON, or bypass deliberately with --no-verify." >&2
+    exit 1
+fi
+
+exec "$PY" "$REPO_ROOT/scripts/pre_commit_privacy_scan.py"
