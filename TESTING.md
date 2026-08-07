@@ -13,7 +13,7 @@ Complete test suite with 146 passing tests covering:
 
 ### All Tests
 ```bash
-cd ~/src/flamelet
+cd "$(git rev-parse --show-toplevel)"
 python3 -m pytest tests/ -v
 ```
 
@@ -237,7 +237,7 @@ Tests run in ~2 seconds (146 tests):
 ### Import Errors
 Ensure `PYTHONPATH` includes framework root:
 ```bash
-cd ~/src/flamelet
+cd "$(git rev-parse --show-toplevel)"
 python3 -m pytest tests/
 ```
 
