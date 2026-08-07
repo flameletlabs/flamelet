@@ -11,11 +11,46 @@ cd flamelet
 
 # Install dependencies (requires Python 3.10+)
 pip install -e ".[dev]"
+
+# Install the git hooks (do this once per clone)
+make hooks
 # or with pipx:
 pipx install --editable . --extra dev
 ```
 
 ## Development Guidelines
+
+### ⚠️ MANDATORY: Install the git hooks
+
+```bash
+make hooks
+```
+
+`.git/hooks` is not tracked, so a fresh clone has **no hooks until you run
+this**. It sets `core.hooksPath` to the versioned `.githooks/` directory, which
+means later changes to a hook arrive with `git pull` — a hook copied into
+`.git/hooks` silently goes stale instead, and a stale guard is worse than none.
+
+The `pre-commit` hook scans the **staged** content of each commit for private
+infrastructure and refuses commits that would put an internal hostname, a real
+subnet or a credential into history.
+
+**Why it exists as well as CI:** the CI guard runs *after* the commit object
+exists. By then the hostname is permanent in the commit that introduced it, and
+sanitizing the tip afterwards does not remove it — which is exactly how leaks
+kept reappearing in history with CI green. The hook stops them entering at all;
+CI remains the backstop for anyone who has not run `make hooks`, or who used
+`--no-verify`.
+
+Both layers share their detection code in `core/privacy_scan.py`. If you hit a
+genuine false positive, add it to the allowlist **there, with the reason** — do
+not widen a pattern until it stops complaining.
+
+```bash
+git commit --no-verify   # bypass one commit deliberately; CI will still object
+git config --unset core.hooksPath   # uninstall
+```
+
 
 ### ⚠️ MANDATORY: CI Verification After Every Push
 
