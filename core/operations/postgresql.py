@@ -105,8 +105,20 @@ def add_postgresql_ops(state, hosts, config, target_hosts=None, task="all"):
                 role=user["name"],
                 password=user.get("password"),
                 superuser=user.get("superuser", False),
-                create_db=user.get("can_create_db", False),
-                create_role=user.get("can_create_role", False),
+                # `createdb` / `createrole`, NOT create_db / create_role.
+                # pyinfra's operation takes them without underscores, and passing
+                # the underscored form raised
+                #   TypeError: role() got an unexpected keyword argument 'create_db'
+                # from inside pyinfra rather than from any config validation --
+                # so it fired while operations were being ADDED, before any host
+                # was contacted, and aborted the entire run. Any target set
+                # containing a host with POSTGRESQL users deployed nothing.
+                #
+                # The tenant-facing keys keep the readable underscored form
+                # (can_create_db / can_create_role); only the pyinfra call is
+                # renamed. Those are our schema and should not change.
+                createdb=user.get("can_create_db", False),
+                createrole=user.get("can_create_role", False),
                 login=user.get("can_login", True),
                 host=host,
             )
