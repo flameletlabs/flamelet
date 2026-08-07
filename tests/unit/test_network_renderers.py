@@ -263,13 +263,21 @@ class TestPfGatewayRules:
         assert 'vpn_if = "tailscale0"' in text
         assert 'ext_if = "em0"' in text
 
-    @pytest.mark.xfail(
-        reason="empty remote_subnets renders the pf list as '{  }'. pf rejects an "
-        "empty list, so a gateway with no remote subnets yields an unloadable "
-        "ruleset. Documented rather than silently accepted; fix belongs in a "
-        "separate card.",
-        strict=True,
-    )
-    def test_empty_remote_subnets_does_not_emit_an_empty_pf_list(self):
+    def test_empty_remote_subnets_omits_the_vpn_rules_instead_of_emitting_an_empty_list(self):
+        """pf rejects `{  }`, so an empty list literal in a RULE makes the whole
+        ruleset fail to load — a gateway with no remote subnets would take the
+        firewall down rather than simply route nothing. The VPN blocks are
+        omitted instead. The header comment is prose and pf ignores it."""
         text = generate_pf_gateway_rules({**self.BASE, "remote_subnets": []})
+        rule_lines = [
+            ln for ln in text.splitlines() if ln.strip() and not ln.strip().startswith("#")
+        ]
+        assert not [ln for ln in rule_lines if "{  }" in ln]
+        assert "# No remote_subnets configured" in text
+
+    def test_populated_remote_subnets_still_emit_the_vpn_rules(self):
+        """Control: the omission must be conditional, not unconditional."""
+        text = generate_pf_gateway_rules(self.BASE)
+        assert "nat on $vpn_if" in text
+        assert "# No remote_subnets configured" not in text
         assert "{  }" not in text
