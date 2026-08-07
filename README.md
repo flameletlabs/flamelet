@@ -9,8 +9,8 @@ Flamelet v2 is the successor to [flamelet v1](https://github.com/flameletlabs/fl
 ## Quick Start
 
 ```bash
-# Install flamelet
-pip install -e ~/src/flamelet
+# Install flamelet (from the repository root)
+pip install -e .
 
 # Create your first tenant (XDG-compliant)
 mkdir -p ~/.config/flamelet/tenants/production/vars/{location,hosts}
@@ -235,7 +235,7 @@ Run `flamelet --help` to see available tasks for your tenant.
 
 ### Framework (Reusable Code)
 
-Located in `/src/flamelet/` (or `~/.local/share/flamelet/` when installed):
+Located in the repository root (or `~/.local/share/flamelet/` when installed):
 
 ```
 core/
@@ -301,11 +301,11 @@ cd ~/.config/flamelet/tenants/production
 flamelet --task monit
 
 # Explicit paths
-FRAMEWORK_ROOT=~/src/flamelet TENANT_PATH=~/.config/flamelet/tenants/production \
+FRAMEWORK_ROOT=/path/to/flamelet TENANT_PATH=~/.config/flamelet/tenants/production \
   flamelet --task monit
 
 # Environment override
-export FRAMEWORK_ROOT=~/src/flamelet
+export FRAMEWORK_ROOT=/path/to/flamelet
 export TENANT_PATH=~/.config/flamelet/tenants/production
 flamelet --task monit
 ```
