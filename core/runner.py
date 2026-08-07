@@ -19,6 +19,11 @@ class DeploymentCallback(BaseStateCallback):
 
     def __init__(self):
         self._changed = {}  # host.name -> last known success_ops count
+        # host.name -> [operation names that failed]. pyinfra's per-host
+        # result.error_ops does NOT count every failure -- a connector-level
+        # error (e.g. SFTP unavailable) raises out of the greenlet without
+        # incrementing it -- so the summary cannot rely on that alone.
+        self._errors = {}
 
     @staticmethod
     def operation_start(state, op_hash):
@@ -33,9 +38,16 @@ class DeploymentCallback(BaseStateCallback):
         self._changed[host.name] = curr
         print(f"  {tag} {host.name}")
 
-    @staticmethod
-    def operation_host_error(state, host, op_hash, *args, **kwargs):
-        print(f"  [FAILED] {host.name}")
+    def operation_host_error(self, state, host, op_hash, *args, **kwargs):
+        # RECORD, do not merely print. This used to be a staticmethod that only
+        # printed, so nothing downstream knew a host had failed and the summary
+        # happily reported it green.
+        try:
+            names = ", ".join(state.get_op_meta(op_hash).names)
+        except Exception:
+            names = "unknown operation"
+        self._errors.setdefault(host.name, []).append(names)
+        print(f"  [FAILED] {host.name}: {names}")
 
 
 def _ping_host(hostname, timeout=2):
@@ -369,12 +381,31 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
         if r:
             changed = callback._changed.get(host.name, 0)
             ok = r.success_ops - changed
-            failed = r.error_ops
-            status = "✓" if failed == 0 else "✗"
-            print(f"{status} {host.name:<30} {changed} changed   {ok} ok   {failed} failed")
+            # r.error_ops ALONE IS NOT ENOUGH. A connector-level failure -- the
+            # real case that motivated this: sftp disabled on the host -- raises
+            # out of the greenlet without ever incrementing error_ops, so a run
+            # that failed to upload a single file reported
+            #   ✓ core.home   1 changed   0 ok   0 failed
+            # while /etc/monitrc kept the previous day's contents. Take the
+            # worst of every signal available, and treat an aborted run as a
+            # failure for every host rather than trusting a per-host counter
+            # that demonstrably undercounts.
+            errs = callback._errors.get(host.name, [])
+            failed = max(r.error_ops, len(errs))
+            status = "✓" if (failed == 0 and not aborted) else "✗"
+            suffix = "" if failed or not aborted else "   (run aborted)"
+            print(f"{status} {host.name:<30} {changed} changed   {ok} ok   {failed} failed{suffix}")
+            for name in errs:
+                print(f"    ↳ failed: {name}")
             if failed > 0:
                 exit_code = 1
         else:
             print(f"? {host.name:<30} no operations run")
+
+    if aborted:
+        # Say it in words as well as in the tick. A summary is the thing people
+        # read INSTEAD of the scrollback; if it is green they will not scroll.
+        print("\n[ABORTED] The run did not complete. Do NOT treat the above as "
+              "deployed — re-run and confirm before relying on it.")
 
     return exit_code
