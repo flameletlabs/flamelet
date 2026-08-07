@@ -205,6 +205,8 @@ ALLOWED_TRAILING_LABELS = {
     "pem",
     "pid",
     "pub",
+    # bhyve disk images are .raw (e.g. debian.raw) - a file extension.
+    "raw",
     "py",
     "sh",
     "tgz",
