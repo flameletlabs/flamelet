@@ -205,6 +205,11 @@ ALLOWED_TRAILING_LABELS = {
     "bin",
     "executable",
     "email",
+    # "core.web" is this repository's own package path -- the module lives at
+    # core/web/, and documenting how to start the API means naming it, as in
+    # `uvicorn core.web.app:app`. Without this the README cannot describe its
+    # own entry point without tripping the scan.
+    "web",
     # bhyve disk images are .raw (e.g. debian.raw) - a file extension.
     "raw",
     "py",
