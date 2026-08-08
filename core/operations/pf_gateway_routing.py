@@ -173,21 +173,24 @@ def generate_pf_gateway_rules(config):
             + (
                 f"\n\n# Backup VPN NAT\n"
                 f"nat on {backup_vpn} inet from {local_subnet} to {remote_list} -> ({backup_vpn})"
-                if backup_vpn else ""
+                if backup_vpn
+                else ""
             )
         )
         vpn_out_rules = (
             f"pass out on $vpn_if inet proto {{ tcp, udp }} from {local_subnet} to {remote_list} keep state"
             + (
                 f"\npass out on {backup_vpn} inet proto {{ tcp, udp }} from {local_subnet} to {remote_list} keep state"
-                if backup_vpn else ""
+                if backup_vpn
+                else ""
             )
         )
         vpn_in_rules = (
             f"pass in on $vpn_if inet proto {{ tcp, udp }} from {remote_list} to any keep state"
             + (
                 f"\npass in on {backup_vpn} inet proto {{ tcp, udp }} from {remote_list} to any keep state"
-                if backup_vpn else ""
+                if backup_vpn
+                else ""
             )
         )
     else:
