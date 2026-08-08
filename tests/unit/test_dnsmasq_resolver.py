@@ -24,9 +24,7 @@ from core.operations.dnsmasq import _resolver_commands
 def _run(target: Path) -> str:
     """Execute the generated snippet against a real file and return its output."""
     (command,) = _resolver_commands(str(target))
-    return subprocess.run(
-        ["sh", "-c", command], capture_output=True, text=True, check=True
-    ).stdout
+    return subprocess.run(["sh", "-c", command], capture_output=True, text=True, check=True).stdout
 
 
 class TestResolverCommands:
