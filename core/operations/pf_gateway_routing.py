@@ -146,7 +146,14 @@ def generate_pf_gateway_rules(config):
     local_subnet = config.get("local_subnet", "10.10.0.0/24")
     vpn_iface = config.get("vpn_interface", "tailscale0")
     remote_subnets = config.get("remote_subnets", [])
-    backup_vpn = config.get("backup_vpn", "wg0")
+    # OPTIONAL, and genuinely so since 2026-08-08. This used to default to
+    # "wg0" and the rules below were emitted unconditionally, so a tenant with no
+    # backup VPN could not say so: omitting the key silently produced NAT and
+    # pass rules for an interface that did not exist. A real deployment ran for
+    # months with three `nat on tailscale0` rules after Tailscale had been
+    # uninstalled, because the only way to drop them was to name a DIFFERENT
+    # dead interface. Falsy or absent now means "no backup VPN".
+    backup_vpn = config.get("backup_vpn")
     ext_if = config.get("external_interface", "em0")
     bridge_iface = config.get("internal_bridge", "bridge10")
     local_ip = config.get("local_ip", "10.10.0.2")
@@ -161,19 +168,30 @@ def generate_pf_gateway_rules(config):
     remote_desc = remote_list if remote_subnets else "(none)"
     if remote_subnets:
         vpn_nat_rules = (
-            f"# VPN NAT (for clients reaching remote subnets via Tailscale)\n"
-            f"nat on $vpn_if inet from {local_subnet} to {remote_list} -> ($vpn_if)\n"
-            f"\n"
-            f"# Backup VPN NAT (if wg0 configured)\n"
-            f"nat on {backup_vpn} inet from {local_subnet} to {remote_list} -> ({backup_vpn})"
+            f"# VPN NAT (for clients reaching remote subnets via the VPN)\n"
+            f"nat on $vpn_if inet from {local_subnet} to {remote_list} -> ($vpn_if)"
+            + (
+                f"\n\n# Backup VPN NAT\n"
+                f"nat on {backup_vpn} inet from {local_subnet} to {remote_list} -> ({backup_vpn})"
+                if backup_vpn
+                else ""
+            )
         )
         vpn_out_rules = (
-            f"pass out on $vpn_if inet proto {{ tcp, udp }} from {local_subnet} to {remote_list} keep state\n"
-            f"pass out on {backup_vpn} inet proto {{ tcp, udp }} from {local_subnet} to {remote_list} keep state"
+            f"pass out on $vpn_if inet proto {{ tcp, udp }} from {local_subnet} to {remote_list} keep state"
+            + (
+                f"\npass out on {backup_vpn} inet proto {{ tcp, udp }} from {local_subnet} to {remote_list} keep state"
+                if backup_vpn
+                else ""
+            )
         )
         vpn_in_rules = (
-            f"pass in on $vpn_if inet proto {{ tcp, udp }} from {remote_list} to any keep state\n"
-            f"pass in on {backup_vpn} inet proto {{ tcp, udp }} from {remote_list} to any keep state"
+            f"pass in on $vpn_if inet proto {{ tcp, udp }} from {remote_list} to any keep state"
+            + (
+                f"\npass in on {backup_vpn} inet proto {{ tcp, udp }} from {remote_list} to any keep state"
+                if backup_vpn
+                else ""
+            )
         )
     else:
         omitted = "# No remote_subnets configured - VPN routing rules omitted"
