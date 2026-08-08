@@ -89,6 +89,74 @@ pip install pyinfra pytest ruff
 
 ---
 
+## Web UI (optional)
+
+The web UI is **not** part of a clone. Its build output (`web/dist/`) is
+deliberately untracked, so a fresh checkout has no UI until you build one. That is
+on purpose: shipping a half-tracked build output is worse than shipping none, and
+this repository previously tracked `web/dist/index.html` without its assets, which
+served a broken page.
+
+It has two halves, and you need both. The server is a Python extra; the frontend
+is an npm build.
+
+### Prerequisites
+
+- **Node.js** and **npm** (only for the frontend build)
+
+### 1. Install the server extra
+
+```bash
+pip install -e '.[web]'
+```
+
+This pulls in FastAPI, uvicorn and sse-starlette. Without it the API cannot start.
+
+### 2. Build the frontend
+
+```bash
+cd web
+npm install
+npm run build
+```
+
+This writes `web/dist/`, which the server serves as a single-page app.
+
+### 3. Run the server
+
+```bash
+uvicorn core.web.app:app --host 127.0.0.1 --port 8000
+```
+
+Then open <http://127.0.0.1:8000/>.
+
+### Build first, or restart afterwards
+
+**Restart the server after building.** If it was already running when `web/dist/`
+appeared, it lands in a state that looks worse than it is: `/` serves the real
+`index.html` — that path is checked per request — while every asset under
+`/assets/` returns 404, because the static mount is resolved once, when
+`core.web.app` is imported. The result is a blank page rather than an error, so
+the cause is not obvious from the browser.
+
+Measured on a server started before the build: `/` → 200 with the real index,
+`/assets/index-*.js` → 404. Restarting fixes it.
+
+You can tell which state you are in without guessing: if the UI has not been
+built, `/` serves a page that says "Frontend not yet built" and repeats the build
+command, rather than failing. The API is unaffected either way — `/api/tenants`
+answers whether or not a frontend exists, so the UI is genuinely optional.
+
+### Frontend development
+
+```bash
+cd web
+npm run dev      # vite dev server with hot reload
+npm run preview  # serve a production build locally
+```
+
+---
+
 ## Creating Your First Tenant
 
 Tenants live in `~/.config/flamelet/tenants/<name>/` (XDG-compliant) and are automatically discoverable by the `flamelet` CLI.
