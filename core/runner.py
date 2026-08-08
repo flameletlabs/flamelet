@@ -76,7 +76,13 @@ def _preview_ops(state, scope):
 
     Connects, reads remote facts, and logs diffs (via pyinfra logger) but never
     calls .execute() on any yielded command, so nothing is written to the hosts.
+
+    Returns {host name: {"would_apply": int, "unchanged": int, "errors": int}} so
+    the caller can print a per-host tally. Callers used to reconstruct that by
+    grepping this function's output for "would apply", which silently reports
+    zero for any host that never got far enough to print the string at all.
     """
+    stats = {host.name: {"would_apply": 0, "unchanged": 0, "errors": 0} for host in scope}
     state.is_executing = True
     try:
         with ctx_state.use(state):
@@ -97,8 +103,10 @@ def _preview_ops(state, scope):
 
                         if not yielded:
                             print(f"  [OK] {host.name} — no changes")
+                            stats[host.name]["unchanged"] += 1
                         else:
                             print(f"  [CHECK] {host.name} — would apply:")
+                            stats[host.name]["would_apply"] += 1
                             for cmd in yielded:
                                 if isinstance(cmd, StringCommand):
                                     print(f"    $ {cmd}")
@@ -106,8 +114,66 @@ def _preview_ops(state, scope):
                                     print(f"    upload → {cmd.dest}")
                     except Exception as e:
                         print(f"  [ERROR] {host.name}: {e}")
+                        stats[host.name]["errors"] += 1
     finally:
         state.is_executing = False
+    return stats
+
+
+def _print_dry_summary(targeted, failed_hosts, stats, evaluated_drift, header="Dry-run summary"):
+    """Print one line per TARGETED host and return the process exit code.
+
+    A dry run had no way to say "I did not measure this host". Every outcome
+    below printed either nothing or something a reader takes for good news:
+
+      host was never reached      omitted from the active-host list entirely, so
+                                  it produced no output at all
+      host failed mid-run         a traceback above, then no per-host line
+      no --diff                   operation names with no status, and grepping
+                                  for "would apply" returns 0, which reads CLEAN
+      genuinely nothing to do     "no operations queued"
+
+    Only the last is good news, and all four looked alike in a bulk sweep. So
+    every targeted host now gets a line whether or not it was measured, hosts
+    that were not measured say so in those words, and an unreachable host makes
+    the command exit non-zero instead of 0. Callers can then trust the exit code
+    and stop reconstructing a verdict by grepping.
+    """
+    failed_names = {host.name for host in failed_hosts}
+
+    print(f"\n=== {header} ===")
+    unreachable = 0
+    for host in targeted:
+        if host.name in failed_names:
+            unreachable += 1
+            print(f"  {host.name}: FAILED — could not connect, NOT evaluated")
+        elif not evaluated_drift:
+            print(f"  {host.name}: not evaluated for drift (no --diff)")
+        else:
+            counts = stats.get(host.name) or {"would_apply": 0, "unchanged": 0, "errors": 0}
+            line = (
+                f"  {host.name}: {counts['would_apply']} would apply, "
+                f"{counts['unchanged']} unchanged"
+            )
+            if counts["errors"]:
+                line += f", {counts['errors']} ERRORED"
+            print(line)
+
+    if unreachable:
+        print(
+            f"\n[CHECK] {len(targeted) - unreachable} of {len(targeted)} host(s) evaluated; "
+            f"{unreachable} could NOT be reached — this run does not tell you "
+            f"whether they have drifted."
+        )
+        return 1
+
+    if not evaluated_drift:
+        print(
+            "\n[CHECK] This was a PLAN LISTING, not a drift report. It names the "
+            "operations that would be considered; it does NOT check whether each "
+            "one is already satisfied. Re-run with --diff to evaluate drift."
+        )
+    return 0
 
 
 def build_parser(task_choices=None):
@@ -183,9 +249,35 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
 
         state.limit_hosts = target_hosts
 
-    # Connect to all active hosts
+    # Connect to all active hosts.
+    #
+    # When EVERY targeted host fails, pyinfra raises "No hosts remaining!" from
+    # inside connect_all. Uncaught, that surfaced as a bare traceback -- so the
+    # single most common way to target a set of unreachable hosts produced a
+    # crash, not a report, and a bulk sweep could not tell it apart from a host
+    # with nothing to do. The hosts are already recorded in state.failed_hosts by
+    # the time it raises, so there is nothing to recover: carry on and let the
+    # per-host summary below say plainly which hosts were never reached.
     print("Connecting to hosts...")
-    connect_all(state)
+    try:
+        connect_all(state)
+    except PyinfraError as e:
+        print(f"[FAILED] {e}")
+
+    # With nothing connected there is no state to read, and queueing operations
+    # would fault gathering facts from hosts that are not there. hostcheck is the
+    # exception: reporting that a host is down is precisely its job.
+    if args.task != "hostcheck" and not list(inventory.get_active_hosts()):
+        _print_dry_summary(
+            target_hosts if target_hosts else list(state.failed_hosts),
+            state.failed_hosts,
+            None,
+            False,
+            header="Summary — no host could be reached",
+        )
+        disconnect_all(state)
+        return 1
+
     if verbose:
         print(f"[DEBUG] Connected to {len(list(inventory.get_active_hosts()))} hosts")
         if state.failed_hosts:
@@ -328,13 +420,20 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
     # Check mode: show what would run without executing
     if args.dry:
         active = list(inventory.get_active_hosts())
-        scope = target_hosts if target_hosts else active
+
+        # A host that failed to connect is no longer "active", so a scope built
+        # from active hosts alone quietly loses it -- and losing a host is
+        # exactly the outcome that must not pass unremarked. Report on what was
+        # TARGETED, then measure only the subset that is actually reachable.
+        targeted = target_hosts if target_hosts else (active + list(state.failed_hosts))
+        scope = [host for host in targeted if host not in state.failed_hosts]
 
         if diff:
             # Deep check: drain generators to read remote state and show diffs
             print("Checking remote state (diff mode)...")
-            _preview_ops(state, scope)
+            stats = _preview_ops(state, scope)
         else:
+            stats = None
             # Shallow check: list operation names only
             total = 0
             for host in scope:
@@ -354,8 +453,9 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
                             print(f"  • {', '.join(names)}")
             print(f"\n[CHECK] Total: {total} operation(s) across {len(scope)} host(s)")
 
+        exit_code = _print_dry_summary(targeted, state.failed_hosts, stats, diff)
         disconnect_all(state)
-        return 0
+        return exit_code
 
     # Execute
     print("Running operations...")
