@@ -116,10 +116,27 @@ def _add_netbird_linux(state, host, config):
         server.shell,
         name=f"Set system hostname to {system_hostname}",
         commands=[
-            f"hostnamectl set-hostname {system_hostname} "
-            f'|| echo "{system_hostname}" > /etc/hostname',
-            f'sed -i "s/^.*$/{system_hostname}/" /etc/hostname',
-            "sysctl kernel.hostname | head -1 || true",
+            # THE RUNNING HOSTNAME IS SET DIRECTLY, not left to hostnamectl.
+            #
+            # In an LXC container systemd-hostnamed frequently cannot start --
+            # measured on a privileged container as
+            #   Failed to activate service 'org.freedesktop.hostname1': timed out
+            # with the unit in `failed`. hostnamectl then STILL EXITS 0, so the
+            # `|| echo` fallback never fires and nothing can detect the failure.
+            #
+            # The old command list therefore wrote /etc/hostname (correct at next
+            # boot) while leaving the RUNNING hostname untouched, and reported
+            # success. The host was left in two states at once: `hostname` said
+            # one thing and /etc/hostname another, indefinitely, until something
+            # happened to restart the container.
+            #
+            # `hostname` sets it live and works with or without systemd; the file
+            # write makes it persist. Together they converge immediately instead
+            # of eventually.
+            f"hostnamectl set-hostname {system_hostname} >/dev/null 2>&1 || true",
+            f"hostname {system_hostname}",
+            f'printf "%s\\n" "{system_hostname}" > /etc/hostname',
+            "hostname",
         ],
         host=host,
     )
