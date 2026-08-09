@@ -94,17 +94,31 @@ def _add_netbird_linux(state, host, config):
     setup_key = config.get("setup_key")
     management_url = config.get("management_url", "https://api.netbird.io")
     hostname = config.get("hostname", host.name)
+    # The MESH name and the SYSTEM hostname are two different things, and
+    # welding them together was wrong.
+    #
+    # Netbird derives a peer's name from the system hostname at ENROLMENT when
+    # no --hostname is passed, so the two silently became one setting: a mesh
+    # name has to be unique across every site, which forced location suffixes
+    # onto system hostnames that should just be `gateway` -- the same way the
+    # hypervisors are `virt` and `virt-01`, with the location carried by the
+    # domain rather than baked into the host.
+    #
+    # So system_hostname is now separate and defaults to the mesh name, which
+    # keeps every existing tenant behaving exactly as before. Where it IS set,
+    # the mesh name is additionally pinned with an explicit --hostname below,
+    # so the peer's identity no longer depends on what the box calls itself.
+    system_hostname = config.get("system_hostname", hostname)
 
     # Set system hostname before Netbird joins
-    # Netbird uses the system hostname for peer identity and FQDN
-    # This MUST be unique across all Netbird peers to avoid conflicts
     add_op(
         state,
         server.shell,
-        name=f"Set system hostname to {hostname}",
+        name=f"Set system hostname to {system_hostname}",
         commands=[
-            f'hostnamectl set-hostname {hostname} || echo "{hostname}" > /etc/hostname',
-            f'sed -i "s/^.*$/{hostname}/" /etc/hostname',
+            f"hostnamectl set-hostname {system_hostname} "
+            f'|| echo "{system_hostname}" > /etc/hostname',
+            f'sed -i "s/^.*$/{system_hostname}/" /etc/hostname',
             "sysctl kernel.hostname | head -1 || true",
         ],
         host=host,
@@ -113,7 +127,9 @@ def _add_netbird_linux(state, host, config):
     if setup_key:
         # Connect with setup key (automated, no SSO required)
         # System hostname MUST be set first - Netbird uses it for peer identification
-        connect_cmd = f"netbird up --setup-key {setup_key}"
+        # --hostname is explicit so the peer's mesh identity is pinned by config
+        # rather than inherited from whatever the system hostname happens to be.
+        connect_cmd = f"netbird up --setup-key {setup_key} --hostname {hostname}"
         if management_url != "https://api.netbird.io":
             # Self-hosted Netbird
             connect_cmd += f" --management-url {management_url}"
@@ -165,9 +181,17 @@ def _add_netbird_linux(state, host, config):
             server.shell,
             name=f"Log Netbird group assignments for {host.name}",
             commands=[
-                f"echo \"✓ Netbird peer '{hostname}' deployed and connected.\"",
-                f'echo "  → Add to groups: {group_list}"',
-                f'echo "  → Via: Dashboard | API | Claude Code MCP (type: \\"Add peer {hostname} to group <group_name>\\"")',
+                # SINGLE-QUOTED, with no nested double quotes and no parentheses.
+                # This line used to end `\\"")`, which left an unescaped `)` outside
+                # the quoting -- so the shell died with "syntax error near
+                # unexpected token `)'" and this purely cosmetic echo FAILED every
+                # single netbird deployment. pyinfra then aborted the run and told
+                # the operator not to treat it as deployed, after the real work had
+                # already succeeded. In a --task all run it also skipped every task
+                # queued behind it.
+                f"echo '✓ Netbird peer {hostname} deployed and connected.'",
+                f"echo '  → Add to groups: {group_list}'",
+                "echo '  → Via: Dashboard, API, or the Netbird MCP'",
             ],
             host=host,
         )
