@@ -362,9 +362,23 @@ def run_deployment(inventory, add_ops_func, args, verbose=False):
 
     # Exclude hosts that failed to connect so add_ops_func doesn't try
     # fact-reads (change detection) against disconnected hosts.
-    if target_hosts:
-        target_hosts = [h for h in target_hosts if h not in state.failed_hosts]
-        state.limit_hosts = target_hosts if target_hosts else None
+    #
+    # THIS MUST NOT BE CONDITIONAL ON target_hosts. It used to read
+    # `if target_hosts:`, which meant the filter ran only when --limit was
+    # given. Without --limit, target_hosts is empty, the filter was skipped
+    # entirely, and add_ops fell back to `list(inventory)` -- every host,
+    # including the ones that had just failed to connect. Building operations
+    # then calls host.get_fact(Kernel), which re-dials with
+    # raise_exceptions=True, and the run died on an unhandled ConnectError.
+    #
+    # So the single most common invocation -- a full-inventory sweep with no
+    # --limit -- crashed whenever ANY host was unreachable, which is the normal
+    # state of a fleet spanning several sites. Worse, it crashed in exactly the
+    # case this dry-run reporting exists to describe: it could not tell you a
+    # host was unreachable, because being unable to reach it killed the run.
+    scope = target_hosts if target_hosts else list(inventory.get_active_hosts())
+    target_hosts = [h for h in scope if h not in state.failed_hosts]
+    state.limit_hosts = target_hosts if target_hosts else None
 
     # Queue operations
     print(f"Adding operations (task={args.task})...")
