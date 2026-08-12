@@ -114,3 +114,59 @@ def test_unknown_resource_type_names_the_known_ones():
     client = FakeClient([[]])
     with pytest.raises(KeyError, match="gateway_group"):
         converge_resource_type(client, DRIVER, "nope", [], dry=True)
+
+
+# -- read/write representation mismatch ----------------------------------
+# Found by running against a live appliance: a DHCP gateway is POSTed as
+# "dynamic" and read back as the address it resolved to. Comparing the two
+# reports drift that can never be resolved -- every run rewrites it, every next
+# run sees it again.
+
+
+def test_dynamic_gateway_address_is_not_drift():
+    desired = [{"name": "WAN_DHCP", "gateway": "dynamic", "interface": "wan"}]
+    current = [
+        {
+            "name": "WAN_DHCP",
+            "gateway": "192.0.2.1",
+            "interface": "wan",
+            "dynamic": True,
+            "uuid": "u",
+        }
+    ]
+    client = FakeClient([current])
+    result = converge_resource_type(client, DRIVER, "gateway", desired, dry=True)
+    assert result.plan.empty, "a dynamic gateway's resolved address must not count as drift"
+
+
+def test_static_gateway_address_IS_still_compared():
+    """The exception must be narrow.
+
+    For a static gateway the address is exactly what was declared, so a changed
+    upstream must still converge.
+    """
+    desired = [{"name": "GW_A", "gateway": "192.0.2.9", "interface": "lan"}]
+    current = [
+        {"name": "GW_A", "gateway": "192.0.2.1", "interface": "lan", "dynamic": False, "uuid": "u"}
+    ]
+    client = FakeClient([current])
+    result = converge_resource_type(client, DRIVER, "gateway", desired, dry=True)
+    assert len(result.plan.of("update")) == 1
+    assert [c.name for c in result.plan.of("update")[0].changes] == ["gateway"]
+
+
+def test_other_fields_on_a_dynamic_gateway_are_still_compared():
+    """Only the address is server-resolved; the rest is still declared state."""
+    desired = [{"name": "WAN_DHCP", "gateway": "dynamic", "monitor": "9.9.9.9"}]
+    current = [
+        {
+            "name": "WAN_DHCP",
+            "gateway": "192.0.2.1",
+            "monitor": "1.1.1.1",
+            "dynamic": True,
+            "uuid": "u",
+        }
+    ]
+    client = FakeClient([current])
+    result = converge_resource_type(client, DRIVER, "gateway", desired, dry=True)
+    assert [c.name for c in result.plan.of("update")[0].changes] == ["monitor"]

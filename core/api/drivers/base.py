@@ -69,3 +69,12 @@ class Driver:
 
     def uuid_of(self, obj: dict) -> Optional[str]:
         return obj.get("uuid")
+
+    def ignore_for(self, obj: dict, rt: ResourceType) -> tuple:
+        """Fields to skip when diffing THIS object.
+
+        Defaults to the resource type's static list. Override when the API
+        represents a field differently on read than on write for some objects
+        but not others.
+        """
+        return tuple(rt.ignore_fields)
