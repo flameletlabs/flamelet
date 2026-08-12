@@ -33,9 +33,9 @@ class TestTaskRegistry:
                     "users",
                     "sudo",
                     "no-config",
-            # api ops run from the CONTROL NODE over HTTP, not over SSH:
-            # the target may be an appliance with no shell at all.
-            "api",
+                    # api ops run from the CONTROL NODE over HTTP, not over SSH:
+                    # the target may be an appliance with no shell at all.
+                    "api",
                 ], f"{task_name}: invalid op_type {entry.op_type}"
 
     def test_registry_config_attrs(self):
