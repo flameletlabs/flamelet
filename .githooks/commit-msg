@@ -1,0 +1,23 @@
+#!/bin/sh
+# Versioned commit-msg hook. Installed via `make hooks` (sets core.hooksPath),
+# so edits here take effect on pull without reinstalling — and so a clone that
+# has already run `make hooks` picks this new hook up automatically.
+#
+# Keep this thin: the real work is in scripts/commit_msg_privacy_scan.py, which
+# shares its detection code with the pre-commit hook and the CI guard.
+#
+# git passes the path to the prepared message as $1.
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+
+# Prefer an explicit interpreter, else whatever python3 is on PATH. A hook that
+# cannot find an interpreter must FAIL, not pass silently — a guard that
+# quietly does nothing is worse than no guard.
+PY="${FLAMELET_PYTHON:-$(command -v python3 || command -v python)}"
+if [ -z "$PY" ]; then
+    echo "commit-msg: no python3 found; cannot run the privacy scan." >&2
+    echo "Set FLAMELET_PYTHON, or bypass deliberately with --no-verify." >&2
+    exit 1
+fi
+
+exec "$PY" "$REPO_ROOT/scripts/commit_msg_privacy_scan.py" "$1"
