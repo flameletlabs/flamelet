@@ -21,6 +21,7 @@ class TaskEntry:
 
 def _init_registry() -> dict[str, list[TaskEntry]]:
     """Build TASK_REGISTRY after all imports are available."""
+    from core.operations.api_resources import add_api_resource_ops
     from core.operations.autossh import add_autossh_gateway_ops, add_autossh_ops
     from core.operations.bastille import add_bastille_ops
     from core.operations.bhyve import add_bhyve_ops
@@ -68,6 +69,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
         # from the CLI -- which is why every script and unit file on the
         # gateways got there by hand. Wired up 2026-08-06 (FH-29).
         "files": [TaskEntry(add_file_ops, "FILES", "standard")],
+        "api": [TaskEntry(add_api_resource_ops, "API_TARGETS", "api")],
         "autossh": [
             TaskEntry(add_autossh_ops, "AUTOSSH_TUNNELS", "autossh"),
             TaskEntry(add_autossh_gateway_ops, "AUTOSSH_GATEWAY", "autossh"),

@@ -173,6 +173,20 @@ def build_add_ops_func(tenant_path: Path, tenant_vars, dry: bool = False):
                     if config:
                         entry.op_func(state, inventory, config, os_filtered_targets, task_name)
 
+                # Handle api ops: these do NOT run over SSH. Targets are
+                # appliances declared in vars that may have no shell at all, so
+                # the tenant module is passed whole and pyinfra facts are never
+                # gathered for them.
+                elif entry.op_type == "api":
+                    entry.op_func(
+                        state,
+                        inventory,
+                        tenant_vars,
+                        target_hosts=os_filtered_targets,
+                        task=task_name,
+                        dry=dry,
+                    )
+
                 # Handle no-config ops: no tenant vars needed, run directly
                 elif entry.op_type == "no-config":
                     entry.op_func(state, inventory, target_hosts=os_filtered_targets, dry=dry)
