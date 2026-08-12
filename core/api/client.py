@@ -76,8 +76,8 @@ def redact(value: Any) -> Any:
 def resolve_credential(name: str, env: Optional[dict] = None) -> tuple[str, str]:
     """Resolve an API key/secret pair from the environment or a file.
 
-    Tenant vars name a credential; they never carry its value. Two sources, in
-    order:
+    This is ONE source among several -- see `credential_for`, which picks a
+    source. Two lookups, in order:
 
       1. environment: ``<NAME>_KEY`` and ``<NAME>_SECRET``
       2. file named by ``<NAME>_FILE``, containing ``key`` and ``secret`` lines
@@ -109,6 +109,43 @@ def resolve_credential(name: str, env: Optional[dict] = None) -> tuple[str, str]
 
     raise CredentialError(
         f"credential {name} not found: set {name}_KEY and {name}_SECRET, or {name}_FILE"
+    )
+
+
+def credential_for(target: dict, env: Optional[dict] = None) -> tuple[str, str]:
+    """Pick a credential source for one target.
+
+    WHERE SECRETS LIVE IS THE TENANT'S CALL, NOT THIS TOOL'S
+    --------------------------------------------------------
+    An earlier draft mandated that values never appear in tenant vars. That was
+    an opinion dressed as a requirement: tenant repositories are typically
+    PRIVATE, and pushing every secret to an out-of-tree file buys nothing there
+    while making every run depend on a file being present -- and a missing file
+    is a silent misconfiguration at exactly the wrong moment.
+
+    So flamelet supports several sources and takes no position on which is
+    correct for a given estate:
+
+      inline   ``{"key": ..., "secret": ...}`` in vars. Legitimate when the
+               tenant repo is private, and the least machinery.
+      named    ``{"credential": "NAME"}`` -> environment or a mode-0600 file.
+               The right choice when the tenant repo is shared more widely than
+               the secret should be, or when the value is rotated elsewhere.
+
+    A third source -- a per-tenant vault or password store, encrypted at rest
+    and possibly living in git -- is planned and deliberately not improvised
+    here; it needs a design rather than a keyword.
+
+    Whichever source is used, values are redacted from transcripts and errors.
+    """
+    key, secret = target.get("key"), target.get("secret")
+    if key and secret:
+        return key, secret
+    if target.get("credential"):
+        return resolve_credential(target["credential"], env=env)
+    raise CredentialError(
+        "no credential source: give either inline key/secret, or "
+        "credential=<NAME> resolved from <NAME>_KEY/<NAME>_SECRET or <NAME>_FILE"
     )
 
 

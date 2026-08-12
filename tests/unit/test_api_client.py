@@ -99,3 +99,38 @@ def test_ca_bundle_keeps_full_verification(tmp_path):
         pytest.skip("no system CA bundle available to copy")
     ctx = TlsPolicy(ca_bundle=str(ca)).build_context()
     assert ctx.verify_mode == ssl.CERT_REQUIRED
+
+
+# -- credential source selection -----------------------------------------
+# Where a secret lives is the tenant's decision. flamelet supports several
+# sources and mandates none; an earlier draft required out-of-tree values,
+# which was an estate policy dressed as a tool requirement.
+
+
+def test_inline_credential_is_supported():
+    """Legitimate when the tenant repo is private."""
+    from core.api.client import credential_for
+
+    assert credential_for({"key": "k", "secret": "s"}) == ("k", "s")
+
+
+def test_named_credential_still_resolves_from_environment(monkeypatch):
+    from core.api.client import credential_for
+
+    monkeypatch.setenv("FW_KEY", "ek")
+    monkeypatch.setenv("FW_SECRET", "es")
+    assert credential_for({"credential": "FW"}) == ("ek", "es")
+
+
+def test_inline_wins_when_both_are_given():
+    """Explicit beats indirect: no surprise lookup when a value is right there."""
+    from core.api.client import credential_for
+
+    assert credential_for({"key": "k", "secret": "s", "credential": "FW"}) == ("k", "s")
+
+
+def test_no_credential_source_at_all_names_both_options():
+    from core.api.client import credential_for
+
+    with pytest.raises(CredentialError, match="inline key/secret"):
+        credential_for({})

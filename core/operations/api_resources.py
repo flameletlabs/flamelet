@@ -10,8 +10,12 @@ Tenant vars, both keyed by an opaque target name:
         "fw-01": {
             "driver": "opnsense",
             "base_url": "https://fw-01.example.com/api",
-            "credential": "FW01",          # NAME only -- value from env/file
             "verify_tls": True,            # or "ca_bundle" / "fingerprint"
+            # Credentials: choose whichever source suits the tenant. Inline is
+            # fine in a private tenant repo; a name is better when the repo is
+            # shared more widely than the secret should be.
+            "key": "...", "secret": "...",      # inline, OR:
+            # "credential": "FW01",             # -> FW01_KEY/FW01_SECRET or FW01_FILE
         },
     }
 
@@ -24,24 +28,26 @@ Tenant vars, both keyed by an opaque target name:
         },
     }
 
-⚠️ Credentials are named, never inlined. A tenant repo that carries an API key
-is a tenant repo that leaks one.
+Where the credential comes from is the TENANT'S choice -- see
+`core.api.client.credential_for`. flamelet does not require secrets to live
+outside the tenant repository; that is an estate policy, not a property this
+tool should enforce.
 """
 
 from __future__ import annotations
 
-from core.api.client import ApiClient, TlsPolicy, resolve_credential
+from core.api.client import ApiClient, TlsPolicy, credential_for
 from core.api.converge import converge_resource_type
 from core.api.drivers import get_driver
 
 
 def build_client(target_name: str, target: dict) -> ApiClient:
     """Construct a client from a tenant's target declaration."""
-    missing = [k for k in ("driver", "base_url", "credential") if not target.get(k)]
+    missing = [k for k in ("driver", "base_url") if not target.get(k)]
     if missing:
         raise ValueError(f"API target {target_name!r} is missing: {', '.join(missing)}")
 
-    key, secret = resolve_credential(target["credential"])
+    key, secret = credential_for(target)
     tls = TlsPolicy(
         verify=target.get("verify_tls", True),
         ca_bundle=target.get("ca_bundle"),
