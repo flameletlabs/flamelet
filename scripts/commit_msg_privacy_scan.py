@@ -9,9 +9,18 @@ two existing layers both scan FILE CONTENT. The message was the one surface that
 stated the rule without checking it, and a rule stated but not checked is the one
 that gets broken.
 
-Install:
+Installed as .githooks/commit-msg, which is TRACKED and activated by
 
-    ln -sf ../../scripts/commit_msg_privacy_scan.py .git/hooks/commit-msg
+    make hooks
+
+That sets core.hooksPath to .githooks rather than copying into .git/hooks, so
+the hook stays versioned and a later pull picks up changes to it. A clone that
+has already run `make hooks` gets this hook automatically -- adding the tracked
+file IS the installation.
+
+⚠️ Do NOT symlink this into .git/hooks: this repository sets core.hooksPath, so
+anything in .git/hooks is inert and a hook installed there would silently never
+run. A guard that appears installed and does nothing is worse than none.
 
 ⚠️ This cannot retroactively clean a message that already landed, for the same
 reason the pre-commit hook cannot clean a file: rewriting published history is a
