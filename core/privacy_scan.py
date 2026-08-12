@@ -278,11 +278,24 @@ _STRING_OR_COMMENT = re.compile(r'"([^"\n]*)"|\'([^\'\n]*)\'|#([^\n]*)|//([^\n]*
 _DOTTED = re.compile(r"\b[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.([a-z]{2,12})\b")
 
 
+#: An f-string replacement field holds CODE, not text: the braces contain an
+#: expression -- typically an attribute access -- and never a hostname. Scanning
+#: inside them produced a run of false positives whose only other fix would have
+#: been widening the TLD allowlist until it stopped complaining. A literal
+#: hostname still appears OUTSIDE the braces and is still scanned.
+_FSTRING_FIELD = re.compile(r"\{[^{}]*\}")
+
+
 def _private_tld_violations(text, markdown=False):
     chunks = (
         [text]
         if markdown
-        else [g for m in _STRING_OR_COMMENT.finditer(text) for g in m.groups() if g]
+        else [
+            _FSTRING_FIELD.sub(" ", g)
+            for m in _STRING_OR_COMMENT.finditer(text)
+            for g in m.groups()
+            if g
+        ]
     )
     return [
         m.group(0)
@@ -339,6 +352,56 @@ CHECKS = {
         "-----BEGIN " + "RSA PRIVATE" + " KEY-----",
     ),
 }
+
+
+#: Checks that are UNAMBIGUOUS in prose, and therefore safe to run over a commit
+#: message.
+#:
+#: `private-tld-hostname` is deliberately NOT here. It looks for a bare
+#: dotted pair, which in a commit message matches ordinary technical prose: a
+#: module name followed by an attribute, a config filename, a build-tool key.
+#: Measured over this repository's own history it produced roughly thirty false
+#: positives and no true ones the other checks did not already catch. A guard
+#: that cries wolf gets widened until it stops guarding, so it is better to
+#: catch less and be believed.
+#:
+#: ⚠️ CONSEQUENCE, stated rather than glossed: a hostname under a private TLD
+#: written in commit-message PROSE is not caught by this layer. The file-content
+#: layer still catches it in code, docs and tests. Closing that gap needs a
+#: sharper hostname heuristic than `a dotted pair`, not a longer allowlist.
+COMMIT_MSG_CHECKS = (
+    "private-ipv4",
+    "tailscale-cgnat",
+    "ts-net-hostname",
+    "foreign-fqdn",
+    "home-path",
+    "email",
+    "secret",
+)
+
+
+def commit_message_violations(message):
+    """Scan one commit message. Returns [(check_name, match), ...].
+
+    CLAUDE.md has always said the rule covers commit messages -- "not in code,
+    not in tests, not in docs, not in comments, and not in commit messages" --
+    but enforcement stopped at file content, so the message was the one surface
+    stating the rule without checking it. That gap is how an RFC1918 address
+    reached this repository's public history on 2026-08-12.
+
+    Shares CHECKS with the other two consumers rather than keeping its own copy,
+    for the reason this module already gives: a second copy drifts, and the
+    drifted one is the one that reports CLEAN.
+    """
+    out = []
+    for name in COMMIT_MSG_CHECKS:
+        fn = CHECKS[name][0]
+        try:
+            hits = fn(message, True)
+        except TypeError:  # check does not take the markdown flag
+            hits = fn(message)
+        out.extend((name, h) for h in hits)
+    return out
 
 
 def tracked_text_files():
