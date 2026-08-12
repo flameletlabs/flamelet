@@ -425,6 +425,73 @@ def commit_message_violations(message):
         except TypeError:  # check does not take the markdown flag
             hits = fn(message)
         out.extend((name, h) for h in hits)
+    # The operator's own list is exact, so unlike the private-TLD heuristic it is
+    # safe to run over prose -- and it catches precisely what that heuristic had
+    # to be excluded for.
+    out.extend(("local-denylist", h) for h in local_denylist_violations(message))
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Local denylist: exact detection without publishing the naming scheme
+# ---------------------------------------------------------------------------
+#
+# The heuristics above must GUESS at hostnames, because CLAUDE.md forbids
+# enumerating private TLDs in this repository -- "the naming scheme is itself
+# infrastructure detail". That constraint is right, and it is why the
+# private-TLD check is a dotted-pair heuristic with a false-positive rate high
+# enough to keep it out of commit-message scanning entirely.
+#
+# An operator can close that gap for THEIR estate without publishing anything:
+# list your own private TLDs and hostnames in an UNTRACKED, GITIGNORED file, and
+# the scanners match them exactly. Zero guessing, zero false positives, and
+# nothing about the naming scheme enters the repository, because the file is
+# never committed.
+#
+#     # .privacy-local -- never committed
+#     .example-tld          a leading dot means "any host under this TLD"
+#     specific-host-name    anything else is matched literally
+#
+# ⚠️ THIS IS A LOCAL GUARD BY CONSTRUCTION. CI cannot use it: the file is
+# gitignored, so it does not exist on a runner. That is deliberate rather than a
+# shortcoming -- shipping the list to CI would publish it, and a CI failure
+# message naming the match would print it into public build logs. Detection
+# belongs where the commit is made.
+
+LOCAL_DENYLIST_FILE = ".privacy-local"
+
+
+def load_local_denylist(root=None):
+    """Read the untracked denylist, if the operator has one. Never required."""
+    base = Path(root) if root else REPO_ROOT
+    path = base / LOCAL_DENYLIST_FILE
+    if not path.is_file():
+        return []
+    entries = []
+    for line in path.read_text().splitlines():
+        line = line.split("#", 1)[0].strip()
+        if line:
+            entries.append(line.lower())
+    return entries
+
+
+def local_denylist_violations(text, denylist=None):
+    """Exact matches against the operator's own list.
+
+    A leading dot is a TLD: it matches any label under it, so one entry covers
+    every host at a site rather than needing them enumerated one by one.
+    """
+    entries = load_local_denylist() if denylist is None else [e.lower() for e in denylist]
+    if not entries:
+        return []
+    low = text.lower()
+    out = []
+    for entry in entries:
+        if entry.startswith("."):
+            pattern = r"\b[a-z0-9][a-z0-9-]*" + re.escape(entry) + r"\b"
+            out.extend(m.group(0) for m in re.finditer(pattern, low))
+        elif entry in low:
+            out.append(entry)
     return out
 
 
