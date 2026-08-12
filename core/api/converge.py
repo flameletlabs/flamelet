@@ -73,7 +73,7 @@ def converge_resource_type(
         identity_field=rt.identity_field,
         desired=desired,
         current=current,
-        ignore=rt.ignore_fields,
+        ignore=lambda obj: driver.ignore_for(obj, rt),
         prune=prune,
     )
     result = ConvergeResult(target=target, resource_type=type_name, plan=plan)
@@ -113,7 +113,7 @@ def converge_resource_type(
             identity_field=rt.identity_field,
             desired=desired,
             current=fetch_current(client, driver, type_name),
-            ignore=rt.ignore_fields,
+            ignore=lambda obj: driver.ignore_for(obj, rt),
             prune=prune,
         )
         result.verified = residual.empty

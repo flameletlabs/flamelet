@@ -18,7 +18,7 @@ an unsafe acceptance test. A second such case would be worse than the first.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Optional
+from typing import Any, Callable, Iterable, Optional
 
 
 @dataclass(frozen=True)
@@ -121,10 +121,17 @@ def build_plan(
     identity_field: str,
     desired: list[dict],
     current: list[dict],
-    ignore: Iterable[str] = (),
+    ignore: Iterable[str] | Callable = (),
     prune: bool = False,
 ) -> Plan:
     """Diff a whole resource type.
+
+    `ignore` may be a callable taking the CURRENT object and returning the
+    fields to skip. Some APIs represent a field differently on read than on
+    write -- a value you POST as "dynamic" may be read back as the address the
+    appliance resolved it to -- and whether that applies depends on the object,
+    not the resource type. A static per-type list cannot express that, and
+    getting it wrong means permanent drift that every run rewrites.
 
     prune=False by default, and that default is load-bearing: deleting anything
     the tenant did not declare would make flamelet destructive against an
@@ -148,7 +155,8 @@ def build_plan(
         if existing is None:
             plan.actions.append(Action("create", resource_type, ident, spec=dict(spec)))
             continue
-        changes = diff_resource(spec, existing, ignore=ignore)
+        per_object = ignore(existing) if callable(ignore) else ignore
+        changes = diff_resource(spec, existing, ignore=per_object)
         if changes:
             plan.actions.append(
                 Action(

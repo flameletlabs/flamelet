@@ -120,6 +120,24 @@ class OPNsenseDriver(Driver):
                 return [root]
         return response or []
 
+    def ignore_for(self, obj, rt):
+        """A DHCP/PPP gateway's address is assigned by the upstream, not declared.
+
+        You POST `gateway: "dynamic"` and the appliance reads it back as the
+        next-hop it currently holds -- 192.0.2.1 or whatever the lease gave. The
+        two are the same statement in different representations, so comparing
+        them reports drift that can never be resolved: every run would rewrite
+        the gateway and every next run would see the difference again.
+
+        Only skipped when the object IS dynamic. For a static gateway the
+        address is exactly what was declared and must be compared, or a changed
+        upstream address would silently never converge.
+        """
+        base = tuple(rt.ignore_fields)
+        if rt.name == "gateway" and obj.get("dynamic"):
+            return base + ("gateway",)
+        return base
+
     def set_path_for(self, rt, uuid: str) -> str:
         """Updates address the object by uuid in the PATH, not the body."""
         return f"{rt.set_path}/{uuid}"
