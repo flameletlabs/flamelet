@@ -18,7 +18,26 @@ class DeploymentCallback(BaseStateCallback):
     """Emits per-operation status lines captured by LogCapture."""
 
     def __init__(self):
-        self._changed = {}  # host.name -> last known success_ops count
+        # host.name -> number of operations that ACTUALLY CHANGED something.
+        #
+        # This used to hold the last known success_ops count, which made every
+        # line read [CHANGED] and every summary read "N changed 0 ok". success_ops
+        # counts operations that RAN, not operations that changed anything, so it
+        # increments for a no-op too -- and `ok = success_ops - changed` then
+        # always lands on zero. A converged host cannot have zero satisfied
+        # operations, so "0 ok" was the tell.
+        #
+        # Why it mattered beyond cosmetics: the whole point of a converging
+        # deployer is that its output tells you what it did. Reporting 28 changes
+        # where 3 files were written means a deploy that quietly rewrote something
+        # is indistinguishable from one that did not, and answering "what changed?"
+        # needs a SECOND --dry --diff run. It also actively misleads: a spurious
+        # "changed" next to a service restart reads as a config change that never
+        # happened.
+        self._changed = {}
+        # op_hash -> [hosts that succeeded], awaiting operation_end so
+        # did_change() can be read. See operation_host_success.
+        self._pending = {}
         # host.name -> [operation names that failed]. pyinfra's per-host
         # result.error_ops does NOT count every failure -- a connector-level
         # error (e.g. SFTP unavailable) raises out of the greenlet without
@@ -31,12 +50,45 @@ class DeploymentCallback(BaseStateCallback):
         print(f"→ {', '.join(names)}")
 
     def operation_host_success(self, state, host, op_hash, retry_count=0):
-        r = state.results.get(host)
-        prev = self._changed.get(host.name, 0)
-        curr = r.success_ops if r else 0
-        tag = "[CHANGED]" if curr > prev else "[OK]"
-        self._changed[host.name] = curr
-        print(f"  {tag} {host.name}")
+        # DEFERRED ON PURPOSE -- do not print here.
+        #
+        # The honest answer to "did this change anything" is
+        # op_data.operation_meta.did_change(), which is
+        # `success and len(commands) > 0`: an operation that generated no
+        # commands changed nothing. That is the same signal the --diff path
+        # already uses (a command_generator yielding nothing prints "no
+        # changes"), which is why apply and --dry --diff used to disagree.
+        #
+        # But it CANNOT be read here. pyinfra triggers this callback at
+        # operations.py:211 and only calls op_data.operation_meta.set_complete()
+        # at :237 -- afterwards -- so did_change() raises "Cannot evaluate
+        # operation result before execution" at this point. Reading it here was
+        # my first attempt and it silently fell through to the old heuristic,
+        # which is exactly the bug. operation_end (:378) fires after every host's
+        # set_complete, so the tag is emitted there instead.
+        #
+        # pyinfra 3.8 has no changed_ops counter to read instead -- the results
+        # object exposes only error_ops / ignored_error_ops / ops / partial_ops /
+        # success_ops.
+        self._pending.setdefault(op_hash, []).append(host)
+
+    def operation_end(self, state, op_hash):
+        """Emit one status line per host, now that did_change() is answerable."""
+        for host in self._pending.pop(op_hash, []):
+            changed = True  # fall back to the old, over-reporting behaviour
+            try:
+                op_data = state.get_op_data_for_host(host, op_hash)
+                changed = op_data.operation_meta.did_change()
+            except Exception:
+                # These internals are not a public contract. Degrade loudly in
+                # the direction of over-reporting rather than under-reporting: a
+                # missed change reads as "nothing happened", which is worse than
+                # a spurious one.
+                pass
+
+            if changed:
+                self._changed[host.name] = self._changed.get(host.name, 0) + 1
+            print(f"  {'[CHANGED]' if changed else '[OK]'} {host.name}")
 
     def operation_host_error(self, state, host, op_hash, *args, **kwargs):
         # RECORD, do not merely print. This used to be a staticmethod that only
