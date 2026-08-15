@@ -14,14 +14,35 @@ def add_netbird_ops(state, hosts, config, target_hosts=None, task="all"):
         config: dict mapping hostname → netbird config
             {
                 "docker.newyork": {
-                    "setup_key": "31B89B65-2CB9-49B6-BBBD-57D4263AFE1C",
+                    "setup_key": "REPLACE_ME",  # never commit a real key, see below
                     "management_url": "https://api.netbird.io",  # optional
                     "hostname": "docker-newyork",
+                    "version": "0.76.3",  # optional; omit to track the repo candidate
                     "advertise_routes": False,
                     "autostart": True,
                     "groups": ["newyork-infrastructure", "gateways"],  # optional: add to groups
                 }
             }
+
+    ⚠️ `setup_key` IS A CREDENTIAL AND THIS FILE IS PUBLIC. The placeholder above
+    used to be a real, live, unlimited-use setup key, committed here in the clear
+    from 2026-07-28 until it was noticed on 2026-08-15. Anyone who read this
+    docstring could enrol a peer into that mesh. Keep example values obviously
+    fake -- a plausible-looking one is how the last one survived review.
+
+    `version` PINS THE PACKAGE. Without it every host converges on whatever its
+    repo currently offers, independently, which is not a policy but an accident:
+    one real mesh drifted to SIX different client versions across 13 peers because
+    nothing declared one. Pinning also restores the standby-first upgrade path --
+    bump the pin, deploy to the standby site, watch it, then the primary -- which
+    a floating version removes entirely, since both sites move whenever they
+    happen to install.
+
+    ⚠️ LINUX ONLY, and that asymmetry is the point. This operation installs via
+    apt, so a pin here governs Debian/Ubuntu hosts and nothing else. BSD hosts run
+    netbird from their own ports/pkg tree, which generally serves only the current
+    version and cannot be held at an older one -- so they are documented and
+    monitored rather than pinned. Do not assume a `version` here constrains them.
         target_hosts: list of Host objects (default: all)
         task: "netbird" or "all"
     """
@@ -82,11 +103,28 @@ def _add_netbird_linux(state, host, config):
     )
 
     # Install netbird package (with proper GPG signature verification)
+    #
+    # PINNED when the tenant declares a version, floating otherwise. Floating is
+    # kept as the default so existing tenants behave exactly as before, but it is
+    # the weaker choice: it converges each host on its repo's candidate at
+    # whatever moment that host happens to run, so two sites drift apart silently.
+    #
+    # allow_downgrades is REQUIRED for the pin to mean anything. Without it, a
+    # host already AHEAD of the declared version is left alone and apt exits 0 --
+    # so the deploy reports success while the fleet stays inconsistent, which is
+    # the exact failure this pin exists to prevent. With it, the declared version
+    # is what you get in both directions.
+    version = config.get("version")
     add_op(
         state,
         apt.packages,
-        name=f"Install netbird package on {host.name}",
-        packages=["netbird"],
+        name=(
+            f"Install netbird {version} on {host.name}"
+            if version
+            else f"Install netbird package on {host.name}"
+        ),
+        packages=[f"netbird={version}" if version else "netbird"],
+        allow_downgrades=bool(version),
         host=host,
     )
 
