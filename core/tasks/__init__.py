@@ -53,6 +53,7 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
     from core.operations.sysctl import add_sysctl_ops, add_sysrc_ops
     from core.operations.unbound import add_unbound_ops
     from core.operations.users import add_user_ops
+    from core.operations.vyos import add_vyos_ops
     from core.operations.watchcat import add_watchcat_ops
     from core.operations.wireguard import add_wireguard_ops
 
@@ -62,6 +63,11 @@ def _init_registry() -> dict[str, list[TaskEntry]]:
         "packages": [TaskEntry(add_package_ops, "PACKAGES", "packages")],
         "package-update": [TaskEntry(add_package_update_ops, None, "no-config")],
         "sysctl": [TaskEntry(add_sysctl_ops, "SYSCTL", "standard")],
+        # VyOS appliances. Not OS-gated on Kernel like sysrc: VyOS reports
+        # Linux, so a kernel filter would not distinguish it from any other
+        # Debian host. The gate is having a VYOS block at all, which is the
+        # same "declared or skipped" rule every hostname-keyed task uses.
+        "vyos": [TaskEntry(add_vyos_ops, "VYOS", "standard")],
         "sysrc": [TaskEntry(add_sysrc_ops, "SYSRC", "standard", ["FreeBSD", "OpenBSD"])],
         "services": [TaskEntry(add_service_ops, "SERVICES", "standard")],
         # Generic file shipping. The operation existed since the repo was

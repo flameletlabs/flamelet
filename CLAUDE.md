@@ -626,6 +626,85 @@ dict, it is treated as `{}` and the topology still renders.
 
 ### System Configuration
 
+#### `vyos` — VyOS Appliance Configuration
+**Config Attribute:** `VYOS` (hostname-keyed)
+
+VyOS is **image-managed**: its filesystem is not the source of truth, and reaching
+under it with apt or by editing files is unsupported and can break an image
+upgrade. This operation drives the config CLI, which is the only supported
+interface.
+
+```python
+VYOS = {
+    "gateway.example.com": {
+        "set": [
+            # everything AFTER the word `set`
+            "service monitoring prometheus node-exporter listen-address 10.0.0.1",
+            "service monitoring prometheus node-exporter port 9100",
+        ],
+        "delete": [
+            "service telnet",
+        ],
+    }
+}
+```
+
+`delete` statements run before `set`, so a delete cannot undo a set made in the
+same run.
+
+**Three safety properties, each from a way this breaks a live router:**
+
+1. **It refuses to run on a dirty candidate.** `commit` applies the ENTIRE
+   candidate configuration, not only the lines set here — so a change a human
+   left uncommitted in another session would be shipped by an unrelated deploy,
+   on the box that routes a whole site. The script compares first and exits 3.
+2. **It always `save`s after `commit`.** A commit without a save is lost on the
+   next reboot, and nothing looks wrong until then: the config is live and the
+   service answers right up until the box restarts.
+3. **It discards instead of committing when nothing changed.** `set` on an
+   existing value is a no-op, so a second run yields an empty diff; committing
+   an empty diff still bumps the config revision and would make every run report
+   a change.
+
+⚠️ **Never add `set -e` to the generated script.** Inside VyOS's
+`script-template`, `set` *is* the configuration command, so `set -e` is parsed as
+config — it tries to configure a node called `-e` rather than enabling errexit.
+This is the easiest way to break the operation while looking like good practice,
+and there is a test asserting it stays absent.
+
+⚠️ **`exit N` does not work either, and fails misleadingly.** `script-template`
+also defines a shell *function* called `exit` (meaning "leave configuration
+mode") which shadows the builtin and rejects a numeric argument. Measured:
+
+```
+exit 3          ->  rc=127, "Invalid command: [3]"
+builtin exit 3  ->  rc=3,   no error
+```
+
+The shadowing survives leaving config mode, so an earlier bare `exit` does not
+restore the builtin — every status return needs `builtin exit`. The first
+version of this operation used `exit 0` and the deploy failed with
+`Error: executed 0 commands`, which reads like a permissions or connectivity
+problem and is neither.
+
+⚠️ **Do not give the shell step a compound command.** A `; rc=$?; rm -f ...;
+exit $rc` tail is re-parsed by the VyOS CLI and produces the same
+`Invalid command` failure. The generated script removes itself instead, so the
+caller runs a single `vbash <path>`.
+
+**Idempotence is verifiable on the device, not from the deploy output.** pyinfra
+reports `server.shell` as CHANGED on every run regardless, so the honest check is
+that the appliance's own commit log is unchanged after a second run
+(`show system commit`).
+
+⚠️ **Not OS-gated on `Kernel`.** VyOS reports `Linux`, so a kernel filter cannot
+distinguish it from any other Debian host. The gate is having a `VYOS` block,
+the same "declared or skipped" rule the other hostname-keyed tasks use.
+
+**The SSH user is usually not `root`.** VyOS images ship a dedicated admin
+account and commonly refuse root outright; set `ssh_user` accordingly in the
+tenant inventory or every run fails at authentication.
+
 #### `sysctl` — Kernel Parameters
 **Config Attribute:** `SYSCTL` (hostname-keyed)
 
