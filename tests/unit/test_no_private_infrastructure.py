@@ -95,8 +95,15 @@ def test_content_checks_cannot_see_a_bare_tld_list():
     If a content check ever DOES fire on a bare-TLD list, this fails loudly and
     the path-based bar can be reconsidered. Until then it is the only defence,
     and a comment claiming so would rot silently.
+
+    ⚠️ The sample uses FICTIONAL labels on purpose. The first version of this
+    test wrote three of the estate's real private TLDs in — which published the
+    naming scheme into this public repository, i.e. exactly what NEVER_TRACKED
+    exists to prevent, and the guard could not object because a bare TLD is the
+    blind spot this test is about. What is being asserted is a SHAPE (a leading
+    dot with no label in front), so any label works and a real one buys nothing.
     """
-    bare = "\n".join(sorted({".nonesuch", ".example", ".invalid"})) + "\n"
+    bare = "\n".join(sorted({".example", ".invalid", ".nonesuch"})) + "\n"
     firing = [name for name, (finder, _) in CHECKS.items() if finder(bare, False)]
     assert not firing, (
         f"checks {firing} now fire on a bare-TLD list. The premise of "
