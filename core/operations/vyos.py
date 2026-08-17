@@ -62,44 +62,54 @@ CLEAN = "No changes between working and active configurations"
 
 def _script(set_lines, delete_lines):
     """Build the vbash script applied on the appliance."""
-    body = [
-        "#!/bin/vbash",
-        # NOT `set -e` -- see the module docstring. This is the one place where
-        # the usual shell hygiene is actively harmful.
-        "source /opt/vyatta/etc/functions/script-template",
-        "configure",
-        "",
-        "# GUARD: refuse to touch a candidate someone else is already editing,",
-        "# because commit would ship their changes along with ours.",
-        'if ! compare | grep -q "%s"; then' % CLEAN,
-        '    echo "flamelet-vyos: REFUSING -- candidate config already has'
-        ' uncommitted changes" >&2',
-        "    compare >&2",
-    ] + _leave(3) + [
-        "fi",
-        "",
-    ]
+    body = (
+        [
+            "#!/bin/vbash",
+            # NOT `set -e` -- see the module docstring. This is the one place where
+            # the usual shell hygiene is actively harmful.
+            "source /opt/vyatta/etc/functions/script-template",
+            "configure",
+            "",
+            "# GUARD: refuse to touch a candidate someone else is already editing,",
+            "# because commit would ship their changes along with ours.",
+            'if ! compare | grep -q "%s"; then' % CLEAN,
+            '    echo "flamelet-vyos: REFUSING -- candidate config already has'
+            ' uncommitted changes" >&2',
+            "    compare >&2",
+        ]
+        + _leave(3)
+        + [
+            "fi",
+            "",
+        ]
+    )
     for line in delete_lines:
         body.append("delete %s" % line)
     for line in set_lines:
         body.append("set %s" % line)
-    body += [
-        "",
-        "# Idempotence: an empty diff means every value was already in place, so",
-        "# discard rather than commit. Committing nothing still bumps the config",
-        "# revision and would make every run report a change.",
-        'if compare | grep -q "%s"; then' % CLEAN,
-        '    echo "flamelet-vyos: no changes"',
-        "    discard",
-    ] + _leave(0) + [
-        "fi",
-        "",
-        "commit",
-        "# save is NOT optional: without it the change is lost on reboot while",
-        "# looking completely correct until then.",
-        "save",
-        'echo "flamelet-vyos: committed and saved"',
-    ] + _leave(0) + [""]
+    body += (
+        [
+            "",
+            "# Idempotence: an empty diff means every value was already in place, so",
+            "# discard rather than commit. Committing nothing still bumps the config",
+            "# revision and would make every run report a change.",
+            'if compare | grep -q "%s"; then' % CLEAN,
+            '    echo "flamelet-vyos: no changes"',
+            "    discard",
+        ]
+        + _leave(0)
+        + [
+            "fi",
+            "",
+            "commit",
+            "# save is NOT optional: without it the change is lost on reboot while",
+            "# looking completely correct until then.",
+            "save",
+            'echo "flamelet-vyos: committed and saved"',
+        ]
+        + _leave(0)
+        + [""]
+    )
     return "\n".join(body)
 
 
