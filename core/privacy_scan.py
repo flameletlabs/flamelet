@@ -44,6 +44,30 @@ EXEMPT_PREFIXES = (
     "site/",
 )
 
+# Working files whose PURPOSE is to hold private tokens, so their content can
+# never be made publishable — the only safe state is "not in this repository".
+#
+# THE CONTENT CHECKS BELOW CANNOT PROTECT THESE. Every check in CHECKS matches a
+# SHAPE: a dotted hostname, an RFC1918 address, an @-address. The guard's own
+# hostname list holds bare TLDs with no label in front of them, so it matches
+# nothing and scans clean — and because both layers deliberately share this
+# module, it scanned clean in both of them. A .gitignore entry was the only
+# thing standing between it and a public commit, and until 2026-08-16 there was
+# not one: the file's own header asserted it was ignored, while check-ignore
+# returned 1 and `git add -A` staged it.
+#
+# So these are barred by PATH, not by content. Belt and braces with .gitignore:
+# an ignore rule is one `git add -f` or one careless .gitignore edit away from
+# gone, and this is the failure whose cost is a history rewrite.
+#
+# Assembled from fragments for the same reason the planted positives below are:
+# a literal dotted filename here would be a hit in this very file, and the fix
+# for that is an exemption, which would make this module a blind spot.
+NEVER_TRACKED = (
+    ".privacy-local",
+    "." + "sanitize-map" + "." + "txt",
+)
+
 # Registrable domains that may legitimately appear: documentation examples
 # (RFC 2606) plus real third-party services the framework talks to.
 APPROVED_DOMAINS = {

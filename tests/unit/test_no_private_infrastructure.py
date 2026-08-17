@@ -9,11 +9,12 @@ planted positive, and the file walk is asserted non-empty. A check that cannot
 fail is not a check.
 """
 
+import subprocess
 from pathlib import Path
 
 import pytest
 
-from core.privacy_scan import CHECKS, REPO_ROOT, tracked_text_files
+from core.privacy_scan import CHECKS, NEVER_TRACKED, REPO_ROOT, tracked_text_files
 
 
 @pytest.mark.parametrize("name", sorted(CHECKS))
@@ -45,6 +46,62 @@ def test_guard_scans_itself():
         f"{me} is not in its own scan (untracked?). Its contents would go "
         "unchecked, which is how the first version of this file shipped "
         "literal hostnames in its comments."
+    )
+
+
+@pytest.mark.parametrize("rel", NEVER_TRACKED)
+def test_privacy_working_file_is_not_tracked(rel):
+    """The guard's own token files must not be in the repository at all."""
+    tracked = subprocess.run(
+        ["git", "ls-files", "--error-unmatch", rel],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        check=False,
+    )
+    assert tracked.returncode != 0, (
+        f"{rel} is TRACKED. It holds the private tokens this guard exists to "
+        "keep out of a public repository, and no content check can catch it — "
+        "remove it from the index and from history."
+    )
+
+
+@pytest.mark.parametrize("rel", NEVER_TRACKED)
+def test_privacy_working_file_is_gitignored(rel):
+    """...and .gitignore must keep them from being added by accident.
+
+    Not tracked today is not the same as safe: `git add -A` stages anything
+    untracked-and-unignored. On 2026-08-16 .privacy-local was exactly that —
+    untracked, NOT ignored, staged by `git add -A --dry-run`, and passed by
+    both the hook and CI, because the content checks match hostname shape
+    (label.tld) and it holds bare TLDs. Its own header claimed .gitignore
+    covered it while `git check-ignore` returned 1.
+    """
+    ignored = subprocess.run(
+        ["git", "check-ignore", "-q", rel],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        check=False,
+    )
+    assert ignored.returncode == 0, (
+        f"{rel} is NOT gitignored, so `git add -A` would stage it and neither "
+        "the pre-commit hook nor the content checks would object. Add it to "
+        ".gitignore beside the other privacy working files."
+    )
+
+
+def test_content_checks_cannot_see_a_bare_tld_list():
+    """The reason the two tests above must exist, asserted rather than trusted.
+
+    If a content check ever DOES fire on a bare-TLD list, this fails loudly and
+    the path-based bar can be reconsidered. Until then it is the only defence,
+    and a comment claiming so would rot silently.
+    """
+    bare = "\n".join(sorted({".nonesuch", ".example", ".invalid"})) + "\n"
+    firing = [name for name, (finder, _) in CHECKS.items() if finder(bare, False)]
+    assert not firing, (
+        f"checks {firing} now fire on a bare-TLD list. The premise of "
+        "NEVER_TRACKED has changed — re-read whether path-barring is still "
+        "the right mechanism."
     )
 
 

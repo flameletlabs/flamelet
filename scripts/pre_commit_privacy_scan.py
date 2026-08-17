@@ -28,7 +28,7 @@ from pathlib import Path
 MODULE_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(MODULE_ROOT))
 
-from core.privacy_scan import CHECKS, EXEMPT_PREFIXES  # noqa: E402
+from core.privacy_scan import CHECKS, EXEMPT_PREFIXES, NEVER_TRACKED  # noqa: E402
 
 
 def staged_files():
@@ -54,8 +54,27 @@ def staged_text(path):
 
 
 def main():
+    staged = staged_files()
+
+    # Path check first: these files are barred by NAME, because their content is
+    # private tokens by design and every content check reads them as clean.
+    barred = [p for p in staged if p in NEVER_TRACKED]
+    if barred:
+        print("\nCOMMIT BLOCKED - a privacy working file is staged.\n", file=sys.stderr)
+        for path in barred:
+            print(f"  {path}: must never be tracked in this public repository", file=sys.stderr)
+        print(
+            "\nThese hold the private tokens the guard exists to keep out, so the\n"
+            "content scan below cannot judge them — they are barred by path.\n"
+            "Unstage with:  git restore --staged <path>\n"
+            "If one reached the index, .gitignore was edited or `git add -f` was\n"
+            "used; fix that rather than bypassing this.\n",
+            file=sys.stderr,
+        )
+        return 1
+
     findings = []
-    for path in staged_files():
+    for path in staged:
         text = staged_text(path)
         if text is None:
             continue
