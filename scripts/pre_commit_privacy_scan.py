@@ -28,7 +28,12 @@ from pathlib import Path
 MODULE_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(MODULE_ROOT))
 
-from core.privacy_scan import CHECKS, EXEMPT_PREFIXES, NEVER_TRACKED  # noqa: E402
+from core.privacy_scan import (  # noqa: E402
+    CHECKS,
+    EXEMPT_PREFIXES,
+    NEVER_TRACKED,
+    local_denylist_violations,
+)
 
 
 def staged_files():
@@ -82,6 +87,11 @@ def main():
         for name, (finder, _planted) in sorted(CHECKS.items()):
             for hit in finder(text, is_md):
                 findings.append((path, name, hit))
+        # The operator's own list, if they keep one. Exact matches, so it adds
+        # no false positives -- and it catches the private-TLD hostnames the
+        # heuristic above has to guess at.
+        for hit in local_denylist_violations(text):
+            findings.append((path, "local-denylist", hit))
 
     if not findings:
         return 0
